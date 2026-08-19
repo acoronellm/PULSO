@@ -110,7 +110,15 @@ Descompone el objetivo general en metas concretas, observables y alcanzables que
 
 ## 5. Solución propuesta
 
-Describe a alto nivel la solución planteada para abordar el problema identificado. Explica qué se propone construir, quiénes serían sus usuarios, cómo funcionaría de manera general y por qué constituye una respuesta adecuada dentro del alcance definido.
+Se propone desarrollar PULSO, un MVP de una plataforma web de Prevención y Predicción (P&P) orientada a la prevención y educación en salud cardiovascular. La plataforma permitirá al usuario ingresar información relacionada con sus factores de riesgo y obtener una evaluación de su riesgo cardiovascular.
+
+El usuario final para esta plataforma serán las personas del común, es decir, cualquier persona especializada o no en el tema la va poder usar y entender, pero claramente se espera que su publico general sean personas que tengan o hayan tenido complicaciones cardiovasculares.
+
+A partir de la información proporcionada, PULSO presentará los resultados de manera comprensible, permitiendo al usuario identificar los factores que tienen mayor influencia en su nivel de riesgo. Asimismo, la plataforma permitirá modificar determinadas variables para simular diferentes escenarios y observar cómo estos cambios pueden afectar la estimación del riesgo cardiovascular.
+
+Como complemento a los resultados, PULSO proporcionará información y recomendaciones preventivas basadas en guías clínicas y fuentes médicas confiables, utilizando un lenguaje sencillo y comprensible para personas sin conocimientos especializados en el área de la salud.
+
+De esta manera, la solución busca ir más allá de una evaluación que únicamente entregue un porcentaje de riesgo. PULSO pretende facilitar que las personas comprendan los factores relacionados con su riesgo cardiovascular, exploren diferentes escenarios y accedan a información preventiva de manera clara, contribuyendo así a la prevención y educación en salud cardiovascular.
 
 ## 6. Estado del arte / soluciones relacionadas
 
