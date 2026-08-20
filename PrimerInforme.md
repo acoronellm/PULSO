@@ -122,28 +122,38 @@ De esta manera, la solución busca ir más allá de una evaluación que únicame
 
 ## 6. Estado del arte / soluciones relacionadas
 
-Presenta antecedentes o soluciones existentes relevantes, con el fin de contextualizar la propuesta y mostrar oportunidades de diferenciación, mejora o aporte.
+Para analizar las soluciones existentes relacionadas con la evaluación del riesgo cardiovascular, se revisaron diferentes calculadoras y herramientas utilizadas para estimar dicho riesgo. La comparación considera aspectos como la estimación del riesgo, las recomendaciones proporcionadas, el público objetivo, el alcance geográfico, la cantidad de información solicitada, la posibilidad de modificar los datos y la forma en que se presentan los escenarios de riesgo.
 
-Responde a las preguntas: ¿qué soluciones existen hoy?, ¿cómo abordan el problema?, ¿qué limitaciones presentan?
+| Solución | Estimación del riesgo | Recomendaciones | Público objetivo | Simulación / comparación | Características destacadas |
+|---|---|---|---|---|---|
+| **SCORE2** | Sí, proporciona un porcentaje de riesgo | **Sí, son personalizadas y las más completas de las herramientas revisadas** | Personas especializadas | Permite modificar los datos y recalcular el riesgo, pero no comparar directamente con el estado inicial | Orientada principalmente a población europea |
+| **PREVENT** | Sí, proporciona un porcentaje de riesgo | Sí, pero principalmente como guía general para interpretar los resultados | Personas especializadas | Permite modificar los datos y recalcular el riesgo, pero no comparar directamente con el estado inicial | Requiere interpretación de los resultados |
+| **Framingham – Canadian Cardiovascular Society** | Sí, proporciona un porcentaje de riesgo | Sí, principalmente como guía general para interpretar los resultados | Personas especializadas | Permite modificar los datos y recalcular el riesgo, pero no comparar directamente con el estado inicial | Interfaz poco intuitiva para el usuario |
+| **CVD Risk Estimator Plus – PREVENT** | Sí, proporciona un porcentaje de riesgo | Sí, enfocadas en la persona evaluada | Personas especializadas | Permite modificar los datos y recalcular el riesgo, pero no comparar directamente con el estado inicial | Presenta recomendaciones personalizadas |
+| **CVD Risk Estimator Plus – Pooled Cohort** | Sí, proporciona un porcentaje de riesgo | No | Personas especializadas | Permite modificar los datos y recalcular el riesgo, pero no comparar directamente con el estado inicial | Orientada aparentemente a población estadounidense |
+| **QRISK** | Sí, proporciona un porcentaje de riesgo | No | — | **Sí, permite comparar directamente el riesgo actual con un escenario hipotético** | **Es la herramienta que solicita mayor cantidad de datos entre las revisadas. Su interfaz gráfica es sencilla, pero poco atractiva para el usuario** |
 
-### Revisar
+### Análisis de las soluciones existentes
 
-- Productos comerciales.
-- Soluciones open-source.
-- Arquitecturas o enfoques técnicos relevantes.
+A partir de la comparación realizada, se observa que las herramientas revisadas cuentan con la capacidad de **estimar el riesgo cardiovascular**, generalmente mediante la presentación de un porcentaje. Sin embargo, existen diferencias importantes en la cantidad de información solicitada, la forma de presentar los resultados y las funcionalidades disponibles para su interpretación.
 
-### Comparar
+En cuanto a las **recomendaciones**, SCORE2 destaca entre las herramientas analizadas por proporcionar las recomendaciones más completas y enfocadas en la persona evaluada. CVD Risk Estimator Plus (PREVENT) también proporciona recomendaciones personalizadas, mientras que PREVENT y Framingham – Canadian Cardiovascular Society presentan principalmente información general que sirve como guía para interpretar los resultados obtenidos. Por otro lado, Pooled Cohort y QRISK no proporcionan recomendaciones dentro de la herramienta revisada.
 
-- Funcionalidad.
-- Escalabilidad.
-- Costos.
-- Usabilidad.
-- Limitaciones técnicas.
+Respecto a la **cantidad de información solicitada**, QRISK destaca por ser la herramienta que requiere una mayor cantidad de datos entre las soluciones analizadas. Esto permite realizar una evaluación considerando un conjunto más amplio de variables, aunque también implica una mayor cantidad de información que debe proporcionar el usuario.
 
-### Resultados esperados
+En relación con la **experiencia de usuario**, se identificaron diferencias entre las herramientas. Algunas están diseñadas principalmente para personas con conocimientos especializados en salud, lo que puede dificultar su interpretación por parte de usuarios no especializados. En particular, la interfaz de Framingham – Canadian Cardiovascular Society puede resultar complicada de comprender, mientras que la interfaz gráfica de QRISK, aunque sencilla, no resulta especialmente atractiva para el usuario.
 
-- Identificación de **vacíos, oportunidades o problemas no resueltos**.
-- **Justificación técnica** de por qué se requiere una nueva solución.
+Otro aspecto relevante es la **modificación de los datos para explorar diferentes escenarios**. Todas las herramientas revisadas permiten modificar los datos introducidos y realizar nuevamente el cálculo del riesgo. Sin embargo, existe una diferencia importante en la manera de presentar estos cambios. En las herramientas distintas de QRISK, al modificar los datos se realiza un nuevo cálculo del riesgo, pero no se presenta directamente una comparación entre el resultado original y el nuevo resultado dentro de la plataforma. **QRISK sí permite realizar esta comparación directamente**, mostrando el riesgo correspondiente al estado actual frente al riesgo obtenido en un escenario hipotético.
+
+Finalmente, también se identifican diferencias en el **alcance geográfico** de las herramientas. SCORE2 está orientada principalmente a población europea, mientras que PREVENT y Pooled Cohort presentan un enfoque asociado a población estadounidense y QRISK al Reino Unido. Esto constituye un aspecto relevante al momento de interpretar los resultados, debido a que los modelos de riesgo pueden estar desarrollados y calibrados para poblaciones específicas.
+
+### Oportunidad identificada
+
+A partir de la revisión, se observa que **no existe una única característica que diferencie completamente a PULSO de las herramientas analizadas**, ya que algunas soluciones existentes presentan funcionalidades que también se contemplan en el proyecto. Sin embargo, las características se encuentran distribuidas de diferentes maneras entre las herramientas.
+
+Por ejemplo, **SCORE2 destaca por la calidad y personalización de sus recomendaciones**, mientras que **QRISK destaca por la cantidad de datos solicitados y por permitir comparar directamente el estado actual con un escenario hipotético**. Estas características representan referencias importantes para el diseño de PULSO.
+
+Por ello, la oportunidad para PULSO consiste en **integrar en una misma plataforma las funcionalidades relevantes identificadas en las soluciones analizadas**, pero orientándolas específicamente a personas no especializadas y con un enfoque de prevención y educación cardiovascular. La propuesta busca que el usuario pueda no solo conocer su nivel de riesgo, sino también comprender los factores que influyen en él, comparar directamente diferentes escenarios y recibir información y recomendaciones presentadas en un lenguaje sencillo.
 
 ## 7. Metodología de desarrollo y plan de trabajo
 
