@@ -46,6 +46,7 @@ Finalmente, el valor del proyecto no dependerá exclusivamente de alcanzar una m
 
 ### 2.3 Restricciones y supuestos iniciales
 **Restricciones**
+
   ##1. Tiempo y alcance académico. El proyecto será desarrollado dentro del tiempo asignado para el Proyecto Final y por un equipo de tres estudiantes. Por esta razón, el resultado será        un producto mínimo viable y no una plataforma certificada para uso clínico.
   
   ##2. Disponibilidad de datos. El entrenamiento dependerá de conjuntos de datos clínicos públicos. Su tamaño, calidad, actualidad, balance, cantidad de variables y presencia de valores        faltantes limitarán el desempeño de los modelos.
@@ -67,6 +68,7 @@ Finalmente, el valor del proyecto no dependerá exclusivamente de alcanzar una m
   ##10. Delimitación de la predicción. El MVP deberá definir con precisión el evento cardiovascular, el horizonte temporal y la población para los cuales se realizará la estimación. No         se asumirán como equivalentes diferentes enfermedades o desenlaces cardiovasculares.
   
 **Supuestos iniciales**
+
   ##1. Se encontrarán conjuntos de datos públicos con variables suficientes para entrenar y comparar modelos de riesgo cardiovascular dentro del alcance del MVP.
   
   ##2. Los usuarios dispondrán de un dispositivo con navegador web y conexión a internet.
