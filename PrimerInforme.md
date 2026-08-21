@@ -2,70 +2,79 @@
 
 ## Resumen / Abstract
 
-Presenta una síntesis breve del problema abordado, la solución propuesta, el alcance del proyecto, la metodología de desarrollo y el plan general de trabajo. Debe permitir al lector comprender la esencia del proyecto sin necesidad de leer el documento completo.
+Las enfermedades cardiovasculares constituyen la principal causa de muerte en el mundo y están asociadas tanto con factores no modificables como modificables, entre ellas la hipertensión arterial, el colesterol elevado, la obesidad, el tabaquismo y la inactividad física. Aunque existen herramientas digitales para estimar el riesgo cardiovascular, muchas están orientadas a profesionales de la salud, emplean modelos calibrados para poblaciones específicas y presentan resultados cuya interpretación puede resultar compleja para personas sin formación médica. Este proyecto propone el diseño e implementación de PULSO (Plataforma Inteligente para la Predicción Explicable y Simulación Personalizada del Riesgo Cardiovascular mediante Machine Learning y Aprendizaje Continuo), un producto mínimo viable orientado a la prevención y educación en salud cardiovascular. La plataforma permitirá registrar factores de riesgo, generar una estimación mediante modelos de aprendizaje automático, explicar la influencia de las variables utilizadas y comparar el resultado inicial con escenarios hipotéticos construidos mediante la modificación de factores potencialmente controlables. Asimismo, integrará un sistema basado en Retrieval-Augmented Generation para presentar información preventiva sustentada en guías clínicas y fuentes médicas confiables, mediante un lenguaje comprensible para usuarios no especializados. El proyecto se desarrollará mediante una metodología iterativa e incremental que comprenderá la selección y preparación de datos clínicos públicos, el entrenamiento y comparación de modelos, el diseño de la arquitectura, la implementación de la plataforma web, la integración de explicabilidad y RAG, y la validación experimental del sistema. Como resultado, se espera obtener un MVP funcional que ayude a las personas a comprender sus factores de riesgo y favorezca decisiones informadas de prevención, sin sustituir la valoración realizada por profesionales de la salud.
 
 ## 1. Introducción
+El sector de la salud atraviesa un proceso de transformación impulsado por la digitalización de la información clínica, el crecimiento de la capacidad computacional y la aplicación de técnicas de inteligencia artificial al análisis de datos. En este contexto, el aprendizaje automático, la inteligencia artificial explicable, los sistemas de apoyo a la toma de decisiones y las plataformas digitales de salud ofrecen nuevas posibilidades para identificar patrones, estimar riesgos y comunicar información preventiva. Estas tecnologías adquieren especial relevancia frente a las enfermedades cardiovasculares, consideradas la principal causa de muerte en el mundo. Según la Organización Mundial de la Salud (OMS, 2025), aproximadamente 19,8 millones de personas murieron por enfermedades cardiovasculares en 2022, cifra equivalente al 32 % de las defunciones mundiales. La OMS también señala que muchas de estas enfermedades pueden prevenirse mediante la identificación y el manejo oportuno de factores conductuales y metabólicos, como el tabaquismo, la inactividad física, la alimentación poco saludable, la hipertensión arterial, la glucosa elevada, las alteraciones de los lípidos y el exceso de peso.
 
-Redacta la introducción como un texto continuo de 4 párrafos. El primero debe describir el dominio o sector del proyecto, las tendencias tecnológicas relevantes y el rol del software en ese contexto. El segundo debe exponer la situación actual: limitaciones del mercado, carencias funcionales y el impacto en los usuarios. El tercero debe presentar la necesidad técnica identificada y la oportunidad de diseño tecnológico. El cuarto, opcional, debe cerrar con una presentación general de la solución propuesta (nombre, funcionalidades clave e impacto esperado), sirviendo de transición hacia las secciones siguientes.
+Actualmente existen herramientas como SCORE2, PREVENT, Framingham, Pooled Cohort y QRISK, diseñadas para estimar la probabilidad de que una persona presente un evento cardiovascular durante un periodo determinado. Sin embargo, estas soluciones difieren en las variables que emplean, la población para la cual fueron desarrolladas y la manera en que comunican sus resultados. Por ejemplo, SCORE2 fue diseñado para estimar el riesgo cardiovascular a diez años en poblaciones europeas, mientras que PREVENT utiliza información cardiovascular, renal y metabólica y está orientado principalmente a apoyar las conversaciones preventivas entre los profesionales de la salud y sus pacientes (American Heart Association [AHA], s. f.; European Society of Cardiology [ESC], s. f.-a). Además, algunas de estas herramientas presentan porcentajes y términos clínicos que pueden resultar difíciles de interpretar para personas no especializadas. Aunque generalmente permiten modificar los datos y repetir el cálculo, no siempre explican claramente la influencia de cada variable ni muestran una comparación comprensible entre el resultado original y los escenarios hipotéticos explorados.
 
-### Contextos
+Esta situación evidencia la necesidad de diseñar una solución tecnológica que no se limite a proporcionar un porcentaje de riesgo, sino que facilite su comprensión y uso responsable. La oportunidad consiste en transformar una estimación probabilística en una experiencia educativa mediante la explicación de los factores considerados, la identificación de las variables que más influyen en el resultado y la comparación entre la condición inicial del usuario y diferentes escenarios hipotéticos. Esta necesidad también responde a las limitaciones de generalización de los modelos existentes, puesto que el riesgo cardiovascular no se comporta de manera uniforme entre regiones y poblaciones. De hecho, la ESC y la Sociedad Interamericana de Cardiología adelantan una iniciativa para recalibrar SCORE2 con datos de América Latina y el Caribe, debido a que su versión original fue desarrollada con información de poblaciones europeas (ESC, s. f.-b). Por tanto, una solución de este tipo debe informar la procedencia de los datos, las condiciones de aplicación y las limitaciones de sus predicciones.
 
-- **Dominio o sector** (ej. educación, industria, salud, ciudades inteligentes, TI).
-- **Tendencias tecnológicas relevantes**.
-- **Rol de los sistemas de información / software / datos** en ese contexto.
+En respuesta a esta necesidad, se propone PULSO (Plataforma Inteligente para la Predicción Explicable y Simulación Personalizada del Riesgo Cardiovascular mediante Machine Learning y Aprendizaje Continuo), una plataforma web orientada principalmente a personas no especializadas. El sistema integrará modelos de aprendizaje automático entrenados con datos clínicos públicos, mecanismos de explicabilidad individual y global, comparación entre el riesgo inicial y escenarios hipotéticos, y un componente basado en Retrieval-Augmented Generation para proporcionar información preventiva sustentada en guías clínicas y fuentes médicas confiables. Su diseño tendrá en cuenta principios de autonomía, seguridad, transparencia, explicabilidad, inclusión y responsabilidad, considerados por la OMS como fundamentales para el uso ético de la inteligencia artificial en la salud (OMS, 2021). De esta manera, PULSO buscará fortalecer la prevención y la educación cardiovascular, sin sustituir el diagnóstico, el tratamiento ni la valoración realizada por un profesional de la salud.
 
-### Situación actual
-
-- **Limitaciones del mercado actual**.
-- **Carencias funcionales o de diseño**.
-- **Impacto en usuarios**.
-
-### Necesidad identificada
-
-- **Necesidad técnica clara**.
-- **Oportunidad de diseño tecnológico**.
-
-### Propuesta general
-
-- **Nombre del sistema**.
-- **Funcionalidades clave**.
-- **Impacto esperado**.
 
 ## 2. Planteamiento del problema
 
-Define y delimita el problema central, explicando qué se busca resolver y por qué es relevante.
+El problema central que aborda PULSO es la dificultad que enfrentan las personas no especializadas para obtener, interpretar y utilizar de manera responsable información personalizada sobre sus factores de riesgo cardiovascular, debido a que las herramientas disponibles suelen ofrecer estimaciones aisladas, emplear lenguaje clínico, ofrecer explicaciones limitadas y estar diseñadas para poblaciones o contextos diferentes.
 
-El problema se define como una **carencia o déficit** que se manifiesta como un **estado negativo** en una situación real (no teórica), localizado en una **población objetivo bien definida**. No debe confundirse con la falta de un servicio específico ni con la inexistencia de una solución tecnológica. El problema no es "hace falta un sistema que integre X", sino la evidencia de una situación deficiente: por ejemplo, "existen aplicaciones diferentes e incompatibles en los distintos departamentos de la empresa, lo que genera desconexión entre las unidades y pérdida de calidad en la información para la toma de decisiones". Tampoco se trata de un trabajo para una empresa en particular, sino de una **problemática transferible** a contextos similares.
+Por tanto, el problema no se define como la inexistencia de una plataforma que integre Machine Learning, explicabilidad y RAG. Estas tecnologías representan componentes de la solución. El estado negativo que se pretende atender es la limitada capacidad de los usuarios para comprender qué significa una estimación de riesgo, qué factores influyen en ella, cuáles podrían ser modificables y cuáles son los límites del resultado obtenido
 
 ### 2.1 Descripción del problema
 
-Expone con claridad la problemática, sus causas, a quién afecta y cuáles son sus principales consecuencias.
+Las enfermedades cardiovasculares representan una problemática relevante de salud pública. Según la Organización Mundial de la Salud (OMS, 2025), aproximadamente 19,8 millones de personas murieron por estas enfermedades en 2022, lo que equivale al 32 % de las defunciones mundiales. Una parte importante del riesgo cardiovascular se relaciona con factores que pueden detectarse o modificarse, como el tabaquismo, la inactividad física, la alimentación poco saludable, la hipertensión arterial, la glucosa elevada, las alteraciones del colesterol y el exceso de peso. Por esta razón, la identificación temprana y la comprensión de estos factores son importantes para promover conductas preventivas y facilitar la búsqueda oportuna de orientación profesional.
+
+Aunque existen herramientas como SCORE2, PREVENT, Framingham y QRISK para estimar la probabilidad de presentar eventos cardiovasculares, sus resultados no siempre son comprensibles para personas sin conocimientos médicos. Algunas presentan porcentajes y términos clínicos sin explicar suficientemente qué significa el resultado, cuáles variables tuvieron mayor influencia o cuáles son las limitaciones de la estimación. Además, varios modelos fueron desarrollados para poblaciones específicas: SCORE2 se diseñó principalmente con datos europeos, mientras que PREVENT está orientado al contexto estadounidense y al apoyo de conversaciones preventivas entre profesionales y pacientes (American Heart Association [AHA], 2026; European Society of Cardiology [ESC], s. f.-a). Esta situación limita su aplicación directa en otros contextos, ya que el desempeño de una estimación puede variar entre poblaciones. De hecho, actualmente se desarrolla SCORE2-LAC para adaptar este tipo de evaluación a América Latina y el Caribe (ESC, s. f.-b).
+
+Como consecuencia, las personas no especializadas pueden tener dificultades para interpretar responsablemente su riesgo cardiovascular, reconocer los factores que más influyen en él y comprender el significado de los escenarios hipotéticos. Una estimación baja puede generar una falsa sensación de seguridad, mientras que un resultado alto puede producir preocupación o decisiones sin acompañamiento profesional. Por tanto, el problema central corresponde a la limitada capacidad de los usuarios no especializados para obtener, comprender y utilizar información personalizada sobre su riesgo cardiovascular, debido a la complejidad de las herramientas disponibles, la escasa explicación de sus resultados, la ausencia de comparaciones claras y las limitaciones de generalización de los modelos. Esta problemática evidencia la necesidad de presentar las predicciones de manera comprensible, explicable y responsable, sin reemplazar la valoración de un profesional de la salud (OMS, 2021).
 
 ### 2.2 Justificación
 
-Explica por qué el problema debe ser atendido y cuál es la pertinencia académica, técnica, social o práctica del proyecto.
+El desarrollo de PULSO se justifica, en primer lugar, por la magnitud de las enfermedades cardiovasculares y por la posibilidad de prevenir una parte importante de sus consecuencias mediante la identificación y el manejo oportuno de los factores de riesgo. La OMS (2025) señala que es fundamental detectar las enfermedades cardiovasculares tan pronto como sea posible para iniciar su manejo mediante orientación profesional y, cuando corresponda, tratamiento médico. En este sentido, disponer de información comprensible sobre los factores de riesgo puede contribuir a que las personas reconozcan la importancia de la prevención y busquen oportunamente atención profesional.
+
+Desde la perspectiva social, el proyecto busca reducir la distancia existente entre la complejidad técnica de los modelos predictivos y la capacidad de interpretación del público general. No es suficiente comunicar que una persona presenta determinado porcentaje de riesgo; también es necesario explicar qué representa ese valor, cuáles factores fueron considerados y cuáles influyeron con mayor intensidad. Esta forma de comunicación puede fortalecer la alfabetización en salud, entendida como la capacidad para acceder, comprender y utilizar información relacionada con el cuidado y la prevención.
+
+PULSO también pretende aportar a la educación preventiva mediante la comparación entre la condición inicial y diferentes escenarios hipotéticos. Esta funcionalidad permitirá que el usuario observe cómo cambia la predicción cuando se modifican determinadas variables admitidas por el modelo. Sin embargo, la plataforma deberá aclarar que estos resultados representan asociaciones matemáticas y no efectos clínicos garantizados. La simulación tendrá una finalidad educativa y exploratoria, no sustituirá la formulación de un plan terapéutico ni permitirá recomendar cambios en medicamentos o tratamientos.
+
+La pertinencia social y práctica del proyecto también se relaciona con el contexto colombiano. El Ministerio de Salud y Protección Social (2023) plantea que el abordaje de las enfermedades no transmisibles requiere fortalecer la atención primaria, el empoderamiento de las personas y las comunidades y la aplicación de intervenciones que contribuyan a reducir la morbilidad, la mortalidad prematura y la discapacidad. PULSO puede apoyar estos propósitos al presentar información preventiva de manera accesible, aunque no formará parte inicialmente de un servicio asistencial ni reemplazará las rutas institucionales de atención.
+
+Desde el punto de vista técnico, el proyecto permite integrar conocimientos de análisis de datos, Machine Learning, inteligencia artificial explicable, ingeniería de software, diseño de bases de datos, desarrollo de API, experiencia de usuario y recuperación aumentada por generación. La comparación de varios modelos permitirá seleccionar una alternativa considerando no solamente su exactitud, sino también su capacidad de discriminación, calibración, estabilidad, interpretabilidad y costo computacional. Esta evaluación es necesaria porque un modelo puede clasificar adecuadamente a los usuarios, pero producir probabilidades que no representen correctamente la frecuencia real de los eventos.
+
+Desde la perspectiva académica, PULSO constituye una experiencia de diseño tecnológico suficientemente compleja para un proyecto de Ingeniería de Sistemas. Su desarrollo requiere definir requerimientos, comparar alternativas, diseñar una arquitectura, gestionar datos, construir e integrar componentes, implementar mecanismos de seguridad y realizar pruebas técnicas y de usuario. Además, permite estudiar problemas propios de la inteligencia artificial aplicada a la salud, como el sesgo de los datos, la generalización, la explicabilidad, la privacidad, la trazabilidad y la comunicación responsable de resultados.
+
+Finalmente, el valor del proyecto no dependerá exclusivamente de alcanzar una métrica elevada de predicción. Una plataforma puede presentar un desempeño algorítmico adecuado y, al mismo tiempo, resultar poco útil o riesgosa si los usuarios no comprenden sus resultados. Por esta razón, la validación de PULSO deberá considerar conjuntamente el desempeño del modelo, la calidad de las explicaciones, el funcionamiento de la plataforma, la pertinencia de las respuestas recuperadas y la comprensión de los usuarios. La integración de estas dimensiones constituye la principal pertinencia técnica y práctica de la solución propuesta.
 
 ### 2.3 Restricciones y supuestos iniciales
+**Restricciones**
+  ##1. Tiempo y alcance académico. El proyecto será desarrollado dentro del tiempo asignado para el Proyecto Final y por un equipo de tres estudiantes. Por esta razón, el resultado será        un producto mínimo viable y no una plataforma certificada para uso clínico.
+  ##2. Disponibilidad de datos. El entrenamiento dependerá de conjuntos de datos clínicos públicos. Su tamaño, calidad, actualidad, balance, cantidad de variables y presencia de valores        faltantes limitarán el desempeño de los modelos.
+  ##3. Representatividad poblacional. Los datos disponibles podrían no representar adecuadamente a la población colombiana o latinoamericana. Esta restricción es relevante porque los           modelos de riesgo deben validarse o recalibrarse al utilizarse en poblaciones diferentes a aquellas con las que fueron construidos (ESC, s. f.-b).
+  ##4. Alcance preventivo y educativo. PULSO no realizará diagnósticos médicos, no prescribirá medicamentos, no recomendará suspender tratamientos y no sustituirá la consulta con               profesionales de la salud.
+  ##5. Datos proporcionados por el usuario. La plataforma dependerá parcialmente de información autodeclarada. Los errores de medición, desconocimiento, omisión o digitación podrán             afectar el resultado.
+  ##6. Interpretación de las simulaciones. Los escenarios se construirán modificando las entradas del modelo. Una disminución del riesgo estimado no demostrará causalidad ni garantizará        que el riesgo clínico real disminuya en la misma proporción. Algunas ecuaciones de riesgo no fueron diseñadas para calcular el efecto directo de tratamientos o intervenciones            (AHA, 2026).
+  ##7. Limitaciones de la inteligencia artificial generativa. La utilización de RAG reduce, pero no elimina, el riesgo de generar respuestas incompletas, imprecisas o                           descontextualizadas. Las salidas deberán conservar vínculos con las fuentes y advertencias sobre su carácter informativo.
+  ##8. Recursos tecnológicos. El entrenamiento, almacenamiento y despliegue estarán condicionados por la capacidad computacional, los servicios disponibles y el presupuesto del equipo.
+  ##9. Privacidad y seguridad. El MVP deberá minimizar la recopilación de información personal y proteger los datos almacenados. No se utilizarán historias clínicas identificables sin          las autorizaciones, medidas de seguridad y procedimientos éticos correspondientes. La protección de la autonomía y la privacidad constituye un principio fundamental para el uso          de la inteligencia artificial en salud (OMS, 2021).
+  ##10. Delimitación de la predicción. El MVP deberá definir con precisión el evento cardiovascular, el horizonte temporal y la población para los cuales se realizará la estimación. No         se asumirán como equivalentes diferentes enfermedades o desenlaces cardiovasculares.
+  
+**Supuestos iniciales**
+  ##1. Se encontrarán conjuntos de datos públicos con variables suficientes para entrenar y comparar modelos de riesgo cardiovascular dentro del alcance del MVP.
+  ##2. Los usuarios dispondrán de un dispositivo con navegador web y conexión a internet.
+  ##3. Los usuarios conocerán o podrán consultar parte de la información solicitada, como edad, peso, presión arterial y resultados básicos de laboratorio.
+  ##4. Las variables estarán definidas con unidades de medida, rangos válidos e instrucciones comprensibles para reducir errores en el ingreso de datos.
+  ##5. Será posible seleccionar guías clínicas y fuentes médicas confiables para construir un corpus documental controlado para el sistema RAG.
+  ##6. Los datos podrán dividirse adecuadamente en conjuntos de entrenamiento, validación y prueba, evitando que los mismos registros sean utilizados simultáneamente para entrenar y evaluar el modelo.
+  ##7. Los modelos se evaluarán mediante métricas de discriminación, calibración y clasificación apropiadas para la naturaleza y distribución de los datos.
+  ##8. La plataforma conservará el resultado inicial para compararlo con los escenarios hipotéticos y diferenciará visualmente los datos reales de los valores simulados.
+  ##9. Las variables modificadas durante la simulación estarán limitadas a factores potencialmente controlables y compatibles con el modelo seleccionado.
+  ##10. Las explicaciones indicarán la contribución de las variables a la predicción, pero no afirmarán que exista una relación causal.
 
-Indica las principales limitaciones y condiciones asumidas para plantear la solución, tales como tiempo, recursos, acceso a información, disponibilidad de usuarios, infraestructura o restricciones técnicas.
 
 ## 3. Alcance del proyecto
 
 Define los límites del proyecto especificando qué incluye y qué no incluye.
 
-### Incluye
 
-- **Funcionalidades principales del sistema**.
-- **Tipo de usuarios involucrados**.
-- **Nivel de madurez de la solución** (prototipo, MVP, diseño detallado).
-- **Entornos cubiertos** (web, móvil, backend, integración).
-
-### No incluye
-
-- Funcionalidades futuras o deseables.
-- Implementaciones a escala productiva.
-- Integraciones externas no críticas.
-- Soporte operativo post-proyecto.
 
 ## 4. Objetivos
 
