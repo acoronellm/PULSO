@@ -248,7 +248,10 @@ Finalmente, se realizarán pruebas de usabilidad con usuarios potenciales para e
 
 ## 8. Referencias
 
-American Heart Association. (s. f.). PREVENT calculator. https://professional.heart.org/en/guidelines-and-statements/prevent-calculator
-Canadian Cancer Society. (s. f.). FRS. https://ccs.ca/frs/
-CVD Risk Estimator Plus - American College of Cardiology. (s. f.). American College Of Cardiology. https://www.acc.org/CVDPlus?utm_source QRISK3-Lifetime. (s. f.). https://qrisk.org/lifetime/index.php
+American College of Cardiology. (s. f.). *CVD Risk Estimator Plus*. https://www.acc.org/CVDPlus
 
+American Heart Association. (s. f.). *PREVENT calculator*. https://professional.heart.org/en/guidelines-and-statements/about-prevent-calculator
+
+Canadian Cancer Society. (s. f.). *FRS*. https://ccs.ca/frs/
+
+QRISK. (s. f.). *QRISK3-lifetime cardiovascular risk calculator*. https://qrisk.org/lifetime/
