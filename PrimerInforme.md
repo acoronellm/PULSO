@@ -243,7 +243,8 @@ Finalmente, se realizarán pruebas de usabilidad con usuarios potenciales para e
 
 ### 7.4 Plan de trabajo, cronograma o hitos
 
-Presenta la planificación general del proyecto en forma de cronograma, tabla o listado de hitos, indicando las actividades principales, los entregables esperados y, cuando aplique, la temporalidad estimada de cada fase.
+<img width="1414" height="2000" alt="Lorem ipsum dolor sit amet, consectetur aset adipiscing elit asim  Vestibulum ut feugiat enim  Aliquet tristique felis, non convallis" src="https://github.com/user-attachments/assets/433b7668-4ce6-432c-86fa-6786c5e64646" />
+
 
 ## 8. Referencias
 
