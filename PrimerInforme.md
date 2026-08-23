@@ -233,7 +233,13 @@ Las fases no se desarrollarán necesariamente de manera lineal, ya que los resul
 
 ### 7.3 Estrategia de validación
 
-Explica cómo se evaluarán los avances en cada iteración, por ejemplo mediante retroalimentación de usuarios, pruebas funcionales, revisión de requerimientos o validaciones técnicas y de usabilidad.
+La validación de PULSO se realizará de manera progresiva durante cada iteración, con el propósito de identificar errores y aplicar ajustes antes de avanzar a la siguiente etapa. En la primera iteración se revisará que el problema, el alcance y los requerimientos definidos correspondan con las necesidades de los usuarios. También se evaluará la calidad de los conjuntos de datos mediante el análisis de sus variables, valores faltantes, consistencia, balance y pertinencia para la estimación del riesgo cardiovascular.
+
+Durante las iteraciones de preparación, modelado y evaluación se comprobará la calidad de las transformaciones realizadas sobre los datos y el desempeño de los modelos de Machine Learning. Para ello, se utilizarán datos separados para entrenamiento y prueba, junto con métricas como precisión, sensibilidad, especificidad, F1-score, ROC-AUC y matriz de confusión. La selección del modelo no dependerá únicamente de la exactitud, sino también de su calibración, estabilidad e interpretabilidad. Asimismo, SHAP permitirá revisar qué variables influyen en las predicciones y detectar comportamientos inesperados.
+
+En la iteración de integración se aplicarán pruebas funcionales para verificar el ingreso y la validación de datos, la comunicación con la API, la generación de predicciones y el funcionamiento de SHAP, la simulación y el componente RAG. Se comprobará que los escenarios diferencien claramente los datos actuales de los hipotéticos y que las respuestas generadas estén sustentadas en las fuentes médicas seleccionadas. También se verificará que la plataforma no presente sus resultados como diagnósticos ni genere prescripciones o recomendaciones médicas sin respaldo.
+
+Finalmente, se realizarán pruebas de usabilidad con usuarios potenciales para evaluar la facilidad de navegación, la claridad del lenguaje y la comprensión de las predicciones, explicaciones y simulaciones. La retroalimentación obtenida, junto con los resultados de las pruebas técnicas y funcionales, se utilizará para corregir errores y refinar el MVP. Esta validación evaluará el funcionamiento y la comprensión de PULSO, pero no constituirá una validación clínica ni permitirá utilizar la plataforma como sustituto de una valoración médica.
 
 ### 7.4 Plan de trabajo, cronograma o hitos
 
