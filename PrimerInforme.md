@@ -194,7 +194,42 @@ Explica la metodología adoptada para el desarrollo del proyecto, justificando s
 
 ### 7.2 Iteraciones o fases de desarrollo
 
-Describe las principales fases o iteraciones previstas para el proyecto, indicando el propósito de cada una, las actividades principales a realizar y la manera en que cada ciclo contribuirá al refinamiento progresivo de la solución.
+El desarrollo de PULSO se organizará mediante un proceso iterativo compuesto por diferentes fases, tomando como referencia las etapas de **CRISP-DM** para el desarrollo del componente de datos y Machine Learning. Sobre esta estructura se incorporarán progresivamente las funcionalidades de explicabilidad, simulación y generación de información mediante RAG. Cada fase tendrá un propósito específico y sus resultados servirán como base para las etapas posteriores, permitiendo realizar ajustes cuando los resultados obtenidos no sean satisfactorios.
+
+#### 1. Comprensión de los datos (Data Understanding)
+
+Se identificarán y analizarán los conjuntos de datos disponibles para determinar su pertinencia respecto al objetivo del proyecto. Se estudiará su estructura, cantidad de registros, tipos de variables, valores faltantes, distribución y relaciones entre variables, además de evaluar su calidad y características para seleccionar los datos más adecuados para el desarrollo del modelo.
+
+#### 2. Preparación de los datos (Data Preparation)
+
+Los datos seleccionados serán sometidos a procesos de limpieza y transformación para adecuarlos al entrenamiento de los modelos. Se realizarán actividades como el tratamiento de valores faltantes, transformación de variables, selección de características y normalización o estandarización cuando sea necesario. Posteriormente, los datos serán divididos en los conjuntos requeridos para el entrenamiento y evaluación.
+
+#### 3. Modelado (Modeling)
+
+Se desarrollarán y entrenarán diferentes modelos de Machine Learning utilizando los datos previamente preparados. Se probarán distintos algoritmos y configuraciones con el propósito de identificar los modelos que presenten un desempeño adecuado para la estimación del riesgo cardiovascular.
+
+#### 4. Evaluación (Evaluation)
+
+Se analizará el desempeño de los modelos mediante métricas de evaluación apropiadas para el problema. Los resultados obtenidos serán comparados con el fin de seleccionar el modelo que mejor se ajuste a los objetivos establecidos. En caso de identificar resultados insatisfactorios, se podrán realizar ajustes en las etapas anteriores de preparación o modelado.
+
+#### 5. Explicabilidad mediante SHAP
+
+Una vez seleccionado el modelo, se incorporará **SHAP (SHapley Additive exPlanations)** como mecanismo de explicabilidad. Esta etapa permitirá identificar la contribución de las diferentes variables en las predicciones realizadas, con el propósito de proporcionar al usuario una interpretación comprensible de los principales factores asociados a su estimación de riesgo.
+
+#### 6. Simulación
+
+Se desarrollará una funcionalidad que permita modificar determinadas variables de entrada y obtener una nueva estimación del riesgo. Esto permitirá comparar el escenario actual del usuario con escenarios modificados y observar cómo los cambios realizados afectan la predicción generada por el modelo.
+
+#### 7. Generación de información mediante RAG
+
+Se incorporará un sistema de **Retrieval-Augmented Generation (RAG)** que permita complementar los resultados del modelo mediante información proveniente de fuentes y guías clínicas previamente seleccionadas. Su finalidad será proporcionar explicaciones y recomendaciones en un lenguaje comprensible para el usuario, manteniendo como referencia información clínica confiable.
+
+#### 8. Despliegue (Deployment)
+
+Finalmente, los componentes desarrollados serán integrados en la plataforma web PULSO. Se incorporarán el modelo predictivo, el mecanismo de explicabilidad, la simulación y el sistema RAG, conformando una versión funcional del MVP. Posteriormente, se realizarán pruebas de integración y funcionamiento para identificar posibles errores y realizar los ajustes finales.
+
+Las fases no se desarrollarán necesariamente de manera lineal, ya que los resultados obtenidos durante la evaluación y las pruebas podrán requerir regresar a etapas anteriores para realizar ajustes y posteriormente avanzar nuevamente hacia las siguientes fases. De esta manera, el desarrollo permitirá refinar progresivamente tanto el modelo como las funcionalidades de la plataforma hasta alcanzar una versión funcional del MVP.
+
 
 ### 7.3 Estrategia de validación
 
