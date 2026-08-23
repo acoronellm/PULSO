@@ -47,47 +47,47 @@ Finalmente, el valor del proyecto no dependerá exclusivamente de alcanzar una m
 ### 2.3 Restricciones y supuestos iniciales
 **Restricciones**
 
-  ##1. Tiempo y alcance académico. El proyecto será desarrollado dentro del tiempo asignado para el Proyecto Final y por un equipo de tres estudiantes. Por esta razón, el resultado será        un producto mínimo viable y no una plataforma certificada para uso clínico.
+  **1**. Tiempo y alcance académico. El proyecto será desarrollado dentro del tiempo asignado para el Proyecto Final y por un equipo de tres estudiantes. Por esta razón, el resultado             será un producto mínimo viable y no una plataforma certificada para uso clínico.
   
-  ##2. Disponibilidad de datos. El entrenamiento dependerá de conjuntos de datos clínicos públicos. Su tamaño, calidad, actualidad, balance, cantidad de variables y presencia de valores        faltantes limitarán el desempeño de los modelos.
+  **2**. Disponibilidad de datos. El entrenamiento dependerá de conjuntos de datos clínicos públicos. Su tamaño, calidad, actualidad, balance, cantidad de variables y presencia de                valores faltantes limitarán el desempeño de los modelos.
   
-  ##3. Representatividad poblacional. Los datos disponibles podrían no representar adecuadamente a la población colombiana o latinoamericana. Esta restricción es relevante porque los           modelos de riesgo deben validarse o recalibrarse al utilizarse en poblaciones diferentes a aquellas con las que fueron construidos (ESC, s. f.-b).
+  **3**. Representatividad poblacional. Los datos disponibles podrían no representar adecuadamente a la población colombiana o latinoamericana. Esta restricción es relevante porque los           modelos de riesgo deben validarse o recalibrarse al utilizarse en poblaciones diferentes a aquellas con las que fueron construidos (ESC, s. f.-b).
   
-  ##4. Alcance preventivo y educativo. PULSO no realizará diagnósticos médicos, no prescribirá medicamentos, no recomendará suspender tratamientos y no sustituirá la consulta con               profesionales de la salud.
+  **4**. Alcance preventivo y educativo. PULSO no realizará diagnósticos médicos, no prescribirá medicamentos, no recomendará suspender tratamientos y no sustituirá la consulta con               profesionales de la salud.
   
-  ##5. Datos proporcionados por el usuario. La plataforma dependerá parcialmente de información autodeclarada. Los errores de medición, desconocimiento, omisión o digitación podrán             afectar el resultado.
+  **5**. Datos proporcionados por el usuario. La plataforma dependerá parcialmente de información autodeclarada. Los errores de medición, desconocimiento, omisión o digitación podrán             afectar el resultado.
   
-  ##6. Interpretación de las simulaciones. Los escenarios se construirán modificando las entradas del modelo. Una disminución del riesgo estimado no demostrará causalidad ni garantizará        que el riesgo clínico real disminuya en la misma proporción. Algunas ecuaciones de riesgo no fueron diseñadas para calcular el efecto directo de tratamientos o intervenciones            (AHA, 2026).
+  **6**. Interpretación de las simulaciones. Los escenarios se construirán modificando las entradas del modelo. Una disminución del riesgo estimado no demostrará causalidad ni                    garantizará que el riesgo clínico real disminuya en la misma proporción. Algunas ecuaciones de riesgo no fueron diseñadas para calcular el efecto directo de tratamientos o               intervenciones (AHA, 2026).
   
-  ##7. Limitaciones de la inteligencia artificial generativa. La utilización de RAG reduce, pero no elimina, el riesgo de generar respuestas incompletas, imprecisas o                           descontextualizadas. Las salidas deberán conservar vínculos con las fuentes y advertencias sobre su carácter informativo.
+  **7**. Limitaciones de la inteligencia artificial generativa. La utilización de RAG reduce, pero no elimina, el riesgo de generar respuestas incompletas, imprecisas o                           descontextualizadas. Las salidas deberán conservar vínculos con las fuentes y advertencias sobre su carácter informativo.
   
-  ##8. Recursos tecnológicos. El entrenamiento, almacenamiento y despliegue estarán condicionados por la capacidad computacional, los servicios disponibles y el presupuesto del equipo.
+  **8**. Recursos tecnológicos. El entrenamiento, almacenamiento y despliegue estarán condicionados por la capacidad computacional, los servicios disponibles y el presupuesto del equipo.
   
-  ##9. Privacidad y seguridad. El MVP deberá minimizar la recopilación de información personal y proteger los datos almacenados. No se utilizarán historias clínicas identificables sin          las autorizaciones, medidas de seguridad y procedimientos éticos correspondientes. La protección de la autonomía y la privacidad constituye un principio fundamental para el uso          de la inteligencia artificial en salud (OMS, 2021).
+  **9**. Privacidad y seguridad. El MVP deberá minimizar la recopilación de información personal y proteger los datos almacenados. No se utilizarán historias clínicas identificables sin          las autorizaciones, medidas de seguridad y procedimientos éticos correspondientes. La protección de la autonomía y la privacidad constituye un principio fundamental para el uso          de la inteligencia artificial en salud (OMS, 2021).
   
-  ##10. Delimitación de la predicción. El MVP deberá definir con precisión el evento cardiovascular, el horizonte temporal y la población para los cuales se realizará la estimación. No         se asumirán como equivalentes diferentes enfermedades o desenlaces cardiovasculares.
+  **10**. Delimitación de la predicción. El MVP deberá definir con precisión el evento cardiovascular, el horizonte temporal y la población para los cuales se realizará la estimación.             No se asumirán como equivalentes diferentes enfermedades o desenlaces cardiovasculares.
   
 **Supuestos iniciales**
 
-  ##1. Se encontrarán conjuntos de datos públicos con variables suficientes para entrenar y comparar modelos de riesgo cardiovascular dentro del alcance del MVP.
+  **1**. Se encontrarán conjuntos de datos públicos con variables suficientes para entrenar y comparar modelos de riesgo cardiovascular dentro del alcance del MVP.
   
-  ##2. Los usuarios dispondrán de un dispositivo con navegador web y conexión a internet.
+  **2**. Los usuarios dispondrán de un dispositivo con navegador web y conexión a internet.
   
-  ##3. Los usuarios conocerán o podrán consultar parte de la información solicitada, como edad, peso, presión arterial y resultados básicos de laboratorio.
+  **3**. Los usuarios conocerán o podrán consultar parte de la información solicitada, como edad, peso, presión arterial y resultados básicos de laboratorio.
   
-  ##4. Las variables estarán definidas con unidades de medida, rangos válidos e instrucciones comprensibles para reducir errores en el ingreso de datos.
+  **4**. Las variables estarán definidas con unidades de medida, rangos válidos e instrucciones comprensibles para reducir errores en el ingreso de datos.
   
-  ##5. Será posible seleccionar guías clínicas y fuentes médicas confiables para construir un corpus documental controlado para el sistema RAG.
+  **5**. Será posible seleccionar guías clínicas y fuentes médicas confiables para construir un corpus documental controlado para el sistema RAG.
   
-  ##6. Los datos podrán dividirse adecuadamente en conjuntos de entrenamiento, validación y prueba, evitando que los mismos registros sean utilizados simultáneamente para entrenar y evaluar el modelo.
+  **6**. Los datos podrán dividirse adecuadamente en conjuntos de entrenamiento, validación y prueba, evitando que los mismos registros sean utilizados simultáneamente para entrenar y            evaluar el modelo.
   
-  ##7. Los modelos se evaluarán mediante métricas de discriminación, calibración y clasificación apropiadas para la naturaleza y distribución de los datos.
+  **7**. Los modelos se evaluarán mediante métricas de discriminación, calibración y clasificación apropiadas para la naturaleza y distribución de los datos.
   
-  ##8. La plataforma conservará el resultado inicial para compararlo con los escenarios hipotéticos y diferenciará visualmente los datos reales de los valores simulados.
+  **8**. La plataforma conservará el resultado inicial para compararlo con los escenarios hipotéticos y diferenciará visualmente los datos reales de los valores simulados.
   
-  ##9. Las variables modificadas durante la simulación estarán limitadas a factores potencialmente controlables y compatibles con el modelo seleccionado.
+  **9**. Las variables modificadas durante la simulación estarán limitadas a factores potencialmente controlables y compatibles con el modelo seleccionado.
   
-  ##10. Las explicaciones indicarán la contribución de las variables a la predicción, pero no afirmarán que exista una relación causal.
+  **10**. Las explicaciones indicarán la contribución de las variables a la predicción, pero no afirmarán que exista una relación causal.
 
 
 ## 3. Alcance del proyecto
