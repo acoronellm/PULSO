@@ -92,9 +92,48 @@ Finalmente, el valor del proyecto no dependerá exclusivamente de alcanzar una m
 
 ## 3. Alcance del proyecto
 
-Define los límites del proyecto especificando qué incluye y qué no incluye.
+El alcance de PULSO comprende el diseño e implementación de un MVP (Producto Mínimo Viable) sobre una plataforma web orientada a la prevención y predicción de problemas cardiovasculares, dirigida principalmente a personas no especializadas. Este alcance delimita tanto las funcionalidades que serán desarrolladas como aquellas que quedan fuera del proyecto, en coherencia con las restricciones y supuestos descritos en la sección 2.3.
 
+**El proyecto incluye:**
 
+1. El registro y la gestión de la información relacionada con los factores de riesgo cardiovascular ingresada por el usuario.
+2. El entrenamiento, la comparación y la selección de modelos de Machine Learning entrenados con datos clínicos públicos para estimar el riesgo cardiovascular.
+3. La incorporación de mecanismos de explicabilidad mediante SHAP que permitan identificar los factores que más contribuyen a cada predicción.
+4. Una funcionalidad de simulación que permita modificar variables potencialmente controlables (como peso, presión arterial, colesterol y actividad física) y comparar el escenario hipotético con el resultado inicial.
+5. Un sistema basado en RAG que consulte guías clínicas y fuentes médicas confiables para generar información y recomendaciones preventivas en un lenguaje sencillo y comprensible.
+6. El diseño e implementación de una base de datos para la gestión de la información de la plataforma.
+7. El diseño e implementación de una API que integre los diferentes servicios del sistema (modelo predictivo, explicabilidad, simulación y RAG) con la interfaz web.
+8. El diseño e implementación de una interfaz web orientada principalmente a personas no especializadas.
+9. Mecanismos básicos de actualización de los modelos que permitan incorporar aprendizaje continuo dentro del alcance del MVP.
+10. Una validación experimental que permita evaluar el desempeño de la plataforma y de los modelos utilizados mediante datos de pacientes no evaluados previamente en el entrenamiento.
+
+**El proyecto no incluye:**
+
+1. La generación de diagnósticos médicos, la prescripción de medicamentos ni la recomendación de modificar o suspender tratamientos.
+2. Una validación clínica certificada ni un proceso de aprobación regulatoria que permita utilizar PULSO como dispositivo médico.
+3. La integración con historias clínicas electrónicas institucionales ni el uso de información identificable de pacientes reales.
+4. La prestación de atención asistencial en tiempo real ni la sustitución de la consulta con profesionales de la salud.
+5. La cobertura de todas las enfermedades o eventos cardiovasculares posibles; el MVP delimitará un evento cardiovascular, un horizonte temporal y una población específicos para la estimación.
+6. El desarrollo de aplicaciones móviles nativas, dado que la solución se limitará a una plataforma web.
+7. La recalibración exhaustiva de los modelos para todas las poblaciones latinoamericanas, aunque las limitaciones de generalización identificadas serán documentadas.
+
+## 4. Objetivos
+
+A partir del problema planteado en la sección 2 y del alcance definido en la sección 3, se establece a continuación el objetivo general del proyecto y los objetivos específicos que orientarán su desarrollo.
+
+### 4.1 Objetivo general
+
+Diseñar e implementar un MVP sobre una plataforma web que permita evaluar de manera explicable el riesgo cardiovascular de una persona mediante técnicas de Machine Learning, incorporando simulación personalizada de escenarios, identificación de los factores asociados a dicho riesgo y generación de información y recomendaciones preventivas basadas en guías clínicas, utilizando un lenguaje sencillo y comprensible para personas no especializadas.
+
+### 4.2 Objetivos específicos
+
+1. Identificar y seleccionar conjuntos de datos clínicos públicos pertinentes para el entrenamiento y la validación de modelos de estimación del riesgo cardiovascular.
+2. Desarrollar y comparar modelos de Machine Learning entrenados con los datos seleccionados, con el fin de determinar el modelo más adecuado según criterios de desempeño, calibración, estabilidad e interpretabilidad.
+3. Implementar mecanismos de explicabilidad mediante SHAP que permitan identificar la contribución de las variables consideradas en las predicciones generadas por el modelo seleccionado.
+4. Diseñar e implementar una funcionalidad de simulación que permita modificar variables potencialmente controlables y comparar el escenario hipotético resultante con el riesgo estimado inicialmente.
+5. Integrar un sistema basado en Retrieval-Augmented Generation que genere información y recomendaciones preventivas a partir de guías clínicas y fuentes médicas confiables.
+6. Diseñar e implementar la arquitectura, la base de datos y la API que permitan la integración de los componentes de la plataforma (modelo predictivo, explicabilidad, simulación y RAG).
+7. Validar el desempeño de los modelos y el funcionamiento de la plataforma mediante pruebas técnicas, funcionales y de usabilidad, utilizando datos y usuarios no involucrados en las etapas previas de desarrollo.
 
 ## 4. Objetivos
 
@@ -190,7 +229,13 @@ Describe el enfoque metodológico que orientará el desarrollo del proyecto y la
 
 ### 7.1 Enfoque metodológico
 
-Explica la metodología adoptada para el desarrollo del proyecto, justificando su elección. En particular, debe describirse el uso de un enfoque de prototipado iterativo, indicando cómo se plantea avanzar mediante ciclos sucesivos de diseño, construcción, prueba y ajuste de la solución.
+### 7.1 Enfoque metodológico
+
+El desarrollo de PULSO se llevará a cabo mediante un enfoque de prototipado iterativo e incremental. Esta elección responde a la naturaleza del proyecto, el cual integra componentes con distintos niveles de incertidumbre: la disponibilidad y calidad de los datos clínicos públicos, el desempeño real de los modelos de Machine Learning, el comportamiento del mecanismo de explicabilidad y la pertinencia de las respuestas generadas por el sistema RAG no pueden determinarse completamente antes de construir y probar cada componente. Un enfoque lineal o secuencial, en el que cada etapa se cerrara definitivamente antes de avanzar a la siguiente, dificultaría corregir a tiempo errores de datos, modelos con desempeño insuficiente o funcionalidades que no comuniquen adecuadamente el riesgo al usuario.
+
+Por esta razón, el proyecto avanzará mediante ciclos sucesivos de diseño, construcción, prueba y ajuste. En cada ciclo se definirá un alcance acotado de trabajo, se construirá una versión parcial de la solución (un conjunto de datos preparado, un modelo entrenado, una funcionalidad de la plataforma), se evaluarán sus resultados frente a los criterios establecidos y, cuando sea necesario, se realizarán ajustes antes de continuar con el siguiente ciclo. Este esquema permite tratar cada entregable parcial como un prototipo que se refina progresivamente, en lugar de esperar hasta el final del proyecto para verificar si la solución cumple los objetivos planteados.
+
+Para el componente de datos y Machine Learning, los ciclos iterativos tomarán como referencia las etapas de **CRISP-DM** (comprensión de los datos, preparación, modelado y evaluación), descritas con mayor detalle en la sección 7.2. Sobre esta base se incorporarán progresivamente, también de manera iterativa, las funcionalidades de explicabilidad, simulación y generación de información mediante RAG, hasta integrar todos los componentes en la plataforma web. Las fases no se desarrollarán de forma estrictamente lineal: los resultados obtenidos en la evaluación y en las pruebas podrán requerir volver a etapas anteriores para realizar ajustes, lo que es propio de un enfoque iterativo e incremental y permite refinar tanto el modelo como la plataforma hasta alcanzar una versión funcional del MVP.
 
 ### 7.2 Iteraciones o fases de desarrollo
 
