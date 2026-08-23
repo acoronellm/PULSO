@@ -248,4 +248,7 @@ Finalmente, se realizarán pruebas de usabilidad con usuarios potenciales para e
 
 ## 8. Referencias
 
-Incluye las fuentes consultadas y citadas en el documento, en el formato de citación definido para el curso o proyecto.
+American Heart Association. (s. f.). PREVENT calculator. https://professional.heart.org/en/guidelines-and-statements/prevent-calculator
+Canadian Cancer Society. (s. f.). FRS. https://ccs.ca/frs/
+CVD Risk Estimator Plus - American College of Cardiology. (s. f.). American College Of Cardiology. https://www.acc.org/CVDPlus?utm_source QRISK3-Lifetime. (s. f.). https://qrisk.org/lifetime/index.php
+
