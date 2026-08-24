@@ -16,7 +16,7 @@ En respuesta a esta necesidad, se propone PULSO (Plataforma Inteligente para la 
 
 ## 2. Planteamiento del problema
 
-El problema central que aborda PULSO es la dificultad que enfrentan las personas no especializadas para obtener, interpretar y utilizar de manera responsable información personalizada sobre sus factores de riesgo cardiovascular, debido a que las herramientas disponibles suelen ofrecer estimaciones aisladas, emplear lenguaje clínico, ofrecer explicaciones limitadas y estar diseñadas para poblaciones o contextos diferentes.
+El problema central que aborda este trabajo es la dificultad que enfrentan las personas no especializadas para obtener, interpretar y utilizar de manera responsable información personalizada sobre sus factores de riesgo cardiovascular, debido a que las herramientas disponibles suelen ofrecer estimaciones aisladas, emplear lenguaje clínico, ofrecer explicaciones limitadas y estar diseñadas para poblaciones o contextos diferentes.
 
 Por tanto, el problema no se define como la inexistencia de una plataforma que integre Machine Learning, explicabilidad y RAG. Estas tecnologías representan componentes de la solución. El estado negativo que se pretende atender es la limitada capacidad de los usuarios para comprender qué significa una estimación de riesgo, qué factores influyen en ella, cuáles podrían ser modificables y cuáles son los límites del resultado obtenido
 
@@ -104,8 +104,7 @@ El alcance de PULSO comprende el diseño e implementación de un MVP (Producto M
 6. El diseño e implementación de una base de datos para la gestión de la información de la plataforma.
 7. El diseño e implementación de una API que integre los diferentes servicios del sistema (modelo predictivo, explicabilidad, simulación y RAG) con la interfaz web.
 8. El diseño e implementación de una interfaz web orientada principalmente a personas no especializadas.
-9. Mecanismos básicos de actualización de los modelos que permitan incorporar aprendizaje continuo dentro del alcance del MVP.
-10. Una validación experimental que permita evaluar el desempeño de la plataforma y de los modelos utilizados mediante datos de pacientes no evaluados previamente en el entrenamiento.
+9. Una validación experimental que permita evaluar el desempeño de la plataforma y de los modelos utilizados mediante datos de pacientes no evaluados previamente en el entrenamiento.
 
 **El proyecto no incluye:**
 
@@ -116,6 +115,8 @@ El alcance de PULSO comprende el diseño e implementación de un MVP (Producto M
 5. La cobertura de todas las enfermedades o eventos cardiovasculares posibles; el MVP delimitará un evento cardiovascular, un horizonte temporal y una población específicos para la estimación.
 6. El desarrollo de aplicaciones móviles nativas, dado que la solución se limitará a una plataforma web.
 7. La recalibración exhaustiva de los modelos para todas las poblaciones latinoamericanas, aunque las limitaciones de generalización identificadas serán documentadas.
+8.  Mecanismos básicos de actualización de los modelos que permitan incorporar aprendizaje continuo dentro del alcance del MVP.
+
 
 ## 4. Objetivos
 
@@ -135,52 +136,12 @@ Diseñar e implementar un MVP sobre una plataforma web que permita evaluar de ma
 6. Diseñar e implementar la arquitectura, la base de datos y la API que permitan la integración de los componentes de la plataforma (modelo predictivo, explicabilidad, simulación y RAG).
 7. Validar el desempeño de los modelos y el funcionamiento de la plataforma mediante pruebas técnicas, funcionales y de usabilidad, utilizando datos y usuarios no involucrados en las etapas previas de desarrollo.
 
-## 4. Objetivos
-
-Establece el objetivo general del proyecto y los objetivos específicos que guiarán su desarrollo.
-
-Los objetivos refieren a la situación o logros que se pretenden alcanzar con el desarrollo del proyecto. Todos los demás elementos y su estructura se derivan de estos: metodología, marco teórico, resultados, etc. Por ello debe prestarse **mayor atención** en su proceso de formulación.
-
-Deben ser **claros, viables, susceptibles de alcanzarse y congruentes entre sí**. Son la base de la evaluación del proyecto.
-
-Se recomienda que sean **SMART**:
-
-- **S**pecific (específicos): definidos con precisión.
-- **M**easurable (medibles): verificables mediante indicadores.
-- **A**chievable (alcanzables): realistas según los recursos y el tiempo.
-- **R**elevant (relevantes): alineados con el problema y la solución.
-- **T**ime-bound (con plazo): acotados en el tiempo del proyecto.
-
-Los objetivos deben redactarse con **verbos en infinitivo** que indiquen acciones concretas y verificables. Verbos recomendados: *desarrollar, diseñar, implementar, evaluar, analizar, determinar, establecer, validar, modelar, construir, integrar, optimizar, documentar, automatizar, configurar, definir, identificar, clasificar, comparar, proponer*. Evitar verbos ambiguos como *conocer, entender, estudiar, saber*.
-
-### 4.1 Objetivo general
-
-Muestra los cambios o efectos que se desean lograr en la situación inicial definida como problemática. Responde a la relación entre el **problema planteado** y los **propósitos o metas del desarrollo**.
-
-Formula de manera clara el propósito principal del proyecto.
-
-**Ejemplo:**
-
-> Definir proceso y estructura metodológica en la empresa XYZ para identificar, evaluar y reducir los riesgos relacionados con TI (Cumplimiento, estratégicos, operacionales) que puedan tener un impacto potencial sobre las actividades de TI que soportan las operaciones de negocio en el 2022, dentro de los niveles de tolerancia establecidos por la organización.
-
-*Análisis SMART del ejemplo:*
-- **S** — Específico: define proceso y estructura metodológica para riesgos TI (cumplimiento, estratégicos, operacionales).
-- **M** — Medible: se puede verificar mediante la existencia del proceso y estructura definidos.
-- **A** — Alcanzable: acotado a una empresa y a riesgos TI específicos.
-- **R** — Relevante: impacta directamente las operaciones de negocio soportadas por TI.
-- **T** — Con plazo: acotado al año 2022.
-
-### 4.2 Objetivos específicos
-
-Hacen referencia a los productos o resultados que son necesarios para alcanzar el objetivo general. Son los fines inmediatos del desarrollo, se dimensionan en términos de los resultados esperados o metas, con verbos que indican acciones concretas y con un mayor nivel de detalle.
-
-Descompone el objetivo general en metas concretas, observables y alcanzables que orienten el desarrollo del trabajo.
 
 ## 5. Solución propuesta
 
 Se propone desarrollar PULSO, un MVP de una plataforma web de Prevención y Predicción (P&P) orientada a la prevención y educación en salud cardiovascular. La plataforma permitirá al usuario ingresar información relacionada con sus factores de riesgo y obtener una evaluación de su riesgo cardiovascular.
 
-El usuario final para esta plataforma serán las personas del común, es decir, cualquier persona especializada o no en el tema la va poder usar y entender, pero claramente se espera que su publico general sean personas que tengan o hayan tenido complicaciones cardiovasculares.
+Loe usuarios finales para esta plataforma serán las personas del común, es decir, cualquier persona especializada o no en el tema la va poder usar y entender, pero claramente se espera que su público general sean personas que tengan o hayan tenido complicaciones cardiovasculares.
 
 A partir de la información proporcionada, PULSO presentará los resultados de manera comprensible, permitiendo al usuario identificar los factores que tienen mayor influencia en su nivel de riesgo. Asimismo, la plataforma permitirá modificar determinadas variables para simular diferentes escenarios y observar cómo estos cambios pueden afectar la estimación del riesgo cardiovascular.
 
@@ -229,13 +190,11 @@ Describe el enfoque metodológico que orientará el desarrollo del proyecto y la
 
 ### 7.1 Enfoque metodológico
 
-### 7.1 Enfoque metodológico
-
-El desarrollo de PULSO se llevará a cabo mediante un enfoque de prototipado iterativo e incremental. Esta elección responde a la naturaleza del proyecto, el cual integra componentes con distintos niveles de incertidumbre: la disponibilidad y calidad de los datos clínicos públicos, el desempeño real de los modelos de Machine Learning, el comportamiento del mecanismo de explicabilidad y la pertinencia de las respuestas generadas por el sistema RAG no pueden determinarse completamente antes de construir y probar cada componente. Un enfoque lineal o secuencial, en el que cada etapa se cerrara definitivamente antes de avanzar a la siguiente, dificultaría corregir a tiempo errores de datos, modelos con desempeño insuficiente o funcionalidades que no comuniquen adecuadamente el riesgo al usuario.
+El desarrollo de PULSO se llevará a cabo mediante un enfoque de prototipado iterativo e incremental. Esta elección responde a la naturaleza del proyecto, el cual integra componentes con distintos niveles de incertidumbre: la disponibilidad y calidad de los datos clínicos públicos, el desempeño real de los modelos de Machine Learning, el comportamiento del mecanismo de explicabilidad y la pertinencia de las respuestas generadas por el sistema RAG no pueden determinarse completamente antes de construir y probar cada componente. Un enfoque lineal o secuencial, en el que cada etapa se cerrará definitivamente antes de avanzar a la siguiente, dificultaría corregir a tiempo errores de datos, modelos con desempeño insuficiente o funcionalidades que no comuniquen adecuadamente el riesgo al usuario.
 
 Por esta razón, el proyecto avanzará mediante ciclos sucesivos de diseño, construcción, prueba y ajuste. En cada ciclo se definirá un alcance acotado de trabajo, se construirá una versión parcial de la solución (un conjunto de datos preparado, un modelo entrenado, una funcionalidad de la plataforma), se evaluarán sus resultados frente a los criterios establecidos y, cuando sea necesario, se realizarán ajustes antes de continuar con el siguiente ciclo. Este esquema permite tratar cada entregable parcial como un prototipo que se refina progresivamente, en lugar de esperar hasta el final del proyecto para verificar si la solución cumple los objetivos planteados.
 
-Para el componente de datos y Machine Learning, los ciclos iterativos tomarán como referencia las etapas de **CRISP-DM** (comprensión de los datos, preparación, modelado y evaluación), descritas con mayor detalle en la sección 7.2. Sobre esta base se incorporarán progresivamente, también de manera iterativa, las funcionalidades de explicabilidad, simulación y generación de información mediante RAG, hasta integrar todos los componentes en la plataforma web. Las fases no se desarrollarán de forma estrictamente lineal: los resultados obtenidos en la evaluación y en las pruebas podrán requerir volver a etapas anteriores para realizar ajustes, lo que es propio de un enfoque iterativo e incremental y permite refinar tanto el modelo como la plataforma hasta alcanzar una versión funcional del MVP.
+Para el componente de datos y Machine Learning, los ciclos iterativos tomarán como referencia las etapas de **CRISP-DM** (comprensión de los datos, preparación, modelado y evaluación), descritas con mayor detalle en la sección 7.2. Las fases no se desarrollarán de forma estrictamente lineal: los resultados obtenidos en la evaluación y en las pruebas podrán requerir volver a etapas anteriores para realizar ajustes, lo que es propio de un enfoque iterativo e incremental y permite refinar tanto el modelo como la plataforma hasta alcanzar una versión funcional del MVP.
 
 ### 7.2 Iteraciones o fases de desarrollo
 
@@ -255,7 +214,7 @@ Se desarrollarán y entrenarán diferentes modelos de Machine Learning utilizand
 
 #### 4. Evaluación (Evaluation)
 
-Se analizará el desempeño de los modelos mediante métricas de evaluación apropiadas para el problema. Los resultados obtenidos serán comparados con el fin de seleccionar el modelo que mejor se ajuste a los objetivos establecidos. En caso de identificar resultados insatisfactorios, se podrán realizar ajustes en las etapas anteriores de preparación o modelado.
+Se analizará el desempeño de los modelos mediante métricas de evaluación apropiadas para el problema. Los resultados obtenidos serán comparados con el fin de seleccionar el modelo que mejor rendimiento tenga y cumpla con los objetivos establecidos. En caso de identificar resultados insatisfactorios, se podrán realizar ajustes en las etapas anteriores de preparación o modelado.
 
 #### 5. Explicabilidad mediante SHAP
 
@@ -271,7 +230,7 @@ Se incorporará un sistema de **Retrieval-Augmented Generation (RAG)** que permi
 
 #### 8. Despliegue (Deployment)
 
-Finalmente, los componentes desarrollados serán integrados en la plataforma web PULSO. Se incorporarán el modelo predictivo, el mecanismo de explicabilidad, la simulación y el sistema RAG, conformando una versión funcional del MVP. Posteriormente, se realizarán pruebas de integración y funcionamiento para identificar posibles errores y realizar los ajustes finales.
+Finalmente, los componentes desarrollados serán integrados en la plataforma web PULSO. Se incorporarán al modelo predictivo, el mecanismo de explicabilidad, la simulación y el sistema RAG, conformando una versión funcional del MVP. Posteriormente, se realizarán pruebas de integración y funcionamiento para identificar posibles errores y realizar los ajustes finales.
 
 Las fases no se desarrollarán necesariamente de manera lineal, ya que los resultados obtenidos durante la evaluación y las pruebas podrán requerir regresar a etapas anteriores para realizar ajustes y posteriormente avanzar nuevamente hacia las siguientes fases. De esta manera, el desarrollo permitirá refinar progresivamente tanto el modelo como las funcionalidades de la plataforma hasta alcanzar una versión funcional del MVP.
 
