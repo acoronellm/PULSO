@@ -285,7 +285,9 @@ En conjunto, la estrategia establece un ciclo continuo de **planificación, desa
 
 ### 7.4 Plan de trabajo, cronograma o hitos
 
-<img width="1414" height="2000" alt="Lorem ipsum dolor sit amet, consectetur aset adipiscing elit asim  Vestibulum ut feugiat enim  Aliquet tristique felis, non convallis" src="https://github.com/user-attachments/assets/433b7668-4ce6-432c-86fa-6786c5e64646" />
+<img width="1600" height="649" alt="image" src="https://github.com/user-attachments/assets/025ac682-528c-490e-852f-71629f7f3b63" />
+
+<img width="1600" height="597" alt="image" src="https://github.com/user-attachments/assets/7d3ddab9-647b-4b32-9ac4-38d1c8880e1f" />
 
 
 ## 8. Referencias
