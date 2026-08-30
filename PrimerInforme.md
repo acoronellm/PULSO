@@ -124,24 +124,31 @@ A partir del problema planteado en la sección 2 y del alcance definido en la se
 
 ### 4.1 Objetivo general
 
-Diseñar e implementar un MVP sobre una plataforma web que permita evaluar de manera explicable el riesgo cardiovascular de una persona mediante técnicas de Machine Learning, incorporando simulación personalizada de escenarios, identificación de los factores asociados a dicho riesgo y generación de información y recomendaciones preventivas basadas en guías clínicas, utilizando un lenguaje sencillo y comprensible para personas no especializadas.
+Diseñar e implementar, antes de noviembre de 2026, un MVP de una plataforma web para la estimación explicable del riesgo cardiovascular en personas no especializadas, utilizando técnicas de Machine Learning y un conjunto de datos clínicos públicos, e integrando funcionalidades de explicabilidad mediante SHAP, simulación personalizada de escenarios y generación de información y recomendaciones preventivas mediante RAG basado en guías clínicas y fuentes médicas confiables.
 
 ### 4.2 Objetivos específicos
 
-1. Identificar y seleccionar conjuntos de datos clínicos públicos pertinentes para el entrenamiento y la validación de modelos de estimación del riesgo cardiovascular.
-2. Desarrollar y comparar modelos de Machine Learning entrenados con los datos seleccionados, con el fin de determinar el modelo más adecuado según criterios de desempeño, calibración, estabilidad e interpretabilidad.
-3. Implementar mecanismos de explicabilidad mediante SHAP que permitan identificar la contribución de las variables consideradas en las predicciones generadas por el modelo seleccionado.
-4. Diseñar e implementar una funcionalidad de simulación que permita modificar variables potencialmente controlables y comparar el escenario hipotético resultante con el riesgo estimado inicialmente.
-5. Integrar un sistema basado en Retrieval-Augmented Generation que genere información y recomendaciones preventivas a partir de guías clínicas y fuentes médicas confiables.
-6. Diseñar e implementar la arquitectura, la base de datos y la API que permitan la integración de los componentes de la plataforma (modelo predictivo, explicabilidad, simulación y RAG).
-7. Validar el desempeño de los modelos y el funcionamiento de la plataforma mediante pruebas técnicas, funcionales y de usabilidad, utilizando datos y usuarios no involucrados en las etapas previas de desarrollo.
+1. **Identificar y seleccionar**, durante las primeras etapas del proyecto y antes de finalizar septiembre de 2026, al menos un conjunto de datos clínicos público y pertinente para el entrenamiento y validación de modelos de estimación del riesgo cardiovascular, justificando su selección según criterios de calidad, disponibilidad de variables y pertinencia para el problema abordado.
+
+2. **Desarrollar y comparar**, antes de octubre de 2026, al menos dos modelos de Machine Learning utilizando el conjunto de datos seleccionado, evaluándolos mediante métricas de desempeño, calibración, estabilidad e interpretabilidad, con el propósito de seleccionar el modelo que presente el comportamiento más adecuado para su integración en el MVP.
+
+3. **Implementar**, antes de octubre de 2026, un mecanismo de explicabilidad basado en SHAP sobre el modelo seleccionado, de manera que el MVP permita identificar y presentar los principales factores que contribuyen a cada estimación de riesgo.
+
+4. **Diseñar e implementar**, antes de octubre de 2026, una funcionalidad de simulación que permita modificar variables potencialmente controlables y comparar el riesgo estimado inicialmente con el obtenido bajo al menos un escenario hipotético.
+
+5. **Integrar**, antes de noviembre de 2026, un sistema basado en Retrieval-Augmented Generation (RAG) que utilice guías clínicas y fuentes médicas confiables previamente seleccionadas para generar información y recomendaciones preventivas en un lenguaje sencillo y comprensible para personas no especializadas.
+
+6. **Diseñar e implementar**, antes de noviembre de 2026, la arquitectura de software, la base de datos y la API necesarias para integrar en un único MVP los componentes de estimación de riesgo, explicabilidad, simulación y generación de información mediante RAG.
+
+7. **Validar**, antes de noviembre de 2026, el funcionamiento del MVP mediante pruebas técnicas, funcionales y de usabilidad, utilizando datos de validación no empleados durante el entrenamiento de los modelos y usuarios no involucrados en su desarrollo, con el fin de verificar el cumplimiento de los requisitos y detectar oportunidades de mejora.
+
 
 
 ## 5. Solución propuesta
 
 Se propone desarrollar PULSO, un MVP de una plataforma web de Prevención y Predicción (P&P) orientada a la prevención y educación en salud cardiovascular. La plataforma permitirá al usuario ingresar información relacionada con sus factores de riesgo y obtener una evaluación de su riesgo cardiovascular.
 
-Loe usuarios finales para esta plataforma serán las personas del común, es decir, cualquier persona especializada o no en el tema la va poder usar y entender, pero claramente se espera que su público general sean personas que tengan o hayan tenido complicaciones cardiovasculares.
+Los usuarios finales para esta plataforma serán las personas del común, es decir, cualquier persona especializada o no en el tema la va poder usar y entender, pero claramente se espera que su público general sean personas que tengan o hayan tenido complicaciones cardiovasculares.
 
 A partir de la información proporcionada, PULSO presentará los resultados de manera comprensible, permitiendo al usuario identificar los factores que tienen mayor influencia en su nivel de riesgo. Asimismo, la plataforma permitirá modificar determinadas variables para simular diferentes escenarios y observar cómo estos cambios pueden afectar la estimación del riesgo cardiovascular.
 
