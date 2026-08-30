@@ -18,7 +18,7 @@ En respuesta a esta necesidad, se propone PULSO (Plataforma Inteligente para la 
 
 El problema central que aborda este trabajo es la dificultad que enfrentan las personas no especializadas para obtener, interpretar y utilizar de manera responsable información personalizada sobre sus factores de riesgo cardiovascular, debido a que las herramientas disponibles suelen ofrecer estimaciones aisladas, emplear lenguaje clínico, ofrecer explicaciones limitadas y estar diseñadas para poblaciones o contextos diferentes.
 
-Por tanto, el problema no se define como la inexistencia de una plataforma que integre Machine Learning, explicabilidad y RAG. Estas tecnologías representan componentes de la solución. El estado negativo que se pretende atender es la limitada capacidad de los usuarios para comprender qué significa una estimación de riesgo, qué factores influyen en ella, cuáles podrían ser modificables y cuáles son los límites del resultado obtenido
+Por tanto, el problema no se define como la inexistencia de una plataforma que integre Machine Learning, explicabilidad y RAG. Estas tecnologías representan componentes de la solución; lo que se pretende atender es la limitada capacidad de los usuarios para comprender qué significa una estimación de riesgo, qué factores influyen en ella, cuáles podrían ser modificables y cuáles son los límites del resultado obtenido
 
 ### 2.1 Descripción del problema
 
