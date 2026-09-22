@@ -1,0 +1,21 @@
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Credenciales y configuración local
+.env
+.env.*
+!.env.example
+
+# Modelos y resultados temporales
+artifacts/
+mlruns/
+
+# Archivos temporales
+*.tmp
+*.log
