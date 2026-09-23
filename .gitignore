@@ -19,3 +19,12 @@ mlruns/
 # Archivos temporales
 *.tmp
 *.log
+# AÑADIR al .gitignore EXISTENTE; no reemplazar sus otras reglas.
+mlflow.db
+mlflow.db-*
+mlruns/
+mlartifacts/
+artifacts/
+__pycache__/
+.pytest_cache/
+.venv/

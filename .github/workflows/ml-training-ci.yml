@@ -1,0 +1,21 @@
+
+name: ML training checks
+on:
+  pull_request:
+    paths:
+      - 'ml/**'
+      - 'tests/**'
+      - 'requirements-ml.txt'
+      - '.github/workflows/ml-training-ci.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements-ml.txt
+      - run: python -m pytest -q tests
+# Este CI usa datos sintéticos: NO descarga datasets privados ni entrena modelos completos.
