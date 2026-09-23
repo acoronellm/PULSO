@@ -417,31 +417,137 @@ Define atributos de calidad y restricciones del sistema, como rendimiento, segur
 
 ## 9. Evaluación de alternativas
 
-Expone las alternativas tecnológicas o arquitectónicas consideradas, los criterios de comparación utilizados y la justificación de la opción seleccionada.
+Para la definición de la arquitectura de PULSO se consideran tres alternativas: una arquitectura monolítica modular contenerizada, una arquitectura modular orientada a servicios contenerizados y una arquitectura de microservicios contenerizados.
 
-### Pregunta: ¿Cuál alternativa ofrece mejor desempeño bajo carga esperada?
+Las tres alternativas comparten una serie de elementos tecnológicos y funcionales. PULSO será una plataforma web de acceso público, sin registro ni inicio de sesión, en la cual el usuario podrá ingresar directamente sus datos cardiovasculares y obtener una estimación de riesgo, explicaciones mediante SHAP, simulaciones e información preventiva mediante RAG. Asimismo, las tres propuestas contemplan el uso de una base de datos PostgreSQL alojada en Supabase, un proxy inverso como punto de entrada para las solicitudes externas y Docker para la contenerización de los componentes.
 
-**Criterios de comparación:**
+La principal diferencia entre las alternativas corresponde al grado de separación de los componentes de la aplicación. Esta diferencia se analiza considerando tres criterios: desempeño bajo la carga esperada, grado de acoplamiento y nivel de disponibilidad y tolerancia a fallos.
 
-- **Latencia promedio y máxima**: tiempo de respuesta de operaciones críticas.
-- **Throughput (capacidad de procesamiento)**: número de solicitudes que el sistema puede manejar por unidad de tiempo.
-- **Comportamiento bajo carga concurrente**: degradación del sistema cuando aumenta el número de usuarios simultáneos.
+### 9.1. Desempeño bajo la carga esperada
 
-### Pregunta: ¿Qué grado de acoplamiento introduce cada opción?
+La evaluación del desempeño considera la latencia de las solicitudes, la capacidad de procesamiento y el comportamiento de la plataforma ante solicitudes concurrentes.
 
-**Criterios de comparación:**
+#### Arquitectura monolítica modular contenerizada
 
-- **Dependencia de servicios externos**: nivel en que el sistema depende de plataformas como APIs externas.
-- **Interdependencia entre módulos internos**: qué tanto un cambio en un módulo afecta a otros.
-- **Facilidad de sustitución de componentes**: capacidad de reemplazar una tecnología (ej: backend) sin rediseñar todo el sistema.
+La arquitectura monolítica modular concentra el backend, Machine Learning, SHAP, simulaciones y RAG en una única aplicación. Esto permite que los diferentes módulos se comuniquen directamente dentro del mismo proceso, reduciendo la sobrecarga asociada a la comunicación entre servicios.
 
-### Pregunta: ¿Qué nivel de disponibilidad y tolerancia a fallos ofrece cada alternativa?
+Esta característica puede favorecer una menor latencia en las comunicaciones internas. Sin embargo, los diferentes módulos comparten los mismos recursos computacionales, por lo que una funcionalidad que requiera mayor capacidad de procesamiento puede afectar el rendimiento de las demás funcionalidades.
 
-**Criterios de comparación:**
+#### Arquitectura modular orientada a servicios contenerizados
 
-- **Tiempo de disponibilidad (uptime esperado)**: porcentaje de tiempo en que el sistema está operativo.
-- **Mecanismos de recuperación ante fallos**: existencia de redundancia, backups o reintentos automáticos.
-- **Impacto de fallos parciales**: qué ocurre si un componente falla (¿cae todo el sistema o solo una parte?).
+Esta alternativa separa PULSO en servicios independientes para el frontend, backend, Machine Learning y RAG, ejecutados en contenedores Docker. Esta separación permite asignar recursos de manera independiente a los componentes que presenten mayores necesidades de procesamiento.
+
+Aunque la comunicación entre servicios introduce una sobrecarga adicional frente a la comunicación interna de un monolito, esta arquitectura proporciona un equilibrio entre rendimiento y capacidad de crecimiento. Los servicios pueden optimizarse y escalarse de acuerdo con las necesidades específicas de cada componente.
+
+Para PULSO, esta característica resulta especialmente relevante debido a que las operaciones de Machine Learning, SHAP, simulación y RAG pueden presentar diferentes requerimientos computacionales.
+
+#### Arquitectura de microservicios contenerizados
+
+La arquitectura de microservicios presenta el mayor nivel de separación, dividiendo funcionalidades como predicción cardiovascular, explicabilidad SHAP, simulación y RAG en servicios especializados.
+
+Esta distribución permite escalar individualmente cada funcionalidad. Sin embargo, una solicitud puede requerir la comunicación entre múltiples microservicios, aumentando la cantidad de interacciones y la complejidad necesaria para controlar los tiempos de respuesta y los posibles errores de comunicación.
+
+Para la carga esperada de PULSO, las tres alternativas pueden proporcionar un desempeño adecuado. La principal diferencia se encuentra en la capacidad de crecimiento y en el nivel de complejidad necesario para obtener dicho desempeño.
+
+### 9.2. Grado de acoplamiento
+
+El acoplamiento se analiza considerando la dependencia entre los componentes internos, la dependencia de servicios externos y la facilidad para modificar o sustituir componentes de la plataforma.
+
+#### Arquitectura monolítica modular contenerizada
+
+Aunque los componentes se encuentran organizados mediante módulos independientes a nivel de código, todos forman parte de una misma aplicación. Por esta razón, comparten recursos y un mismo ciclo de despliegue.
+
+Una modificación en un componente puede requerir reconstruir y desplegar la aplicación completa. Esto genera un mayor nivel de dependencia entre los módulos, aunque la organización modular permite mantener separadas las responsabilidades dentro del código.
+
+#### Arquitectura modular orientada a servicios contenerizados
+
+La separación del frontend, backend, Machine Learning y RAG en servicios independientes reduce el acoplamiento entre los principales componentes de la plataforma.
+
+Cada servicio puede evolucionar y desplegarse de manera independiente siempre que mantenga las interfaces de comunicación definidas. Esto facilita, por ejemplo, modificar el servicio de Machine Learning sin tener que modificar o desplegar nuevamente el frontend.
+
+A diferencia de los microservicios, esta alternativa mantiene una cantidad limitada de servicios, lo que permite obtener independencia entre componentes sin introducir una fragmentación excesiva del sistema.
+
+#### Arquitectura de microservicios contenerizados
+
+Los microservicios presentan el menor acoplamiento entre componentes, ya que funcionalidades específicas como predicción, SHAP, simulación y RAG se encuentran separadas en servicios independientes.
+
+Esta separación facilita reemplazar o actualizar componentes individualmente. Sin embargo, también aumenta la cantidad de interfaces y dependencias de comunicación que deben administrarse.
+
+### 9.3. Disponibilidad y tolerancia a fallos
+
+La disponibilidad y tolerancia a fallos se evalúan considerando el impacto que tendría la falla de un componente sobre el funcionamiento general de PULSO y los mecanismos disponibles para recuperar los servicios.
+
+#### Arquitectura monolítica modular contenerizada
+
+En la arquitectura monolítica, los principales componentes del backend forman parte de una misma aplicación. Por esta razón, una falla crítica que provoque la caída del proceso puede afectar simultáneamente las funcionalidades de predicción, SHAP, simulación y RAG.
+
+Docker permite reiniciar el contenedor afectado y facilita la recuperación del servicio, pero el aislamiento de fallos entre funcionalidades es limitado.
+
+#### Arquitectura modular orientada a servicios contenerizados
+
+La separación en servicios independientes permite aislar parcialmente los fallos. Por ejemplo, una interrupción del servicio RAG no necesariamente implica que el servicio de Machine Learning o el backend dejen de funcionar.
+
+Además, cada servicio puede reiniciarse y desplegarse de manera independiente. Esto permite reducir el impacto de determinados fallos y facilita las tareas de mantenimiento y recuperación.
+
+Esta característica resulta importante para el crecimiento futuro de PULSO, ya que permite incorporar mecanismos adicionales de disponibilidad sin tener que transformar completamente la arquitectura de la aplicación.
+
+#### Arquitectura de microservicios contenerizados
+
+La arquitectura de microservicios proporciona un alto nivel de aislamiento entre componentes. Una falla en un microservicio específico puede limitar una funcionalidad determinada sin afectar necesariamente al resto de la plataforma.
+
+Sin embargo, este nivel de aislamiento requiere mecanismos adicionales para gestionar errores, disponibilidad, comunicación entre servicios y recuperación. Por lo tanto, aunque ofrece mayores posibilidades de tolerancia a fallos, también implica una mayor complejidad operativa.
+
+### 9.4. Comparación de las alternativas
+
+A partir de los criterios definidos, se obtiene la siguiente comparación:
+
+| Criterio | Monolítica modular | Orientada a servicios | Microservicios |
+|---|---|---|---|
+| Desempeño con la carga esperada | Adecuado | Adecuado | Adecuado |
+| Comunicación interna | Directa dentro de la aplicación | Entre servicios | Entre múltiples microservicios |
+| Escalabilidad individual | Baja | Media-Alta | Alta |
+| Acoplamiento entre componentes | Medio-Alto | Medio-Bajo | Bajo |
+| Facilidad de desarrollo inicial | Alta | Media-Alta | Baja |
+| Complejidad de despliegue | Baja | Media | Alta |
+| Aislamiento ante fallos | Bajo | Medio-Alto | Alto |
+| Complejidad operativa | Baja | Media | Alta |
+| Facilidad de mantenimiento | Alta | Alta | Media-Baja |
+| Necesidad de infraestructura y configuración | Baja | Media | Alta |
+| Posibilidad de crecimiento progresivo | Baja | Alta | Alta |
+
+La comparación evidencia que las tres alternativas pueden responder a las necesidades de desempeño del MVP, pero presentan diferencias importantes en cuanto a escalabilidad, acoplamiento, mantenimiento y complejidad operativa.
+
+La arquitectura monolítica presenta una menor complejidad inicial, pero concentra los componentes en una misma aplicación y limita la capacidad de escalar funcionalidades de manera independiente. Por otro lado, la arquitectura de microservicios proporciona un mayor nivel de independencia y escalabilidad, pero requiere una infraestructura y una gestión considerablemente más complejas.
+
+La arquitectura modular orientada a servicios se encuentra entre ambas alternativas, permitiendo separar los componentes principales y asignar recursos de manera independiente sin introducir desde el inicio la fragmentación y complejidad propia de una arquitectura de microservicios.
+
+### 9.5. Consideraciones comunes de seguridad y acceso
+
+Las tres alternativas parten de la misma condición de acceso público: PULSO no contará con cuentas de usuario ni requerirá autenticación para utilizar sus funcionalidades.
+
+Por esta razón, no es necesario implementar un servicio específico de autenticación para el acceso de los usuarios. Sin embargo, el backend deberá encargarse de validar los datos recibidos antes de procesarlos y controlar el acceso a Supabase.
+
+Las credenciales privilegiadas utilizadas para acceder a la base de datos no deberán exponerse en el frontend. El acceso a los recursos internos deberá realizarse mediante el backend y los servicios correspondientes.
+
+También será necesario considerar mecanismos de protección frente a solicitudes abusivas, independientemente de la arquitectura seleccionada. El proxy inverso podrá actuar como punto de entrada para centralizar parte de estas medidas y controlar las solicitudes provenientes del exterior.
+
+### 9.6. Alternativa seleccionada
+
+Después de comparar las tres propuestas, se selecciona la **arquitectura modular orientada a servicios contenerizados** como alternativa para PULSO.
+
+La elección se fundamenta principalmente en el equilibrio que ofrece entre la complejidad de implementación del MVP y las necesidades de crecimiento futuro del proyecto. A diferencia de la arquitectura monolítica, esta alternativa permite separar los componentes principales de PULSO en servicios independientes, facilitando su mantenimiento, actualización y asignación de recursos.
+
+Esta separación resulta especialmente conveniente debido a que PULSO integra funcionalidades con diferentes características y necesidades computacionales, como Machine Learning, explicabilidad mediante SHAP, simulaciones y consultas mediante RAG. Al encontrarse organizadas como servicios independientes, estas funcionalidades pueden evolucionar y optimizarse de manera individual.
+
+Además, la arquitectura permite escalar los componentes que presenten una mayor demanda sin necesidad de escalar toda la aplicación. Por ejemplo, si en una etapa posterior el servicio de Machine Learning requiere mayores recursos computacionales debido al incremento de solicitudes, estos recursos pueden asignarse específicamente a dicho servicio.
+
+Otro aspecto considerado es la tolerancia a fallos. Al estar los componentes separados, una falla en un servicio específico puede limitar una funcionalidad sin afectar necesariamente el funcionamiento completo de la plataforma. Esto proporciona un mayor aislamiento respecto a la arquitectura monolítica.
+
+Aunque la arquitectura de microservicios ofrece un nivel superior de separación y escalabilidad, su implementación introduce una complejidad operativa mayor debido a la cantidad de servicios, comunicaciones y mecanismos de recuperación que deben administrarse. Para las necesidades actuales y el crecimiento esperado de PULSO, se considera más apropiado mantener una cantidad controlada de servicios con responsabilidades claramente definidas.
+
+Finalmente, la arquitectura modular orientada a servicios permite que PULSO pueda evolucionar progresivamente. Si en el futuro alguna funcionalidad requiere un nivel de independencia, escalabilidad o disponibilidad mayor, el servicio correspondiente puede seguir evolucionando o, si resulta necesario, dividirse en componentes más especializados.
+
+Por estas razones, la arquitectura modular orientada a servicios contenerizados constituye la alternativa seleccionada para PULSO, al proporcionar un equilibrio entre **desempeño, escalabilidad, desacoplamiento, tolerancia a fallos y complejidad de implementación**, manteniendo la posibilidad de adaptar la arquitectura a las necesidades futuras del proyecto.
 
 ## 10. Diseño y arquitectura
 
