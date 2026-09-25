@@ -96,19 +96,55 @@ def run(config_path: Path, data_path: Path, tracking_uri: str | None = None) -> 
             names = pipeline.named_steps["preprocessor"].get_feature_names_out()
             estimator = pipeline.named_steps["model"]
             if config["model_type"] == "logistic_regression":
-                pd.DataFrame({"feature": names, "coefficient": estimator.coef_[0]}).to_csv(
-                    output / "coefficients.csv", index=False
+                pd.DataFrame({
+                    "feature": names,
+                    "coefficient": estimator.coef_[0]
+                }).to_csv(
+                    output / "coefficients.csv",
+                    index=False
                 )
-            else:
-                pd.DataFrame({"feature": names, "importance": estimator.feature_importances_}).to_csv(
-                    output / "feature_importances.csv", index=False
+
+            elif config["model_type"] == "decision_tree":
+                pd.DataFrame({
+                    "feature": names,
+                    "importance": estimator.feature_importances_
+                }).to_csv(
+                    output / "feature_importances.csv",
+                    index=False
                 )
+
                 from sklearn.tree import plot_tree
+
                 plt.figure(figsize=(22, 10))
-                plot_tree(estimator, feature_names=names, class_names=["cardio=0", "cardio=1"],
-                          filled=True, rounded=True, max_depth=3, fontsize=9)
-                plt.savefig(output / "tree_first_levels.png", bbox_inches="tight")
+
+                plot_tree(
+                    estimator,
+                    feature_names=names,
+                    class_names=["cardio=0", "cardio=1"],
+                    filled=True,
+                    rounded=True,
+                    max_depth=3,
+                    fontsize=9
+                )
+
+                plt.savefig(
+                    output / "tree_first_levels.png",
+                    bbox_inches="tight"
+                )
+
                 plt.close()
+
+            elif config["model_type"] == "xgboost":
+                pd.DataFrame({
+                    "feature": names,
+                    "importance": estimator.feature_importances_
+                }).sort_values(
+                    "importance",
+                    ascending=False
+                ).to_csv(
+                    output / "feature_importances.csv",
+                    index=False
+                )
             mlflow.log_artifacts(str(output), artifact_path="candidate")
         print(json.dumps({"run_id": active_run.info.run_id, "validation": metrics}, indent=2))
         return active_run.info.run_id

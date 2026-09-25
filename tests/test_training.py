@@ -42,8 +42,34 @@ def test_partitions_are_disjoint_and_repeatable():
 
 
 @pytest.mark.parametrize("kind,params", [
-    ("logistic_regression", {"max_iter": 1000, "random_state": 42}),
-    ("decision_tree", {"max_depth": 5, "min_samples_leaf": 50, "random_state": 42}),
+    (
+        "logistic_regression",
+        {
+            "max_iter": 1000,
+            "random_state": 42
+        }
+    ),
+    (
+        "decision_tree",
+        {
+            "max_depth": 5,
+            "min_samples_leaf": 50,
+            "random_state": 42
+        }
+    ),
+    (
+        "xgboost",
+        {
+            "n_estimators": 20,
+            "max_depth": 3,
+            "learning_rate": 0.1,
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "tree_method": "hist",
+            "random_state": 42,
+            "n_jobs": 1
+        }
+    ),
 ])
 def test_models_fit_and_evaluate(kind, params):
     df = synthetic_data()
