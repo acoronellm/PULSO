@@ -13,7 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
-
+from xgboost import XGBClassifier
 TARGET = "cardio"
 FEATURES = [
     "gender", "height", "weight", "ap_hi", "ap_lo", "smoke", "alco",
@@ -44,7 +44,8 @@ def load_dataset(path: Path) -> tuple[pd.DataFrame, pd.Series]:
     if len(df) == 0:
         raise ValueError("El dataset está vacío")
     if df[expected].isna().any().any():
-        raise ValueError("Existen valores faltantes en las columnas utilizadas")
+        raise ValueError(
+            "Existen valores faltantes en las columnas utilizadas")
     if not set(df[TARGET].unique()) == {0, 1}:
         raise ValueError("cardio debe contener las clases 0 y 1")
     if not all(pd.api.types.is_numeric_dtype(df[c]) for c in expected):
@@ -74,6 +75,9 @@ def make_pipeline(config: dict) -> Pipeline:
     elif kind == "decision_tree":
         continuous_transform = "passthrough"
         model = DecisionTreeClassifier(**config["model_params"])
+    elif kind == "xgboost":
+        continuous_transform = "passthrough"
+        model = XGBClassifier(**config["model_params"])
     else:
         raise ValueError(f"Algoritmo desconocido: {kind}")
     preprocessor = ColumnTransformer(transformers=[
