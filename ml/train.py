@@ -325,6 +325,7 @@ def run(
             )
 
             plt.close()
+ feature/random-forest-baseline
 
             # ==================================================
             # 16. OBTENER NOMBRES DE FEATURES Y MODELO
@@ -402,9 +403,34 @@ def run(
                     figsize=(22, 10)
                 )
 
+            names = pipeline.named_steps["preprocessor"].get_feature_names_out()
+            estimator = pipeline.named_steps["model"]
+            if config["model_type"] == "logistic_regression":
+                pd.DataFrame({
+                    "feature": names,
+                    "coefficient": estimator.coef_[0]
+                }).to_csv(
+                    output / "coefficients.csv",
+                    index=False
+                )
+
+            elif config["model_type"] == "decision_tree":
+                pd.DataFrame({
+                    "feature": names,
+                    "importance": estimator.feature_importances_
+                }).to_csv(
+                    output / "feature_importances.csv",
+                    index=False
+                )
+
+                from sklearn.tree import plot_tree
+
+                plt.figure(figsize=(22, 10)) main
+
                 plot_tree(
                     estimator,
                     feature_names=names,
+feature/random-forest-baseline
                     class_names=[
                         "cardio=0",
                         "cardio=1",
@@ -489,10 +515,23 @@ def run(
                     output
                     / "feature_importance.png",
                     bbox_inches="tight",
+
+                    class_names=["cardio=0", "cardio=1"],
+                    filled=True,
+                    rounded=True,
+                    max_depth=3,
+                    fontsize=9
+                )
+
+                plt.savefig(
+                    output / "tree_first_levels.png",
+                    bbox_inches="tight"
+ main
                 )
 
                 plt.close()
 
+ feature/random-forest-baseline
             # ==================================================
             # 18. REGISTRAR ARTEFACTOS EN MLFLOW
             # ==================================================
@@ -522,6 +561,22 @@ def run(
         return (
             active_run.info.run_id
         )
+
+            elif config["model_type"] == "xgboost":
+                pd.DataFrame({
+                    "feature": names,
+                    "importance": estimator.feature_importances_
+                }).sort_values(
+                    "importance",
+                    ascending=False
+                ).to_csv(
+                    output / "feature_importances.csv",
+                    index=False
+                )
+            mlflow.log_artifacts(str(output), artifact_path="candidate")
+        print(json.dumps({"run_id": active_run.info.run_id, "validation": metrics}, indent=2))
+        return active_run.info.run_id
+ main
 
 
 def main() -> None:

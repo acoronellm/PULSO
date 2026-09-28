@@ -86,6 +86,7 @@ def test_partitions_are_disjoint_and_repeatable():
     """
 
     df = synthetic_data()
+ feature/random-forest-baseline
 
     X = df[FEATURES]
     y = df["cardio"]
@@ -200,6 +201,48 @@ def test_models_fit_and_evaluate(
     - pueda ser evaluado correctamente.
     """
 
+
+    X, y = df[FEATURES], df["cardio"]
+    a = split_data(X, y)
+    b = split_data(X, y)
+    ids = [set(part[0].index) for part in a]
+    assert [len(part[0]) for part in a] == [140, 30, 30]
+    assert not (ids[0] & ids[1] or ids[0] & ids[2] or ids[1] & ids[2])
+    assert all(a[i][0].index.equals(b[i][0].index) for i in range(3))
+
+
+@pytest.mark.parametrize("kind,params", [
+    (
+        "logistic_regression",
+        {
+            "max_iter": 1000,
+            "random_state": 42
+        }
+    ),
+    (
+        "decision_tree",
+        {
+            "max_depth": 5,
+            "min_samples_leaf": 50,
+            "random_state": 42
+        }
+    ),
+    (
+        "xgboost",
+        {
+            "n_estimators": 20,
+            "max_depth": 3,
+            "learning_rate": 0.1,
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "tree_method": "hist",
+            "random_state": 42,
+            "n_jobs": 1
+        }
+    ),
+])
+def test_models_fit_and_evaluate(kind, params):
+ main
     df = synthetic_data()
 
     X = df[FEATURES]
