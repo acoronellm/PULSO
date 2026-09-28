@@ -13,6 +13,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
 
 TARGET = "cardio"
 FEATURES = [
@@ -74,6 +75,9 @@ def make_pipeline(config: dict) -> Pipeline:
     elif kind == "decision_tree":
         continuous_transform = "passthrough"
         model = DecisionTreeClassifier(**config["model_params"])
+    elif kind == "random_forest":
+        continuous_transform = "passthrough"
+        model = RandomForestClassifier(**config["model_params"])
     else:
         raise ValueError(f"Algoritmo desconocido: {kind}")
     preprocessor = ColumnTransformer(transformers=[
