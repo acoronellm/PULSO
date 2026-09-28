@@ -145,6 +145,18 @@ def run(config_path: Path, data_path: Path, tracking_uri: str | None = None) -> 
                     output / "feature_importances.csv",
                     index=False
                 )
+            elif config["model_type"] == "gradient_boosting":
+                pd.DataFrame({
+                    "feature": names,
+                    "importance": estimator.feature_importances_
+                }).sort_values(
+                    "importance",
+                    ascending=False
+                ).to_csv(
+                    output / "feature_importances.csv",
+                    index=False
+                )
+            
             mlflow.log_artifacts(str(output), artifact_path="candidate")
         print(json.dumps({"run_id": active_run.info.run_id, "validation": metrics}, indent=2))
         return active_run.info.run_id

@@ -13,7 +13,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import (
+    GradientBoostingClassifier,
+    DecisionTreeClassifier
+)
 from xgboost import XGBClassifier
+
+
 TARGET = "cardio"
 FEATURES = [
     "gender", "height", "weight", "ap_hi", "ap_lo", "smoke", "alco",
@@ -78,6 +84,9 @@ def make_pipeline(config: dict) -> Pipeline:
     elif kind == "xgboost":
         continuous_transform = "passthrough"
         model = XGBClassifier(**config["model_params"])
+    elif kind == "gradient_boosting":
+        continuous_transform = "passthrough"
+        model = GradientBoostingClassifier(**config["model_params"])
     else:
         raise ValueError(f"Algoritmo desconocido: {kind}")
     preprocessor = ColumnTransformer(transformers=[
