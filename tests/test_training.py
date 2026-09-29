@@ -86,7 +86,7 @@ def test_partitions_are_disjoint_and_repeatable():
     """
 
     df = synthetic_data()
- feature/random-forest-baseline
+ 
 
     X = df[FEATURES]
     y = df["cardio"]
@@ -242,7 +242,7 @@ def test_models_fit_and_evaluate(
     ),
 ])
 def test_models_fit_and_evaluate(kind, params):
- main
+    
     df = synthetic_data()
 
     X = df[FEATURES]
