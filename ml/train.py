@@ -516,11 +516,6 @@ def run(
                     / "feature_importance.png",
                     bbox_inches="tight",
 
-                    class_names=["cardio=0", "cardio=1"],
-                    filled=True,
-                    rounded=True,
-                    max_depth=3,
-                    fontsize=9
                 )
 
                 plt.savefig(
