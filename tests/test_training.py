@@ -4,6 +4,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
+from sklearn.model_selection import GridSearchCV
+
+from ml.threshold import search_threshold
 from ml.common import (
     FEATURES,
     load_dataset,
@@ -142,75 +145,6 @@ def test_partitions_are_disjoint_and_repeatable():
         for i in range(3)
     )
 
-
-@pytest.mark.parametrize(
-    "kind,params",
-    [
-
-        # ======================================================
-        # REGRESIÓN LOGÍSTICA
-        # ======================================================
-
-        (
-            "logistic_regression",
-            {
-                "max_iter": 1000,
-                "random_state": 42,
-            },
-        ),
-
-        # ======================================================
-        # ÁRBOL DE DECISIÓN
-        # ======================================================
-
-        (
-            "decision_tree",
-            {
-                "max_depth": 5,
-                "min_samples_leaf": 50,
-                "random_state": 42,
-            },
-        ),
-
-        # ======================================================
-        # RANDOM FOREST
-        # ======================================================
-
-        (
-            "random_forest",
-            {
-                # Se utilizan pocos árboles en la prueba
-                # para mantener el test rápido.
-                "n_estimators": 20,
-                "random_state": 42,
-                "n_jobs": 1,
-            },
-        ),
-    ],
-)
-def test_models_fit_and_evaluate(
-    kind,
-    params,
-):
-    """
-    Comprueba que cada algoritmo:
-
-    - pueda construir su pipeline;
-    - pueda entrenarse;
-    - pueda generar probabilidades;
-    - pueda ser evaluado correctamente.
-    """
-
-
-    X, y = df[FEATURES], df["cardio"]
-    a = split_data(X, y)
-    b = split_data(X, y)
-    ids = [set(part[0].index) for part in a]
-    assert [len(part[0]) for part in a] == [140, 30, 30]
-    assert not (ids[0] & ids[1] or ids[0] & ids[2] or ids[1] & ids[2])
-    assert all(a[i][0].index.equals(b[i][0].index) for i in range(3))
-
-
 @pytest.mark.parametrize("kind,params", [
     (
         "logistic_regression",
@@ -225,6 +159,14 @@ def test_models_fit_and_evaluate(
             "max_depth": 5,
             "min_samples_leaf": 50,
             "random_state": 42
+        }
+    ),
+        (
+        "random_forest",
+        {
+            "n_estimators": 20,
+            "random_state": 42,
+            "n_jobs": 1
         }
     ),
     (
@@ -299,3 +241,140 @@ def test_models_fit_and_evaluate(kind, params):
         <= metrics["brier"]
         <= 1
     )
+def test_gridsearch_finds_best_estimator():
+    """
+    Comprueba que GridSearchCV pueda ejecutarse sobre el pipeline
+    utilizando únicamente Train y devolver una mejor configuración.
+    """
+
+    df = synthetic_data()
+
+    X = df[FEATURES]
+    y = df["cardio"]
+
+    (
+        X_train,
+        y_train,
+    ), (
+        X_val,
+        y_val,
+    ), (
+        X_test,
+        y_test,
+    ) = split_data(
+        X,
+        y,
+    )
+
+    pipeline = make_pipeline({
+        "model_type": "decision_tree",
+        "model_params": {
+            "random_state": 42
+        },
+    })
+
+    param_grid = {
+        "model__max_depth": [3, 5]
+    }
+
+    grid = GridSearchCV(
+        estimator=pipeline,
+        param_grid=param_grid,
+        scoring="roc_auc",
+        cv=2,
+        n_jobs=1,
+    )
+
+    grid.fit(
+        X_train,
+        y_train,
+    )
+
+    assert grid.best_estimator_ is not None
+
+    assert grid.best_params_["model__max_depth"] in [
+        3,
+        5,
+    ]
+
+    assert (
+        0
+        <= grid.best_score_
+        <= 1
+    )
+def test_threshold_selection_meets_minimum_recall():
+    """
+    Comprueba que el threshold seleccionado cumpla
+    el recall mínimo establecido.
+    """
+
+    y_true = np.array([
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+    ])
+
+    probabilities = np.array([
+        0.10,
+        0.20,
+        0.30,
+        0.40,
+        0.60,
+        0.70,
+        0.90,
+    ])
+
+    selected, results = search_threshold(
+        y_true,
+        probabilities,
+        min_threshold=0.20,
+        max_threshold=0.60,
+        step=0.01,
+        min_recall=0.80,
+    )
+
+    assert selected["recall"] >= 0.80
+
+    assert (
+        0.20
+        <= selected["threshold"]
+        <= 0.60
+    )
+
+    assert not results.empty
+def test_threshold_selection_fails_when_recall_requirement_is_impossible():
+    """
+    Comprueba que el pipeline falle de forma explícita
+    cuando ningún threshold cumple el recall mínimo.
+    """
+
+    y_true = np.array([
+        0,
+        0,
+        1,
+        1,
+    ])
+
+    probabilities = np.array([
+        0.10,
+        0.20,
+        0.10,
+        0.20,
+    ])
+
+    with pytest.raises(
+        ValueError,
+        match="Ningún threshold"
+    ):
+        search_threshold(
+            y_true,
+            probabilities,
+            min_threshold=0.50,
+            max_threshold=0.90,
+            step=0.10,
+            min_recall=0.80,
+        )
