@@ -14,9 +14,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
-
-
 TARGET = "cardio"
 FEATURES = [
     "gender", "height", "weight", "ap_hi", "ap_lo", "smoke", "alco",
@@ -77,7 +76,10 @@ def make_pipeline(config: dict) -> Pipeline:
         model = LogisticRegression(**config["model_params"])
     elif kind == "decision_tree":
         continuous_transform = "passthrough"
-        model = DecisionTreeClassifier(**config["model_params"])
+        model = DecisionTreeClassifier(**config["model_params"]) 
+    elif kind == "random_forest":
+        continuous_transform = "passthrough"
+        model = RandomForestClassifier(**config["model_params"])
     elif kind == "xgboost":
         continuous_transform = "passthrough"
         model = XGBClassifier(**config["model_params"])
