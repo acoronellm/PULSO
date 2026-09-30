@@ -526,7 +526,29 @@ def run(
 
                 plt.close()
 
- 
+            elif config["model_type"] == "xgboost":
+                pd.DataFrame({
+                    "feature": names,
+                    "importance": estimator.feature_importances_
+                }).sort_values(
+                    "importance",
+                    ascending=False
+                ).to_csv(
+                    output / "feature_importances.csv",
+                    index=False
+                )
+            elif config["model_type"] == "gradient_boosting":
+                pd.DataFrame({
+                    "feature": names,
+                    "importance": estimator.feature_importances_
+                }).sort_values(
+                    "importance",
+                    ascending=False
+                ).to_csv(
+                    output / "feature_importances.csv",
+                    index=False
+                )
+
             # ==================================================
             # 18. REGISTRAR ARTEFACTOS EN MLFLOW
             # ==================================================

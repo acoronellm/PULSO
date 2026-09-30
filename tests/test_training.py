@@ -182,6 +182,15 @@ def test_partitions_are_disjoint_and_repeatable():
             "n_jobs": 1
         }
     ),
+    (
+        "gradient_boosting",
+        {
+            "n_estimators": 20,
+            "learning_rate": 0.1,
+            "max_depth": 3,
+            "random_state": 42
+        }
+    ),
 ])
 def test_models_fit_and_evaluate(kind, params):
     
