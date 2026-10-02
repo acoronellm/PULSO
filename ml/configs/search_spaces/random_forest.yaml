@@ -27,3 +27,4 @@ param_grid:
   model__max_features:
     - sqrt
     - log2
+    - null

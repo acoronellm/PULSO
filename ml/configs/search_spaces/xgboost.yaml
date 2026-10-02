@@ -26,3 +26,12 @@ param_grid:
   model__colsample_bytree:
     - 0.8
     - 1.0
+
+  model__min_child_weight:
+    - 1
+    - 3
+    - 5
+
+  model__reg_lambda:
+    - 1
+    - 5
