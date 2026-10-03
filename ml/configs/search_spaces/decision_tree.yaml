@@ -13,13 +13,20 @@ param_grid:
     - 5
     - 7
     - 10
+    - 15
+    - null
 
   model__min_samples_split:
     - 2
+    - 5
     - 10
     - 20
+    - 50
 
   model__min_samples_leaf:
+    - 1
+    - 2
+    - 5
     - 10
     - 20
     - 50
