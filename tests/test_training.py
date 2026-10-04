@@ -1,8 +1,11 @@
 """Pruebas del pipeline de entrenamiento con datos sintéticos."""
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
+import yaml
 
 from sklearn.model_selection import GridSearchCV
 
@@ -387,3 +390,16 @@ def test_threshold_selection_fails_when_recall_requirement_is_impossible():
             step=0.10,
             min_recall=0.80,
         )
+
+
+def test_gradient_boosting_is_configured_for_tuning():
+    """Gradient Boosting debe tener un search space y configuración base válidos."""
+    search_path = Path(__file__).resolve().parents[1] / "ml" / "configs" / "search_spaces" / "gradient_boosting.yaml"
+    assert search_path.exists()
+
+    config = yaml.safe_load(search_path.read_text(encoding="utf-8"))
+    assert config["model_type"] == "gradient_boosting"
+    assert "param_grid" in config
+    assert "model__n_estimators" in config["param_grid"]
+    assert "model__learning_rate" in config["param_grid"]
+    assert "model__max_depth" in config["param_grid"]
