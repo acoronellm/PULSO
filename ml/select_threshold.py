@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-
+import mlflow
 import yaml
 
 from ml.common import (
     load_dataset,
     make_pipeline,
+    sha256_file,
     split_data
 )
 
@@ -57,7 +58,97 @@ def run_threshold_selection(
 
     print("\nThreshold seleccionado:")
     print(selected)
+    # 8. Guardar resultados completos en CSV
+    output_dir = ROOT / "artifacts" / "threshold"
+    output_dir.mkdir(
+        parents=True,
+        exist_ok=True
+    )
 
+    model_type = config["model_type"]
+
+    csv_path = (
+        output_dir
+        / f"{model_type}_threshold_results.csv"
+    )
+
+    results.to_csv(
+        csv_path,
+        index=False
+    )
+
+    print(
+        f"\nResultados guardados en: {csv_path}"
+    )
+
+
+    # 9. Registrar en MLflow
+    mlflow.set_tracking_uri(
+        "sqlite:///mlflow.db"
+    )
+
+    mlflow.set_experiment(
+        "PULSO-threshold-selection"
+    )
+
+    with mlflow.start_run(
+        run_name=f"{model_type}_threshold_selection"
+    ):
+
+        mlflow.log_param(
+            "model_type",
+            model_type
+        )
+
+        mlflow.log_param(
+            "dataset_sha256",
+            sha256_file(data_path)
+        )
+
+        mlflow.log_param(
+            "selected_threshold",
+            float(selected["threshold"])
+        )
+
+        mlflow.log_param(
+            "min_recall",
+            0.80
+        )
+
+        mlflow.log_metric(
+            "validation_accuracy",
+            float(selected["accuracy"])
+        )
+
+        mlflow.log_metric(
+            "validation_precision",
+            float(selected["precision"])
+        )
+
+        mlflow.log_metric(
+            "validation_recall",
+            float(selected["recall"])
+        )
+
+        mlflow.log_metric(
+            "validation_specificity",
+            float(selected["specificity"])
+        )
+
+        mlflow.log_metric(
+            "validation_f1",
+            float(selected["f1"])
+        )
+
+        mlflow.log_artifact(
+            str(csv_path),
+            artifact_path="threshold"
+        )
+
+        mlflow.log_artifact(
+            str(config_path),
+            artifact_path="config"
+        )
     return selected, results
 
 
