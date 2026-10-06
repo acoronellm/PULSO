@@ -7,6 +7,14 @@ on:
       - 'tests/**'
       - 'requirements-ml.txt'
       - '.github/workflows/ml-training-ci.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'ml/**'
+      - 'tests/**'
+      - 'requirements-ml.txt'
+      - '.github/workflows/ml-training-ci.yml'
   workflow_dispatch:
 jobs:
   test:

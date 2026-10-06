@@ -1,0 +1,77 @@
+model:
+  name: pulso_xgboost
+  version: 1
+  algorithm: xgboost
+  status: final
+  calibration: none
+  threshold: 0.38
+
+dataset:
+  name: cardio_clean_v1
+  path: data/processed/cardio_clean_v1.csv
+  total_rows: 68610
+  train_rows: 48027
+  validation_rows: 10291
+  final_train_rows: 58318
+  test_rows: 10292
+  sha256: 16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91
+
+features:
+  - gender
+  - height
+  - weight
+  - ap_hi
+  - ap_lo
+  - smoke
+  - alco
+  - active
+  - age_years
+  - bmi
+
+excluded_features:
+  - id
+  - age
+  - cholesterol
+  - gluc
+
+training:
+  random_state: 42
+  refit_strategy: train_plus_validation
+
+selection:
+  minimum_recall: 0.80
+  selected_model: xgboost
+  selected_calibration: none
+  selected_threshold: 0.38
+
+test_metrics:
+  accuracy: 0.707928
+  precision: 0.671492
+  recall: 0.801807
+  specificity: 0.616035
+  f1: 0.730886
+  roc_auc: 0.796757
+  brier: 0.182506
+  log_loss: 0.545384
+  ece: 0.012113
+
+confusion_matrix:
+  tn: 3204
+  fp: 1997
+  fn: 1009
+  tp: 4082
+
+artifacts:
+  serialized_model: artifacts/final/model/pulso_xgboost.joblib
+  final_metrics: artifacts/final/test_metrics.csv
+
+mlflow:
+  experiment: PULSO-final-evaluation
+  run_name: xgboost_final_test
+
+code:
+  git_commit: 80e7507949eef29ea3edcb143d231116da5b8a4a
+
+environment:
+  python: "3.11"
+  requirements: requirements-ml.txt
