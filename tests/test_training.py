@@ -18,6 +18,21 @@ from ml.common import (
 )
 from ml.evaluate import evaluate
 
+from ml.calibration import (
+    evaluate_probabilities,
+    expected_calibration_error,
+    make_calibrated_model,
+)
+
+from ml.select_threshold import run_threshold_selection
+
+import mlflow
+
+import ml.select_threshold as select_threshold_module
+
+from ml.select_threshold import (
+    run_threshold_selection
+)
 
 MODEL_TYPES = [
     "logistic_regression",
@@ -542,3 +557,442 @@ def test_threshold_selection_fails_when_recall_requirement_is_impossible():
             step=0.10,
             min_recall=0.80,
         )
+def test_expected_calibration_error_is_valid():
+    """
+    Comprueba que ECE produzca un valor válido
+    entre 0 y 1.
+    """
+
+    y_true = np.array([
+        0,
+        0,
+        1,
+        1,
+    ])
+
+    probabilities = np.array([
+        0.10,
+        0.20,
+        0.80,
+        0.90,
+    ])
+
+    ece = expected_calibration_error(
+        y_true,
+        probabilities,
+        n_bins=4,
+    )
+
+    assert 0 <= ece <= 1
+def test_evaluate_probabilities_returns_expected_metrics():
+    """
+    Comprueba que la evaluación probabilística
+    devuelva las métricas necesarias para comparar
+    calibraciones.
+    """
+
+    y_true = np.array([
+        0,
+        0,
+        1,
+        1,
+    ])
+
+    probabilities = np.array([
+        0.10,
+        0.20,
+        0.80,
+        0.90,
+    ])
+
+    metrics = evaluate_probabilities(
+        y_true,
+        probabilities,
+        n_bins=4,
+    )
+
+    assert set(metrics) == {
+        "brier",
+        "log_loss",
+        "ece",
+        "roc_auc",
+    }
+
+    assert 0 <= metrics["brier"] <= 1
+    assert metrics["log_loss"] >= 0
+    assert 0 <= metrics["ece"] <= 1
+    assert 0 <= metrics["roc_auc"] <= 1
+@pytest.mark.parametrize(
+    "model_type",
+    MODEL_TYPES,
+)
+@pytest.mark.parametrize(
+    "method",
+    [
+        "sigmoid",
+        "isotonic",
+    ],
+)
+def test_models_support_calibration(
+    model_type,
+    method,
+):
+    """
+    Comprueba que todos los modelos soportados
+    puedan calibrarse con Sigmoid e Isotonic.
+    """
+
+    df = synthetic_data()
+
+    X = df[FEATURES]
+    y = df["cardio"]
+
+    (
+        X_train,
+        y_train,
+    ), (
+        X_val,
+        y_val,
+    ), _ = split_data(
+        X,
+        y,
+    )
+
+    pipeline = make_pipeline({
+        "model_type": model_type,
+        "model_params": minimal_model_params(
+            model_type
+        ),
+    })
+
+    calibrated_model = make_calibrated_model(
+        pipeline,
+        method=method,
+        cv=2,
+    )
+
+    calibrated_model.fit(
+        X_train,
+        y_train,
+    )
+
+    probabilities = (
+        calibrated_model
+        .predict_proba(X_val)[:, 1]
+    )
+
+    assert len(probabilities) == len(y_val)
+
+    assert np.all(
+        probabilities >= 0
+    )
+
+    assert np.all(
+        probabilities <= 1
+    )
+
+    metrics = evaluate_probabilities(
+        y_val,
+        probabilities,
+    )
+
+    assert 0 <= metrics["brier"] <= 1
+    assert metrics["log_loss"] >= 0
+    assert 0 <= metrics["ece"] <= 1
+    assert 0 <= metrics["roc_auc"] <= 1
+
+def disable_mlflow(
+    monkeypatch,
+    tmp_path,
+):
+    """
+    Deshabilita los efectos secundarios de MLflow
+    y redirige los artefactos al directorio temporal
+    durante los tests.
+    """
+
+    # Evitar que los CSV de threshold se escriban
+    # dentro del repositorio real.
+    monkeypatch.setattr(
+        select_threshold_module,
+        "ROOT",
+        tmp_path,
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "set_tracking_uri",
+        lambda *args, **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "set_experiment",
+        lambda *args, **kwargs: None,
+    )
+
+    class DummyRun:
+        def __enter__(self):
+            return self
+
+        def __exit__(
+            self,
+            exc_type,
+            exc_value,
+            traceback,
+        ):
+            return False
+
+    monkeypatch.setattr(
+        mlflow,
+        "start_run",
+        lambda *args, **kwargs: DummyRun(),
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "log_param",
+        lambda *args, **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "log_metric",
+        lambda *args, **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "log_artifact",
+        lambda *args, **kwargs: None,
+    )
+@pytest.mark.parametrize(
+    "model_type",
+    MODEL_TYPES,
+)
+def test_threshold_selection_with_no_calibration(
+    model_type,
+    tmp_path,
+    monkeypatch,
+):
+    """
+    Comprueba que la selección de threshold
+    funcione para todos los modelos cuando
+    no se utiliza calibración.
+    """
+
+    disable_mlflow(
+        monkeypatch,
+        tmp_path,
+    )
+
+    data_path = (
+        tmp_path
+        / "clean.csv"
+    )
+
+    config_path = (
+        tmp_path
+        / f"{model_type}_candidate.yaml"
+    )
+
+    synthetic_data(
+        n=400
+    ).to_csv(
+        data_path,
+        index=False,
+    )
+
+    config = {
+        "model_type": model_type,
+        "model_params": (
+            minimal_model_params(
+                model_type
+            )
+        ),
+        "calibration": {
+            "method": "none",
+        },
+        "threshold": 0.5,
+    }
+
+    config_path.write_text(
+        yaml.safe_dump(
+            config
+        ),
+        encoding="utf-8",
+    )
+
+    selected, results = (
+        run_threshold_selection(
+            config_path,
+            data_path,
+        )
+    )
+
+    assert not results.empty
+
+    assert (
+        selected["recall"]
+        >= 0.80
+    )
+
+    assert (
+        0.20
+        <= selected["threshold"]
+        <= 0.60
+    )
+@pytest.mark.parametrize(
+    "model_type",
+    MODEL_TYPES,
+)
+def test_threshold_selection_with_sigmoid_calibration(
+    model_type,
+    tmp_path,
+    monkeypatch,
+):
+    """
+    Comprueba que la selección de threshold
+    funcione para todos los modelos cuando
+    utilizan calibración Sigmoid.
+    """
+
+    disable_mlflow(
+        monkeypatch,
+        tmp_path,
+    )
+
+    data_path = (
+        tmp_path
+        / "clean.csv"
+    )
+
+    config_path = (
+        tmp_path
+        / f"{model_type}_candidate.yaml"
+    )
+
+    synthetic_data(
+        n=400
+    ).to_csv(
+        data_path,
+        index=False,
+    )
+
+    config = {
+        "model_type": model_type,
+        "model_params": (
+            minimal_model_params(
+                model_type
+            )
+        ),
+        "calibration": {
+            "method": "sigmoid",
+            "cv": 2,
+        },
+        "threshold": 0.5,
+    }
+
+    config_path.write_text(
+        yaml.safe_dump(
+            config
+        ),
+        encoding="utf-8",
+    )
+
+    selected, results = (
+        run_threshold_selection(
+            config_path,
+            data_path,
+        )
+    )
+
+    assert not results.empty
+
+    assert (
+        selected["recall"]
+        >= 0.80
+    )
+
+    assert (
+        0.20
+        <= selected["threshold"]
+        <= 0.60
+    )
+@pytest.mark.parametrize(
+    "model_type",
+    MODEL_TYPES,
+)
+def test_threshold_selection_with_isotonic_calibration(
+    model_type,
+    tmp_path,
+    monkeypatch,
+):
+    """
+    Comprueba que la selección de threshold
+    funcione para todos los modelos cuando
+    utilizan calibración Isotonic.
+    """
+
+    disable_mlflow(
+        monkeypatch,
+        tmp_path,
+    )
+
+    data_path = (
+        tmp_path
+        / "clean.csv"
+    )
+
+    config_path = (
+        tmp_path
+        / f"{model_type}_candidate.yaml"
+    )
+
+    synthetic_data(
+        n=400
+    ).to_csv(
+        data_path,
+        index=False,
+    )
+
+    config = {
+        "model_type": model_type,
+        "model_params": (
+            minimal_model_params(
+                model_type
+            )
+        ),
+        "calibration": {
+            "method": "isotonic",
+            "cv": 2,
+        },
+        "threshold": 0.5,
+    }
+
+    config_path.write_text(
+        yaml.safe_dump(
+            config
+        ),
+        encoding="utf-8",
+    )
+
+    selected, results = (
+        run_threshold_selection(
+            config_path,
+            data_path,
+        )
+    )
+
+    assert not results.empty
+
+    assert (
+        selected["recall"]
+        >= 0.80
+    )
+
+    assert (
+        0.20
+        <= selected["threshold"]
+        <= 0.60
+    )

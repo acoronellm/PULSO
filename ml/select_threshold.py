@@ -5,6 +5,8 @@ from pathlib import Path
 import mlflow
 import yaml
 
+from ml.calibration import make_calibrated_model
+
 from ml.common import (
     load_dataset,
     make_pipeline,
@@ -35,21 +37,63 @@ def run_threshold_selection(
     (X_val, y_val), \
     _ = split_data(X, y)
 
-    # 4. Construir el modelo
+    # 4. Construir modelo tuned base
     pipeline = make_pipeline(config)
 
-    # 5. Entrenar SOLO con Train
-    pipeline.fit(
+    # 5. Revisar configuración de calibración
+    calibration_config = config.get(
+        "calibration",
+        {
+            "method": "none"
+        }
+    )
+
+    calibration_method = calibration_config.get(
+        "method",
+        "none"
+    )
+
+    if calibration_method == "none":
+
+        model = pipeline
+
+    elif calibration_method in {
+        "sigmoid",
+        "isotonic",
+    }:
+
+        calibration_cv = calibration_config.get(
+            "cv",
+            5
+        )
+
+        model = make_calibrated_model(
+            pipeline,
+            method=calibration_method,
+            cv=calibration_cv,
+        )
+
+    else:
+
+        raise ValueError(
+            "Método de calibración no soportado: "
+            f"{calibration_method}"
+        )
+
+
+    # 6. Entrenar SOLO con Train
+    model.fit(
         X_train,
         y_train
     )
 
-    # 6. Obtener probabilidades SOLO sobre Validation
-    probabilities = pipeline.predict_proba(
+
+    # 7. Obtener probabilidades SOLO sobre Validation
+    probabilities = model.predict_proba(
         X_val
     )[:, 1]
 
-    # 7. Buscar threshold
+    # 8. Buscar threshold
     selected, results = search_threshold(
         y_val,
         probabilities,
@@ -58,7 +102,7 @@ def run_threshold_selection(
 
     print("\nThreshold seleccionado:")
     print(selected)
-    # 8. Guardar resultados completos en CSV
+    # 9. Guardar resultados completos en CSV
     output_dir = ROOT / "artifacts" / "threshold"
     output_dir.mkdir(
         parents=True,
@@ -82,7 +126,7 @@ def run_threshold_selection(
     )
 
 
-    # 9. Registrar en MLflow
+    # 10. Registrar en MLflow
     mlflow.set_tracking_uri(
         "sqlite:///mlflow.db"
     )
@@ -104,7 +148,23 @@ def run_threshold_selection(
             "dataset_sha256",
             sha256_file(data_path)
         )
+        mlflow.log_param(
+            "calibration_method",
+            calibration_method
+        )
 
+        if (
+            calibration_method
+            != "none"
+        ):
+
+            mlflow.log_param(
+                "calibration_cv",
+                calibration_config.get(
+                    "cv",
+                    5
+                )
+            )
         mlflow.log_param(
             "selected_threshold",
             float(selected["threshold"])
