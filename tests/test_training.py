@@ -30,8 +30,12 @@ import mlflow
 
 import ml.select_threshold as select_threshold_module
 
-from ml.select_threshold import (
-    run_threshold_selection
+import ml.final_evaluate as final_evaluate_module
+
+from ml.final_evaluate import (
+    build_final_model,
+    calculate_final_metrics,
+    run_final_evaluation,
 )
 
 MODEL_TYPES = [
@@ -996,3 +1000,354 @@ def test_threshold_selection_with_isotonic_calibration(
         <= selected["threshold"]
         <= 0.60
     )
+def disable_final_evaluation_side_effects(
+    monkeypatch,
+    tmp_path,
+):
+    """
+    Redirige artefactos y deshabilita MLflow
+    durante los tests de evaluación final.
+    """
+
+    monkeypatch.setattr(
+        final_evaluate_module,
+        "ROOT",
+        tmp_path,
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "set_tracking_uri",
+        lambda *args, **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "set_experiment",
+        lambda *args, **kwargs: None,
+    )
+
+    class DummyRun:
+        def __enter__(self):
+            return self
+
+        def __exit__(
+            self,
+            exc_type,
+            exc_value,
+            traceback,
+        ):
+            return False
+
+    monkeypatch.setattr(
+        mlflow,
+        "start_run",
+        lambda *args, **kwargs: DummyRun(),
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "log_param",
+        lambda *args, **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "log_metric",
+        lambda *args, **kwargs: None,
+    )
+
+    monkeypatch.setattr(
+        mlflow,
+        "log_artifact",
+        lambda *args, **kwargs: None,
+    )
+def test_calculate_final_metrics_returns_expected_metrics():
+    """
+    Comprueba que la evaluación final produzca
+    todas las métricas requeridas.
+    """
+
+    y_true = np.array([
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+    ])
+
+    probabilities = np.array([
+        0.10,
+        0.20,
+        0.40,
+        0.55,
+        0.75,
+        0.90,
+    ])
+
+    threshold = 0.38
+
+    predictions = (
+        probabilities >= threshold
+    ).astype(int)
+
+    metrics = calculate_final_metrics(
+        y_true,
+        probabilities,
+        predictions,
+    )
+
+    assert set(metrics) == {
+        "accuracy",
+        "precision",
+        "recall",
+        "specificity",
+        "f1",
+        "roc_auc",
+        "brier",
+        "log_loss",
+        "ece",
+        "tn",
+        "fp",
+        "fn",
+        "tp",
+    }
+
+    assert 0 <= metrics["accuracy"] <= 1
+    assert 0 <= metrics["precision"] <= 1
+    assert 0 <= metrics["recall"] <= 1
+    assert 0 <= metrics["specificity"] <= 1
+    assert 0 <= metrics["f1"] <= 1
+    assert 0 <= metrics["roc_auc"] <= 1
+    assert 0 <= metrics["brier"] <= 1
+    assert metrics["log_loss"] >= 0
+    assert 0 <= metrics["ece"] <= 1
+
+    assert (
+        metrics["tn"]
+        + metrics["fp"]
+        + metrics["fn"]
+        + metrics["tp"]
+        == len(y_true)
+    )
+def test_build_final_model_without_calibration():
+    """
+    Comprueba que el candidato final pueda
+    construirse correctamente cuando
+    calibration.method = none.
+    """
+
+    config = {
+        "model_type": "xgboost",
+        "model_params": {
+            "n_estimators": 10,
+            "max_depth": 3,
+            "learning_rate": 0.1,
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "tree_method": "hist",
+            "random_state": 42,
+            "n_jobs": 1,
+        },
+        "calibration": {
+            "method": "none",
+        },
+        "threshold": 0.38,
+    }
+
+    model = build_final_model(
+        config
+    )
+
+    df = synthetic_data(
+        n=200
+    )
+
+    X = df[FEATURES]
+    y = df["cardio"]
+
+    model.fit(
+        X,
+        y,
+    )
+
+    probabilities = (
+        model
+        .predict_proba(X)[:, 1]
+    )
+
+    assert len(probabilities) == len(y)
+
+    assert np.all(
+        probabilities >= 0
+    )
+
+    assert np.all(
+        probabilities <= 1
+    )
+def test_final_evaluation_pipeline(
+    tmp_path,
+    monkeypatch,
+):
+    """
+    Comprueba el flujo completo de evaluación final
+    utilizando datos sintéticos.
+
+    No utiliza el dataset real de PULSO.
+    """
+
+    disable_final_evaluation_side_effects(
+        monkeypatch,
+        tmp_path,
+    )
+
+    data_path = (
+        tmp_path
+        / "clean.csv"
+    )
+
+    config_path = (
+        tmp_path
+        / "final_model.yaml"
+    )
+
+    synthetic_data(
+        n=400
+    ).to_csv(
+        data_path,
+        index=False,
+    )
+
+    config = {
+        "model_type": "xgboost",
+        "model_params": {
+            "n_estimators": 10,
+            "max_depth": 3,
+            "learning_rate": 0.1,
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "tree_method": "hist",
+            "random_state": 42,
+            "n_jobs": 1,
+        },
+        "calibration": {
+            "method": "none",
+        },
+        "threshold": 0.38,
+    }
+
+    config_path.write_text(
+        yaml.safe_dump(
+            config
+        ),
+        encoding="utf-8",
+    )
+
+    metrics, model = (
+        run_final_evaluation(
+            config_path,
+            data_path,
+        )
+    )
+
+    # -----------------------------
+    # Verificar métricas
+    # -----------------------------
+
+    assert set(metrics) == {
+        "accuracy",
+        "precision",
+        "recall",
+        "specificity",
+        "f1",
+        "roc_auc",
+        "brier",
+        "log_loss",
+        "ece",
+        "tn",
+        "fp",
+        "fn",
+        "tp",
+    }
+
+    # -----------------------------
+    # Verificar que Test tenga
+    # exactamente 15 % de 400 = 60
+    # -----------------------------
+
+    assert (
+        metrics["tn"]
+        + metrics["fp"]
+        + metrics["fn"]
+        + metrics["tp"]
+        == 60
+    )
+
+    # -----------------------------
+    # Verificar artefactos
+    # -----------------------------
+
+    output_dir = (
+        tmp_path
+        / "artifacts"
+        / "final"
+    )
+
+    assert (
+        output_dir
+        / "test_metrics.csv"
+    ).exists()
+
+    assert (
+        output_dir
+        / "confusion_matrix.png"
+    ).exists()
+
+    assert (
+        output_dir
+        / "roc_curve.png"
+    ).exists()
+
+    assert (
+        output_dir
+        / "precision_recall_curve.png"
+    ).exists()
+
+    assert (
+        output_dir
+        / "calibration_curve.png"
+    ).exists()
+
+    assert (
+        output_dir
+        / "model"
+        / "pulso_xgboost.joblib"
+    ).exists()
+
+    assert model is not None
+def test_build_final_model_rejects_invalid_calibration():
+    """
+    Comprueba que una calibración no soportada
+    produzca un error explícito.
+    """
+
+    config = {
+        "model_type": "logistic_regression",
+        "model_params": {
+            "max_iter": 500,
+            "random_state": 42,
+        },
+        "calibration": {
+            "method": "invalid_method",
+        },
+        "threshold": 0.38,
+    }
+
+    with pytest.raises(
+        ValueError,
+        match="Método de calibración no soportado",
+    ):
+        build_final_model(
+            config
+        )
