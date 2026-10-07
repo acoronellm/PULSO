@@ -38,6 +38,15 @@ from ml.final_evaluate import (
     run_final_evaluation,
 )
 
+shap = pytest.importorskip("shap")
+
+from ml.shap_explain import (
+    explain_pipeline,
+    global_importance,
+    local_explanation,
+    transform_for_shap,
+)
+
 MODEL_TYPES = [
     "logistic_regression",
     "decision_tree",
@@ -84,6 +93,71 @@ def minimal_model_params(model_type):
     }
 
     return params[model_type]
+
+
+def test_shap_uses_transformed_pipeline_features():
+    """SHAP debe explicar la salida del preprocesador entrenado."""
+
+    df = synthetic_data()
+    X = df[FEATURES]
+    y = df["cardio"]
+    pipeline = make_pipeline({
+        "model_type": "xgboost",
+        "model_params": minimal_model_params("xgboost"),
+    })
+    pipeline.fit(X, y)
+
+    transformed, feature_names = transform_for_shap(pipeline, X.head(8))
+
+    assert transformed.shape == (8, len(feature_names))
+    assert any("gender" in name for name in feature_names)
+    assert not any(
+        name.endswith(("__id", "__age", "__cholesterol", "__gluc"))
+        for name in feature_names
+    )
+
+
+def test_shap_values_reconstruct_probability_and_local_output():
+    """La suma de SHAP debe reconstruir predict_proba para cardio=1."""
+
+    df = synthetic_data()
+    X = df[FEATURES]
+    y = df["cardio"]
+    pipeline = make_pipeline({
+        "model_type": "xgboost",
+        "model_params": minimal_model_params("xgboost"),
+    })
+    pipeline.fit(X, y)
+
+    sample = X.head(6).reset_index(drop=True)
+    explanation, feature_names = explain_pipeline(
+        pipeline,
+        sample,
+        background=X.head(20),
+    )
+    probabilities = pipeline.predict_proba(sample)[:, 1]
+    raw_output = explanation.base_values + explanation.values.sum(axis=1)
+    reconstructed = 1 / (1 + np.exp(-raw_output))
+
+    assert np.allclose(reconstructed, probabilities, atol=1e-5)
+
+    importance = global_importance(explanation, feature_names)
+    assert list(importance.columns) == [
+        "feature",
+        "mean_abs_shap",
+        "mean_shap",
+    ]
+    assert len(importance) == len(feature_names)
+
+    local = local_explanation(
+        pipeline,
+        sample,
+        explanation,
+        feature_names,
+        threshold=0.38,
+    )
+    assert set(local["prediction"].unique()).issubset({0, 1})
+    assert set(local["threshold"]) == {0.38}
 
 
 def synthetic_data(n=200):
