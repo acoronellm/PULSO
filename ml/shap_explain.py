@@ -71,7 +71,7 @@ def transform_for_shap(pipeline, X: pd.DataFrame):
     return np.asarray(transformed), feature_names
 
 
-def create_explainer(pipeline, background: np.ndarray):
+def create_explainer(pipeline):
     """Crea TreeExplainer en escala raw compatible con XGBoost 3.x.
 
     La escala raw es el log-odds del modelo. La probabilidad se recupera
@@ -89,20 +89,11 @@ def create_explainer(pipeline, background: np.ndarray):
 def explain_pipeline(
     pipeline,
     X: pd.DataFrame,
-    background: pd.DataFrame | None = None,
 ):
     """Genera valores SHAP para un DataFrame con variables originales."""
     transformed, feature_names = transform_for_shap(pipeline, X)
-    background_transformed = transformed
-    if background is not None:
-        background_transformed, background_names = transform_for_shap(
-            pipeline,
-            background,
-        )
-        if background_names != feature_names:
-            raise ValueError("Las columnas transformadas no coinciden.")
 
-    explainer = create_explainer(pipeline, background_transformed)
+    explainer = create_explainer(pipeline)
     explanation = explainer(transformed)
     explanation.feature_names = feature_names
     return explanation, feature_names
@@ -194,29 +185,23 @@ def run_global_explanation(
     config_path: Path = DEFAULT_CONFIG_PATH,
     output_dir: Path = DEFAULT_OUTPUT_DIR,
     sample_size: int = 1000,
-    background_size: int = 1000,
 ):
-    """Genera explicaciones globales sobre Test y usa Train+Validation como fondo."""
+    """Genera explicaciones globales sobre una muestra del conjunto Test."""
     pipeline = load_final_model(model_path)
     X, y = load_dataset(dataset_path)
-    (X_train, _), (X_val, _), (X_test, _) = split_data(X, y)
+    (_, _), (_, _), (X_test, _) = split_data(X, y)
 
-    if sample_size < 1 or background_size < 1:
-        raise ValueError("sample_size y background_size deben ser positivos.")
+    if sample_size < 1:
+        raise ValueError("sample_size debe ser positivo.")
 
     X_explain = X_test.sample(
         n=min(sample_size, len(X_test)),
-        random_state=42,
-    )
-    X_background = pd.concat([X_train, X_val]).sample(
-        n=min(background_size, len(X_train) + len(X_val)),
         random_state=42,
     )
 
     explanation, feature_names = explain_pipeline(
         pipeline,
         X_explain,
-        background=X_background,
     )
     importance = save_global_artifacts(
         explanation,
@@ -244,7 +229,6 @@ def parse_args():
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG_PATH)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
     parser.add_argument("--sample-size", type=int, default=1000)
-    parser.add_argument("--background-size", type=int, default=1000)
     return parser.parse_args()
 
 
@@ -256,7 +240,6 @@ def main():
         config_path=args.config,
         output_dir=args.output_dir,
         sample_size=args.sample_size,
-        background_size=args.background_size,
     )
     print(importance.to_string(index=False))
 

@@ -639,10 +639,10 @@ Después se ejecuta:
 python -m ml.shap_explain
 ```
 
-El comando utiliza Test para las explicaciones globales y una muestra de Train + Validation como referencia del explicador. Para reducir el costo computacional se explican por defecto 1,000 registros y se utilizan 1,000 registros de referencia. Estos tamaños pueden cambiarse mediante:
+El comando utiliza una muestra de Test para las explicaciones globales. Como el explicador usa `feature_perturbation="tree_path_dependent"`, SHAP utiliza los conteos internos de las hojas del modelo y no un dataset de background externo. Para reducir el costo computacional se explican por defecto 1,000 registros; este tamaño puede cambiarse mediante:
 
 ```bash
-python -m ml.shap_explain --sample-size 500 --background-size 500
+python -m ml.shap_explain --sample-size 500
 ```
 
 Los resultados se guardan en:

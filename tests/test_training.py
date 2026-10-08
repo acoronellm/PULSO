@@ -133,7 +133,6 @@ def test_shap_values_reconstruct_probability_and_local_output():
     explanation, feature_names = explain_pipeline(
         pipeline,
         sample,
-        background=X.head(20),
     )
     probabilities = pipeline.predict_proba(sample)[:, 1]
     raw_output = explanation.base_values + explanation.values.sum(axis=1)
