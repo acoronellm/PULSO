@@ -12,5 +12,5 @@ def health():
     return {
         "status": "ok",
         "service": "ml-service",
-        "model_version": "v1",
+        "model_loaded": False,
     }
