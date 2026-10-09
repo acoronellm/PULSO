@@ -1,3 +1,5 @@
+import numpy as np
+import pytest
 from fastapi.testclient import TestClient
 
 from ml_service.app.main import app
@@ -20,7 +22,26 @@ VALID_PAYLOAD = {
 }
 
 
-def test_predict_returns_expected_structure():
+class FakeModel:
+    def predict_proba(self, X):
+        return np.array([
+            [0.30, 0.70]
+        ])
+
+
+@pytest.fixture
+def mock_model(monkeypatch):
+    fake_model = FakeModel()
+
+    monkeypatch.setattr(
+        "ml_service.app.predictor.load_model",
+        lambda: fake_model,
+    )
+
+    return fake_model
+
+
+def test_predict_returns_expected_structure(mock_model):
     response = client.post(
         "/predict",
         json=VALID_PAYLOAD,
@@ -43,7 +64,7 @@ def test_predict_returns_expected_structure():
     assert body["model_version"] == "v1"
 
 
-def test_predict_classification_matches_threshold():
+def test_predict_classification_matches_threshold(mock_model):
     response = client.post(
         "/predict",
         json=VALID_PAYLOAD,
@@ -58,6 +79,35 @@ def test_predict_classification_matches_threshold():
     )
 
     assert body["classification"] == expected_classification
+
+
+def test_predict_returns_negative_class_when_below_threshold(
+    monkeypatch,
+):
+    class LowRiskFakeModel:
+        def predict_proba(self, X):
+            return np.array([
+                [0.80, 0.20]
+            ])
+
+    monkeypatch.setattr(
+        "ml_service.app.predictor.load_model",
+        lambda: LowRiskFakeModel(),
+    )
+
+    response = client.post(
+        "/predict",
+        json=VALID_PAYLOAD,
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert body["probability"] == 0.20
+    assert body["classification"] == 0
+    assert body["threshold"] == 0.38
+    assert body["model_version"] == "v1"
 
 
 def test_predict_rejects_invalid_blood_pressure():
