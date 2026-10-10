@@ -6,12 +6,19 @@ from ml_service.app.main import app
 client = TestClient(app)
 
 
-def test_ml_service_health():
+def test_ml_service_health(monkeypatch):
+    monkeypatch.setattr(
+        "ml_service.app.main.load_model",
+        lambda: object(),
+    )
+
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {
-        "status": "ok",
-        "service": "ml-service",
-        "model_loaded": False,
-    }
+
+    body = response.json()
+
+    assert body["status"] == "ok"
+    assert body["service"] == "ml-service"
+    assert body["model_loaded"] is True
+    assert body["model_version"] == "v1"
