@@ -79,3 +79,8 @@ class RagResponse(BaseModel):
     considerations: str
     note: str
     insufficient_information: bool
+
+class AnalysisResponse(BaseModel):
+    prediction: PredictionData
+    shap: ShapData
+    rag: RagResponse
