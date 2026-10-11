@@ -2,13 +2,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """
-    Configuración general del backend de PULSO.
+    # ML Service
+    ml_service_url: str = "http://127.0.0.1:8001"
+    ml_timeout_seconds: float = 30.0
 
-    Los valores pueden cargarse desde variables de entorno
-    o desde un archivo .env durante desarrollo local.
-    """
-
+    # RAG
     rag_service_url: str = ""
     rag_timeout_seconds: float = 30.0
 
