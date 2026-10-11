@@ -45,19 +45,29 @@ La evaluación de los clasificadores permite determinar su comportamiento sobre 
 La inteligencia artificial explicable (Explainable Artificial Intelligence, XAI) comprende métodos que permiten interpretar el comportamiento de los modelos de inteligencia artificial. Su propósito es facilitar la comprensión de las predicciones y de las características que influyen en ellas. Esta capacidad resulta especialmente relevante para PULSO, debido a que sus usuarios no necesariamente tendrán conocimientos técnicos o médicos para interpretar una estimación probabilística.
 SHAP (SHapley Additive exPlanations) es un método de explicabilidad basado en los valores de Shapley de la teoría de juegos cooperativos. Permite atribuir contribuciones a las variables utilizadas por un modelo para explicar una predicción respecto a un valor de referencia. En PULSO se utilizará para identificar los factores que más contribuyen a cada estimación y presentarlos de manera comprensible. Estas contribuciones explican el comportamiento del clasificador, pero no demuestran relaciones causales entre las variables y la condición cardiovascular.
 
-## 2.6 Simulación de escenarios hipotéticos
+## 2.6. Generación aumentada por recuperación (RAG)
+
+La generación aumentada por recuperación (Retrieval-Augmented Generation, RAG) es una arquitectura que combina la recuperación de información desde una colección de documentos con un modelo de lenguaje generativo. Su propósito es proporcionar al modelo información externa y pertinente para elaborar respuestas fundamentadas en fuentes documentales, en lugar de depender exclusivamente de los conocimientos adquiridos durante su entrenamiento. Esta arquitectura permite incorporar documentación especializada y actualizar las fuentes consultadas sin necesidad de volver a entrenar el modelo de lenguaje (Lewis et al., 2020).
+
+En PULSO, RAG se utilizará para complementar las estimaciones del modelo predictivo con información procedente de guías, documentos científicos y fuentes confiables sobre prevención y riesgo cardiovascular. De esta manera, el sistema podrá generar explicaciones en lenguaje sencillo sobre la interpretación del riesgo y los factores relacionados con su estimación. Este componente tendrá una función informativa y educativa, independiente de la predicción realizada por el modelo de aprendizaje automático, y no sustituirá el diagnóstico ni la valoración de un profesional de la salud.
+
+## 2.7. Recuperación semántica, embeddings y bases de datos vectoriales
+
+La recuperación semántica es una técnica de búsqueda de información que permite identificar fragmentos de documentos según su significado y contexto, en lugar de depender exclusivamente de la coincidencia exacta de palabras. Para ello, se transforma la consulta del usuario y el contenido documental en representaciones numéricas que permiten comparar su similitud semántica y recuperar los fragmentos más relevantes (Reimers y Gurevych, 2019).
+
+Los embeddings son representaciones numéricas de textos que permiten capturar características de su significado en un espacio vectorial. Estas representaciones facilitan la comparación entre consultas y documentos para identificar contenidos relacionados. Por su parte, una base de datos vectorial (vector store) permite almacenar estos vectores junto con los fragmentos de texto y sus metadatos, y realizar búsquedas de similitud para recuperar información pertinente de manera eficiente. Ambos componentes constituyen elementos fundamentales de los sistemas RAG basados en recuperación semántica.
+
+En PULSO, estos mecanismos permitirán organizar y consultar un corpus documental compuesto por fuentes científicas y guías confiables sobre prevención y riesgo cardiovascular. Cuando el usuario formule una pregunta, el sistema buscará los fragmentos más relevantes y los proporcionará al modelo de lenguaje como contexto para generar una respuesta comprensible y fundamentada en la documentación recuperada. Esto facilitará el acceso a información especializada sin exigir que el usuario consulte e interprete documentos técnicos completos. La calidad de las respuestas dependerá, entre otros factores, de la pertinencia, actualidad y confiabilidad de las fuentes, así como de la calidad de la recuperación y de la generación del modelo.
+
+## 2.8. Simulación de escenarios hipotéticos
 La simulación de escenarios consiste en modificar determinadas variables de entrada de un modelo para observar cómo cambia su resultado bajo diferentes condiciones. Esta técnica permite comparar una estimación inicial con otras estimaciones generadas mediante combinaciones alternativas de características, facilitando la exploración del comportamiento del modelo predictivo.
 En PULSO, el usuario podrá modificar factores potencialmente controlables y compatibles con el modelo seleccionado para obtener una nueva estimación y compararla con la original. Esta funcionalidad tendrá una finalidad educativa y exploratoria, ya que las variaciones observadas representan cambios en la salida del clasificador y no garantizan efectos equivalentes sobre la salud real de una persona.
 
-## 2.7. Generación aumentada por recuperación (RAG)
-a generación aumentada por recuperación (Retrieval-Augmented Generation, RAG) es una técnica que combina la recuperación de información documental con modelos generativos de lenguaje. Su funcionamiento consiste en recuperar fragmentos relevantes de un conjunto de documentos y utilizarlos como contexto para generar respuestas. Esto permite incorporar información procedente de fuentes seleccionadas sin necesidad de reentrenar el modelo generativo.
-En PULSO, RAG utilizará guías clínicas y fuentes médicas confiables para proporcionar información preventiva relacionada con los factores cardiovasculares. Las respuestas se presentarán en un lenguaje comprensible y deberán mantener referencias a los documentos consultados. Sin embargo, esta técnica no elimina completamente el riesgo de generar información incorrecta, por lo que será necesario validar las respuestas y mantener las restricciones del alcance educativo del proyecto.
-
-## 2.8. Arquitectura de software y servicios web
+## 2.9. Arquitectura de software y servicios web
 La arquitectura de software define la organización de los componentes de un sistema, sus responsabilidades y los mecanismos mediante los cuales interactúan. En una plataforma web, estos componentes pueden incluir frontend, backend, base de datos y servicios especializados. Su distribución influye en atributos como rendimiento, mantenibilidad, disponibilidad y capacidad de evolución. Las API permiten establecer interfaces de comunicación entre componentes, mientras que REST proporciona un estilo arquitectónico para diseñar servicios que interactúan mediante HTTP.
 La contenerización permite empaquetar aplicaciones junto con sus dependencias para ejecutarlas en entornos aislados y reproducibles. Docker es una tecnología que facilita la construcción y ejecución de contenedores. Para PULSO se consideran alternativas monolíticas modulares, orientadas a servicios y basadas en microservicios, todas ellas contenerizadas. Su evaluación permitirá establecer una estructura para integrar el frontend, backend, Machine Learning y RAG de acuerdo con los requerimientos y recursos disponibles.
 
-## 2.9. Integración continua y MLOps
+## 2.10. Integración continua y MLOps
 La integración continua (Continuous Integration, CI) es una práctica de ingeniería de software que permite incorporar cambios al código de manera controlada mediante verificaciones automatizadas. Estas pueden incluir pruebas, análisis de calidad y comprobaciones de construcción. Herramientas como GitHub Actions permiten implementar flujos de trabajo que ejecutan estas verificaciones cuando se realizan cambios en el repositorio.
 MLOps (Machine Learning Operations) comprende prácticas orientadas a gestionar el ciclo de vida de los modelos de aprendizaje automático, incluyendo la preparación de datos, el entrenamiento, la evaluación, el versionamiento y la integración. En PULSO se incorporarán prácticas básicas de MLOps para mantener la trazabilidad y reproducibilidad de los experimentos, permitiendo identificar qué datos, configuraciones y métricas corresponden a cada versión del modelo.
 
@@ -521,6 +531,8 @@ También se consideran requerimientos asociados con reproducibilidad y trazabili
 | **RNF-16** | Fiabilidad | Los errores de validación, comunicación o ejecución deberán producir respuestas controladas y no resultados incorrectos presentados silenciosamente como válidos. |
 | **RNF-17** | Compatibilidad | La aplicación deberá funcionar correctamente en los navegadores web definidos como objetivo para las pruebas del MVP. |
 | **RNF-18** | Alcance responsable | Las explicaciones, simulaciones y respuestas generadas deberán mantener explícitamente el carácter educativo de PULSO y evitar presentar sus resultados como diagnóstico o recomendación clínica individual. |
+| **RNF-19** | Pertinencia de recuperación | El componente RAG deberá recuperar información documental relacionada con los factores prioritarios identificados para el perfil evaluado. Su comportamiento será verificado mediante métricas de recuperación como Precision@k, Hit Rate@k y cobertura de factores SHAP. |
+| **RNF-20** | Control de alcance RAG | Las respuestas generadas mediante RAG deberán mantenerse dentro de los factores relevantes para el perfil y del propósito educativo y preventivo de PULSO. La evaluación deberá registrar la proporción de respuestas que incorporen información no prioritaria o que exceda el alcance definido, diferenciando la severidad de las desviaciones detectadas. |
 
 ## 9. Evaluación de alternativas
 
@@ -680,6 +692,38 @@ Deben identificarse y explicarse:
 
 Esta parte debe terminar con el **diagrama de arquitectura del sistema**.
 
+### Componente RAG
+
+El componente RAG de PULSO constituye un servicio especializado encargado de complementar los resultados del modelo predictivo y las explicaciones SHAP mediante información preventiva recuperada desde un corpus documental controlado. Su función no consiste en modificar la predicción generada por el modelo de Machine Learning, sino en utilizar los factores prioritarios identificados para el perfil como contexto para recuperar documentación pertinente y generar información educativa sustentada en fuentes médicas previamente seleccionadas.
+
+El flujo RAG se implementa mediante un workflow en n8n. Este recibe desde el backend la información necesaria para contextualizar la consulta, incluyendo la predicción generada, los datos del usuario y los principales factores obtenidos mediante SHAP. A partir de esta información se construye una consulta para realizar recuperación semántica sobre los documentos almacenados en Supabase. Los fragmentos recuperados conservan metadatos asociados con su procedencia, permitiendo identificar posteriormente las fuentes utilizadas para respaldar cada recomendación.
+
+Supabase funciona como almacén vectorial del corpus documental. Los documentos son segmentados en fragmentos y representados mediante embeddings, lo que permite recuperar contenidos por similitud semántica. Este mecanismo es coherente con el uso de `pgvector` para almacenar embeddings y ejecutar búsquedas de similitud sobre PostgreSQL.
+
+Una vez recuperados los fragmentos más relevantes, el workflow normaliza su contenido y sus metadatos y construye el contexto documental que será enviado al modelo generativo. El modelo recibe instrucciones para utilizar exclusivamente la información recuperada, conservar el propósito educativo de PULSO, evitar diagnósticos o indicaciones terapéuticas y mantener la relación entre las recomendaciones y las fuentes utilizadas. Finalmente, la respuesta es estructurada antes de ser enviada nuevamente al backend.
+
+El componente RAG utiliza un corpus documental controlado compuesto inicialmente por **13 fuentes seleccionadas** relacionadas con prevención y salud cardiovascular. Estas fuentes corresponden a documentos médicos y guías consideradas pertinentes para los factores contemplados por PULSO. El contenido documental es segmentado en fragmentos antes de generar sus representaciones vectoriales y almacenarlas en Supabase para realizar posteriormente la recuperación semántica. La selección del corpus busca limitar la generación a información procedente de fuentes previamente revisadas y facilitar la trazabilidad de las recomendaciones producidas por el sistema.
+
+| ID | Título de la fuente | Institución / Autor | Tipo de documento | Tema principal | Factores o temas cubiertos | Observaciones |
+|---|---|---|---|---|---|---|
+| **SRC-01** | *Respuestas del corazón: Estilo de Vida + Reducción de Factores de Riesgos - ¿Cómo puedo perder peso?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para la pérdida de peso sostenible y reducción del riesgo cardiovascular. | Peso corporal, IMC / obesidad, actividad física, presión arterial, colesterol, prevención cardiovascular general. | Material educativo dirigido a pacientes. |
+| **SRC-02** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Fumar - ¿Cómo dejo de fumar?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para abandonar el consumo de tabaco y productos relacionados. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en cesación de tabaquismo. |
+| **SRC-03** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Dieta + Nutrición - ¿Cómo puedo seguir un patrón de alimentación saludable?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Adopción de patrones de alimentación saludables para el corazón y control de porciones. | Alimentación, peso corporal, presión arterial, prevención cardiovascular general. | Incluye recomendaciones sobre alimentos, sodio, azúcares y grasas. |
+| **SRC-04** | *Respuestas del corazón: Estilo de vida + reducción de riesgos Presión arterial alta - ¿Qué es la presión arterial alta?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Explicación de la hipertensión arterial, categorías de presión y factores asociados. | Presión arterial / hipertensión, tabaquismo, peso corporal / obesidad, consumo de alcohol, actividad física, edad, sexo, colesterol. | Fuente centrada en hipertensión y factores de riesgo relacionados. |
+| **SRC-05** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar la presión arterial* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Clasificación de la presión arterial y estrategias para mantener niveles saludables. | Presión arterial / hipertensión, tabaquismo, actividad física, peso corporal, consumo de alcohol, prevención cardiovascular general. | Documento sintético con alta concentración temática en hipertensión. |
+| **SRC-06** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo alimentarse mejor* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Orientaciones para mantener un patrón alimentario saludable. | Alimentación, consumo de alcohol, presión arterial, prevención cardiovascular general. | Enfatiza reducción de sodio, azúcares añadidos y grasas saturadas. |
+| **SRC-07** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el colesterol* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre colesterol y estrategias relacionadas con su control. | Colesterol HDL / LDL, tabaquismo, actividad física, prevención cardiovascular general. | Fuente concentrada principalmente en perfil lipídico. |
+| **SRC-08** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dormir lo suficiente* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Importancia del sueño adecuado para la salud cardiovascular. | Sueño, prevención cardiovascular general, presión arterial, peso corporal / obesidad. | Fuente especializada en hábitos de sueño. |
+| **SRC-09** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el azúcar en la sangre* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre glucemia y hábitos asociados con su control. | Glucemia / diabetes, peso corporal, tabaquismo, actividad física, prevención cardiovascular general. | Incluye información sobre rangos de glucemia y hábitos preventivos. |
+| **SRC-10** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo mantener un peso saludable* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Control del peso corporal y utilización del índice de masa corporal. | Peso corporal, IMC / obesidad, actividad física, prevención cardiovascular general. | Fuente centrada en peso corporal e IMC. |
+| **SRC-11** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo ser más activo* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Recomendaciones sobre actividad física aeróbica y fortalecimiento muscular. | Actividad física, prevención cardiovascular general. | Fuente especializada en actividad física e inactividad. |
+| **SRC-12** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dejar el tabaco y los productos de nicotina* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Riesgos relacionados con nicotina y estrategias para abandonar su consumo. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en tabaquismo y nicotina. |
+| **SRC-13** | *HEARTS en las Américas: Compendio de herramientas clínicas esenciales 2023* | Organización Panamericana de la Salud (OPS) / OMS; Andrés Rosende, Pedro Orduñez et al. | Guía clínica / Documento técnico institucional | Herramientas clínicas para el manejo de hipertensión arterial y riesgo cardiovascular en atención primaria. | Presión arterial / hipertensión, tabaquismo, actividad física, consumo de alcohol, peso corporal / IMC, edad, sexo, prevención cardiovascular general. | Documento técnico extenso orientado principalmente a profesionales de la salud y con alta densidad de contenido sobre hipertensión. |
+
+La salida del componente incluye un resumen general y un conjunto limitado de recomendaciones. Para cada recomendación se conserva información que permite identificar la fuente utilizada como respaldo documental. Esta decisión responde directamente a los requerimientos de trazabilidad del sistema y permite verificar posteriormente si una afirmación generada está respaldada por los fragmentos efectivamente recuperados.
+
+La separación del componente RAG respecto al servicio de Machine Learning permite que ambos evolucionen de forma independiente. El modelo predictivo continúa siendo responsable de generar la estimación y los factores SHAP, mientras que RAG se limita a recuperar y presentar información documental. De esta manera, una modificación del corpus, del mecanismo de recuperación o del modelo generativo no requiere reentrenar el clasificador cardiovascular.
+
 ### 10.3 Interacción entre módulos
 
 Debe explicarse:
@@ -707,29 +751,167 @@ Documenta el estado real de construcción del sistema y el grado de avance alcan
 
 ### 11.1 Stack tecnológico
 
-Lista y justifica las tecnologías, frameworks, librerías y herramientas utilizadas.
+PULSO integra tecnologías orientadas al desarrollo web, aprendizaje automático, explicabilidad, recuperación documental, contenerización, integración continua y trazabilidad de experimentos. La selección del stack busca mantener una separación clara entre los componentes principales de la plataforma y facilitar su integración dentro de una arquitectura modular orientada a servicios.
+
+- **React:** biblioteca utilizada para el desarrollo de la interfaz web de PULSO. Permite construir componentes reutilizables y gestionar de manera dinámica la interacción del usuario con los formularios, resultados de predicción, explicaciones, simulaciones e información generada mediante RAG.
+
+- **FastAPI:** framework utilizado para la construcción del backend y de las interfaces de programación de aplicaciones. Permite exponer endpoints para la comunicación entre el frontend y los servicios internos del sistema, además de facilitar la validación de datos mediante modelos estructurados.
+
+- **Python:** lenguaje principal utilizado para el desarrollo del backend, el procesamiento de datos, el entrenamiento y evaluación de modelos de Machine Learning, la generación de explicaciones mediante SHAP y la integración con otros servicios.
+
+- **Pydantic:** biblioteca utilizada para definir y validar los contratos de datos intercambiados entre los diferentes componentes del sistema. Permite verificar que las solicitudes y respuestas cumplan con las estructuras esperadas.
+
+- **httpx:** biblioteca utilizada para realizar solicitudes HTTP desde el backend hacia servicios externos o componentes independientes, particularmente en la integración con el servicio RAG.
+
+- **scikit-learn:** biblioteca utilizada para el procesamiento de datos, entrenamiento, evaluación y comparación de diferentes modelos de Machine Learning, así como para el cálculo de métricas y la construcción de pipelines de modelado.
+
+- **XGBoost:** biblioteca utilizada para implementar el modelo de Gradient Boosting seleccionado para el componente predictivo de PULSO. El modelo genera una probabilidad asociada con la pertenencia a la clase `cardio = 1`.
+
+- **SHAP:** biblioteca de explicabilidad utilizada para calcular la contribución de las variables de entrada sobre las predicciones individuales del modelo. Sus resultados permiten identificar los factores con mayor influencia sobre cada estimación.
+
+- **MLflow:** herramienta utilizada para registrar y mantener la trazabilidad de los experimentos de Machine Learning. Permite almacenar información asociada con modelos, parámetros, métricas, umbrales de decisión y artefactos generados durante la experimentación.
+
+- **n8n:** plataforma utilizada para orquestar el workflow del componente RAG. Coordina la recepción de la información procedente del backend, la recuperación documental, la preparación del contexto, la interacción con el modelo generativo y la construcción de la respuesta final.
+
+- **Supabase:** plataforma utilizada para gestionar servicios de almacenamiento y base de datos asociados con la aplicación. En el componente RAG se emplea para almacenar el corpus documental y facilitar la recuperación de fragmentos mediante búsqueda vectorial.
+
+- **PostgreSQL:** sistema de gestión de bases de datos relacional utilizado como base de la infraestructura de almacenamiento proporcionada por Supabase.
+
+- **pgvector:** extensión de PostgreSQL utilizada para almacenar representaciones vectoriales y ejecutar búsquedas por similitud semántica entre las consultas y los fragmentos documentales del corpus RAG.
+
+- **Google Gemini:** modelo generativo utilizado en el componente RAG para construir respuestas en lenguaje natural utilizando como contexto los fragmentos documentales recuperados previamente.
+
+- **Embeddings:** representaciones vectoriales utilizadas para transformar consultas y fragmentos documentales en estructuras numéricas comparables, permitiendo realizar recuperación semántica dentro del corpus.
+
+- **JavaScript:** lenguaje utilizado principalmente dentro de nodos de código del workflow de n8n para normalizar información, preparar el contexto documental, procesar metadatos y estructurar la respuesta final del componente RAG.
+
+- **Docker:** plataforma de contenerización utilizada para empaquetar los componentes de PULSO junto con sus dependencias, facilitando la ejecución reproducible y el aislamiento entre servicios.
+
+- **Docker Compose:** herramienta utilizada para definir y ejecutar conjuntamente los diferentes contenedores que conforman la plataforma, incluyendo sus redes, puertos, variables de entorno y dependencias.
+
+- **Nginx:** servidor web utilizado como proxy inverso para centralizar el acceso externo a los diferentes servicios de la plataforma y redirigir las solicitudes hacia los componentes correspondientes.
+
+- **Git:** sistema de control de versiones utilizado para registrar y gestionar los cambios realizados sobre el código fuente del proyecto.
+
+- **GitHub:** plataforma utilizada para alojar el repositorio del proyecto y gestionar el flujo colaborativo de desarrollo mediante ramas, pull requests y revisión de código.
+
+- **GitHub Actions:** servicio de integración continua utilizado para automatizar verificaciones sobre el código, ejecutar pruebas y validar cambios antes de su incorporación a las ramas principales del proyecto.
+
+- **Pytest:** framework utilizado para implementar y ejecutar pruebas automatizadas sobre los componentes desarrollados en Python, incluyendo funcionalidades relacionadas con el backend y el servicio de Machine Learning.
+
+- **JSON:** formato utilizado para el intercambio estructurado de información entre el frontend, backend, servicio de Machine Learning, componente RAG y otros elementos de la arquitectura.
 
 ### 11.2 Componentes implementados
 
 Describe qué módulos o componentes ya fueron construidos, qué funcionalidades cubren y cuál es su estado actual.
 
+####  Componente RAG implementado
+
+El componente RAG se encuentra implementado mediante un workflow en n8n conectado con un almacén vectorial en Supabase y un modelo generativo. El workflow recibe información procedente del componente predictivo, recupera los fragmentos documentales con mayor similitud semántica, prepara el contexto y genera una respuesta estructurada con información preventiva relacionada con los factores considerados prioritarios.
+
+El flujo incorpora etapas de normalización y preparación de los datos recuperados, con el propósito de conservar el contenido documental y los metadatos necesarios para identificar posteriormente la procedencia de la información. La respuesta final incluye un resumen y recomendaciones asociadas con identificadores de fuentes, permitiendo comprobar qué documentos y fragmentos fueron utilizados como evidencia.
+
+Como parte de la implementación del componente RAG, se construyó un corpus documental inicial compuesto por **13 fuentes** relacionadas con prevención y factores cardiovasculares. Los documentos fueron incorporados al flujo de vectorización y almacenados en la base vectorial junto con metadatos destinados a conservar la identificación de la fuente y la localización de los fragmentos. Este corpus constituye la base documental utilizada actualmente durante las pruebas funcionales del sistema y podrá ampliarse o ajustarse en iteraciones posteriores de acuerdo con los resultados de la evaluación de recuperación.
+
+El componente fue sometido a una evaluación funcional mediante 20 casos controlados, cuyos resultados se presentan en la sección 13.1. La evaluación permitió verificar tanto el proceso de recuperación como la generación final y evidenció un comportamiento favorable en trazabilidad, aunque también identificó oportunidades de mejora relacionadas con la precisión de la recuperación y la selección de información prioritaria.
+
 ### 11.3 Integraciones realizadas
 
 Explica las integraciones ya desarrolladas con servicios externos, bases de datos, autenticación u otros componentes.
+
+#### Integración RAG
+
+La integración entre el backend de PULSO y el componente RAG se realiza mediante comunicación HTTP. El backend prepara una estructura que contiene la información necesaria para contextualizar la generación, incluyendo la predicción, datos relevantes del perfil y los principales factores identificados mediante SHAP. Esta estructura es enviada al servicio RAG, que ejecuta el workflow de recuperación y generación y retorna una respuesta estructurada.
+
+Para mantener un contrato definido entre los componentes, la respuesta RAG contempla información general de la respuesta, recomendaciones y datos de las fuentes utilizadas. El backend valida y procesa esta estructura antes de entregarla a la capa de presentación. De esta manera, el componente generativo permanece desacoplado del servicio de Machine Learning y puede modificarse sin cambiar la lógica interna del clasificador.
+
+La integración también contempla el manejo de errores de comunicación y respuestas que no cumplen la estructura esperada. Estos mecanismos resultan relevantes debido a que el componente RAG depende de servicios externos y presenta tiempos de respuesta y modos de fallo diferentes de los correspondientes al servicio predictivo.
 
 ### 11.4 Pendientes para la entrega final
 
 Indica qué elementos faltan por implementar, integrar, corregir o validar antes del cierre del proyecto.
 
+#### Pendientes RAG
+
+A partir de la evaluación funcional realizada, el principal pendiente del componente RAG corresponde a mejorar la pertinencia de los fragmentos recuperados y reducir la generación de información relacionada con factores secundarios o no prioritarios. Aunque la trazabilidad documental presentó resultados altos, la Precision@5 obtenida evidencia que parte del contexto recuperado puede contener información poco relacionada con los factores prioritarios del perfil.
+
+Para la siguiente iteración se plantea mejorar la construcción de las consultas utilizadas en la recuperación semántica, priorizar explícitamente los factores SHAP modificables y evitar que factores no accionables generen recomendaciones artificiales. También se incorporarán mecanismos posteriores a la generación para comprobar que las recomendaciones finales correspondan con los factores prioritarios y con las fuentes documentales utilizadas.
+
+La nueva versión será evaluada utilizando el mismo conjunto de casos empleado en la evaluación inicial. Esto permitirá comparar directamente Precision@5, Hit Rate@5, cobertura de factores SHAP, trazabilidad, uso de `insufficient_information` y tasa de respuestas fuera de alcance antes y después de los ajustes.
+
 ## 12. Despliegue y operación preliminar
 
 Describe cómo se ejecuta actualmente la solución, en qué entorno funciona, qué dependencias requiere y cuál es su estado de despliegue o configuración.
+
+### Despliegue y operación preliminar del RAG
+
+El componente RAG opera actualmente como un servicio externo al proceso de predicción principal. El backend de PULSO se comunica con el workflow mediante solicitudes HTTP y recibe como respuesta una estructura con el resumen, las recomendaciones y la información de trazabilidad asociada con las fuentes recuperadas.
+
+El workflow depende de la disponibilidad de n8n, del almacén vectorial configurado en Supabase y del servicio generativo utilizado para construir la respuesta. Supabase permite almacenar embeddings y ejecutar búsquedas de similitud sobre los documentos representados vectorialmente, funcionalidad utilizada para seleccionar el contexto documental que se suministra al modelo generativo.
+
+Debido a estas dependencias, el componente RAG presenta características operacionales diferentes del servicio de Machine Learning. Una falla o un tiempo de respuesta elevado en el servicio generativo, el workflow o la base vectorial puede impedir la generación de información preventiva sin que necesariamente deba impedir la ejecución de la predicción cardiovascular. Esta separación será considerada durante las pruebas de integración, disponibilidad y tolerancia a fallos de la arquitectura.
+
 
 ## 13. Validación preliminar
 
 Presenta las pruebas o validaciones realizadas hasta el momento para verificar el comportamiento del sistema y su grado de cumplimiento frente a los requerimientos.
 
 ### 13.1 Pruebas por componentes
+
+#### 13.1.X Evaluación funcional del componente RAG
+
+Con el fin de evaluar el comportamiento del componente de generación aumentada por recuperación (RAG) de PULSO, se realizó una evaluación funcional y exploratoria mediante un conjunto controlado de 20 casos de prueba. Esta evaluación no corresponde a una validación clínica del sistema, sino a una verificación técnica orientada a determinar la pertinencia de la información recuperada, la trazabilidad documental de las recomendaciones, la cobertura de los factores identificados mediante SHAP y el cumplimiento del alcance educativo y preventivo definido para la plataforma.
+
+Cada caso de prueba incluyó el perfil del usuario, la probabilidad generada por el modelo de clasificación, el umbral de decisión, los principales factores obtenidos mediante SHAP y un comportamiento esperado. Para cada caso, el componente RAG recuperó los cinco fragmentos con mayor similitud desde la base vectorial y posteriormente generó un máximo de tres recomendaciones utilizando únicamente el contexto documental recuperado.
+
+La evaluación se dividió en dos etapas. En primer lugar, se analizó el proceso de recuperación de información mediante las métricas Precision@5, Hit Rate@5 y cobertura de factores SHAP. En segundo lugar, se evaluó la respuesta generada considerando la trazabilidad técnica de las fuentes, la trazabilidad semántica de las recomendaciones, la presencia de información fuera del alcance esperado y el manejo de situaciones con información insuficiente.
+
+Para apoyar la revisión de los fragmentos recuperados y las recomendaciones generadas se utilizó NotebookLM con el mismo corpus documental empleado por PULSO. Los 20 casos fueron divididos en cuatro grupos de cinco casos y cada grupo fue evaluado dos veces de forma independiente utilizando la misma rúbrica. Las discrepancias entre ambas evaluaciones fueron posteriormente revisadas contra los fragmentos recuperados, la respuesta original del RAG y las reglas funcionales establecidas para PULSO. Por esta razón, NotebookLM se utilizó como herramienta de apoyo para la revisión y no como evaluador único del sistema.
+
+Las métricas utilizadas fueron las siguientes:
+
+- **Precision@5:** proporción de fragmentos directamente pertinentes entre los cinco resultados recuperados.
+- **Hit Rate@5:** proporción de casos en los que al menos uno de los cinco fragmentos recuperados fue directamente pertinente.
+- **Cobertura SHAP:** proporción de factores con dirección de aumento para los cuales se recuperó evidencia documental pertinente.
+- **Cobertura SHAP accionable:** cobertura de los factores modificables con dirección de aumento, excluyendo variables no modificables como edad, sexo o estatura.
+- **Trazabilidad técnica:** proporción de recomendaciones que utilizaron identificadores de fuentes realmente presentes entre los fragmentos recuperados.
+- **Trazabilidad semántica:** grado en el que el contenido de cada recomendación estuvo respaldado por la información de los fragmentos citados.
+- **Tasa de respuestas fuera de alcance:** proporción de casos en los que se identificaron recomendaciones o afirmaciones que no correspondían a los factores prioritarios del perfil o excedían el propósito educativo y preventivo del sistema.
+- **Uso correcto de `insufficient_information`:** proporción de casos en los que el sistema manejó adecuadamente escenarios donde la evidencia disponible no justificaba recomendaciones específicas.
+
+Los resultados consolidados se presentan en la Tabla.
+
+| Métrica | Resultado |
+|---|---:|
+| Casos evaluados | 20 |
+| Precision@5 promedio | 35,0 % |
+| Hit Rate@5 | 85,0 % |
+| Cobertura SHAP total | 75,5 % |
+| Cobertura SHAP accionable | 100 % en casos aplicables |
+| Trazabilidad técnica | 100 % |
+| Trazabilidad semántica estricta | 98,3 % |
+| Trazabilidad semántica amplia | 100 % |
+| Respuestas fuera de alcance | 65,0 % |
+| Uso correcto de `insufficient_information` | 90,0 % |
+
+**Resultados consolidados de la evaluación funcional del componente RAG.**
+
+Para interpretar las desviaciones de alcance identificadas durante la evaluación del componente RAG, se definieron cuatro niveles de severidad. La **severidad 0** corresponde a los casos en los que la respuesta se mantiene completamente alineada con los factores prioritarios y con el alcance educativo y preventivo de PULSO. La **severidad 1 o desviación menor** se asigna cuando aparece información secundaria o una recomendación adicional no prioritaria, pero esta no modifica sustancialmente el sentido de la respuesta ni introduce implicaciones clínicas relevantes. La **severidad 2 o desviación relevante** se utiliza cuando la respuesta incorpora recomendaciones claramente ajenas a los factores identificados, interpreta incorrectamente un factor protector o introduce contenido clínico que excede el propósito del sistema, aunque sin llegar a constituir una situación crítica. Finalmente, la **severidad 3 o desviación crítica** corresponde a respuestas que podrían inducir a interpretaciones clínicas inapropiadas, como emitir diagnósticos, afirmar presencia o ausencia de enfermedad, recomendar tratamientos o medicamentos, o presentar la probabilidad o el umbral del modelo como una medida clínica de riesgo.
+
+| Severidad | Casos | Porcentaje |
+|---|---:|---:|
+| 0 – Sin desviación | 7 | 35 % |
+| 1 – Desviación menor | 8 | 40 % |
+| 2 – Desviación relevante | 5 | 25 % |
+| 3 – Desviación crítica | 0 | 0 % |
+
+**Distribución de severidad de las desviaciones de alcance detectadas.**
+
+Los resultados muestran que el sistema logró recuperar al menos un fragmento pertinente en el 85 % de los casos y alcanzó una cobertura completa de los factores SHAP modificables en aquellos escenarios donde existían factores accionables. Asimismo, todas las recomendaciones utilizaron fuentes pertenecientes al contexto recuperado y el 98,3 % presentó respaldo semántico completo.
+
+No obstante, la Precision@5 promedio fue del 35 %, lo que indica que, aunque habitualmente se recupera al menos un fragmento útil, una parte importante de los cinco primeros resultados contiene información secundaria o poco relacionada con los factores prioritarios del caso. Esta situación también se reflejó en la tasa de respuestas fuera de alcance, debido a que el modelo generador puede utilizar información documentalmente válida presente en los fragmentos recuperados para formular recomendaciones que no necesariamente corresponden a los factores identificados mediante SHAP.
+
+No se identificaron desviaciones de severidad crítica durante los 20 casos evaluados.
 
 ### 13.2 Pruebas de integración
 
@@ -739,9 +921,39 @@ Presenta las pruebas o validaciones realizadas hasta el momento para verificar e
 
 Presenta los principales hallazgos obtenidos hasta el momento, interpreta su significado y analiza el nivel de avance del proyecto frente a los objetivos planteados.
 
+### 14.1 Resultados y discusión del componente RAG
+
+Los resultados obtenidos permiten identificar una diferencia importante entre la capacidad del componente RAG para producir respuestas documentalmente respaldadas y su capacidad para recuperar únicamente información pertinente para cada perfil.
+
+En términos de trazabilidad, el comportamiento observado fue favorable. El 100 % de las recomendaciones utilizó referencias correspondientes a fragmentos realmente recuperados y la trazabilidad semántica estricta alcanzó el 98,3 %. Esto indica que el principal problema detectado no corresponde a una generación de información sin respaldo documental, sino a la selección y priorización de la información utilizada para construir la respuesta.
+
+El proceso de recuperación presentó un Hit Rate@5 del 85 %, lo que evidencia que en la mayoría de los casos se logró recuperar al menos un fragmento directamente relacionado con los factores prioritarios. Sin embargo, la Precision@5 promedio fue del 35 %. Esto significa que varios de los fragmentos restantes del Top-5 correspondían a contenidos generales o a temas secundarios que no necesariamente estaban relacionados con los principales factores SHAP del caso.
+
+Durante la evaluación se observó especialmente una alta presencia de fragmentos provenientes de documentación relacionada con hipertensión arterial, medición de presión, seguimiento clínico y protocolos de tratamiento. Este comportamiento apareció incluso en casos donde los principales factores estaban relacionados con tabaquismo, actividad física, consumo de alcohol o peso corporal. Como consecuencia, el modelo generador podía encontrar recomendaciones válidas dentro de estos fragmentos y utilizarlas en la respuesta, aunque no fueran prioritarias para el perfil analizado.
+
+Este comportamiento explica la tasa de respuestas fuera de alcance del 65 %. Sin embargo, dicha métrica debe interpretarse junto con la distribución de severidad: el 40 % de todos los casos presentó únicamente desviaciones menores y no se identificaron desviaciones críticas. En estos casos, las recomendaciones adicionales generalmente estaban respaldadas por el corpus, pero correspondían a factores secundarios o no prioritarios.
+
+Un ejemplo de este comportamiento se presentó en casos donde el tabaquismo o la inactividad física constituían los principales factores de aumento según SHAP. El sistema generaba correctamente recomendaciones relacionadas con estos factores, pero posteriormente podía añadir una recomendación sobre medición de presión arterial debido a que este contenido también se encontraba entre los fragmentos recuperados.
+
+Otro hallazgo relevante fue el comportamiento frente a factores no modificables. En escenarios donde los factores principales correspondían únicamente a variables como edad, sexo o estatura, el sistema mostró tendencia a generar recomendaciones preventivas relacionadas con otros factores en lugar de limitar la respuesta o utilizar el indicador `insufficient_information`. Estos casos evidenciaron la necesidad de incorporar reglas explícitas para diferenciar factores accionables y no accionables antes de realizar la generación.
+
+En contraste, la cobertura SHAP accionable alcanzó el 100 % en los casos aplicables. Esto indica que cuando existía un factor modificable con dirección de aumento —como presión arterial, tabaquismo, actividad física, consumo de alcohol o peso/IMC— el proceso de recuperación logró encontrar al menos un fragmento pertinente relacionado con dicho factor. Por lo tanto, la principal oportunidad de mejora no consiste únicamente en recuperar más información, sino en aumentar la precisión y diversidad de los fragmentos seleccionados.
+
+A partir de estos resultados se identificaron tres líneas principales de mejora para una siguiente iteración del componente RAG: restringir la generación a factores SHAP accionables, mejorar la construcción de las consultas enviadas al almacén vectorial y añadir mecanismos de validación posteriores a la generación que impidan que recomendaciones relacionadas con factores no prioritarios sean entregadas al usuario.
+
+Estos ajustes serán evaluados utilizando el mismo conjunto de 20 casos de prueba, permitiendo comparar directamente el comportamiento de la versión actual con una versión posterior del componente RAG.
+
 ## 15. Plan de cierre hacia la entrega final
 
 Describe las actividades restantes, prioridades, riesgos y estrategia de cierre para completar el proyecto en las semanas finales.
+
+###  Plan de cierre del RAG
+
+Como parte del cierre del proyecto, el componente RAG requiere una nueva iteración orientada principalmente a aumentar la precisión de la recuperación y reducir las respuestas fuera del alcance esperado. La primera prioridad será modificar la construcción de las consultas de recuperación para que los factores SHAP accionables tengan mayor peso en la selección de los fragmentos documentales.
+
+La segunda prioridad será incorporar reglas que permitan diferenciar explícitamente factores modificables y no modificables antes de generar recomendaciones. Cuando el perfil no proporcione factores accionables respaldados adecuadamente por el corpus, el sistema deberá utilizar el mecanismo de información insuficiente en lugar de introducir recomendaciones relacionadas con variables secundarias.
+
+Finalmente, se incorporará una validación posterior a la generación destinada a comprobar que las recomendaciones correspondan con los factores prioritarios y que las fuentes declaradas respalden semánticamente el contenido generado. Una vez aplicados estos cambios, se repetirá la evaluación sobre los mismos 20 casos para determinar si disminuye la tasa de respuestas fuera de alcance y aumenta la Precision@5 sin comprometer la trazabilidad y cobertura ya alcanzadas.
 
 ## 16. Referencias
 
@@ -776,3 +988,35 @@ Salah, H., & Srinivas, S. (2022). Explainable machine learning framework for pre
 SCORE2 Working Group & ESC Cardiovascular Risk Collaboration. (2021). SCORE2 risk prediction algorithms: New models to estimate 10-year risk of cardiovascular disease in Europe. *European Heart Journal, 42*(25), 2439–2454. https://doi.org/10.1093/eurheartj/ehab309
 
 Zhu, X.-Y., Li, W., Pan, X.-Y., Li, T., & Yuan, G.-L. (2026). Explainable machine learning for long-term cardiovascular disease risk prediction in Chinese middle-aged and older adults: A 9-year longitudinal cohort study with web-based risk calculator. *Scientific Reports, 16*, 14998. https://doi.org/10.1038/s41598-026-45297-4
+
+Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. Advances in Neural Information Processing Systems, 33. [https://arxiv.org/abs/2005.11401](https://arxiv.org/abs/2005.11401)
+
+Reimers, N., & Gurevych, I. (2019). Sentence-BERT: Sentence embeddings using Siamese BERT-networks. Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing. [https://doi.org/10.18653/v1/D19-1410](https://doi.org/10.18653/v1/D19-1410)
+
+Sentence Transformers. (s. f.). Semantic search. [https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html](https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html)
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo alimentarse mejor*. https://www.heart.org/eatsmart 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el azúcar en la sangre*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el colesterol*. https://www.heart.org/cholesterol 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar la presión arterial*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dejar el tabaco y los productos de nicotina*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dormir lo suficiente*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo mantener un peso saludable*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo ser más activo*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Respuestas del corazón: Estilo de vida + Reducción de factores de riesgos - ¿Cómo puedo perder peso?*. https://www.heart.org/RespuestasDelCorazon 
+
+American Heart Association. (s.f.). *Respuestas del corazón: Estilo de vida + Reducción de riesgos Presión arterial alta - ¿Qué es la presión arterial alta?*. https://www.heart.org/AnswersByHeart 
+
+American Heart Association. (s.f.). *Respuestas del corazón: Estilo de vida + Riesgo reducción Dieta + Nutrición - ¿Cómo puedo seguir un patrón de alimentación saludable?*. https://www.heart.org/RespuestasDelCorazon 
+
+American Heart Association. (s.f.). *Respuestas del corazón: Estilo de vida + Riesgo reducción Fumar - ¿Cómo dejo de fumar?*. https://www.heart.org/RespuestasDelCorazon 
+
+Organización Panamericana de la Salud. (2024). *HEARTS en las Américas: Compendio de herramientas clínicas esenciales 2023* (Código: OPS/NMH/NV/24-0002). OPS. 
