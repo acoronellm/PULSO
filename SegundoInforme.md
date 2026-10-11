@@ -531,6 +531,8 @@ También se consideran requerimientos asociados con reproducibilidad y trazabili
 | **RNF-16** | Fiabilidad | Los errores de validación, comunicación o ejecución deberán producir respuestas controladas y no resultados incorrectos presentados silenciosamente como válidos. |
 | **RNF-17** | Compatibilidad | La aplicación deberá funcionar correctamente en los navegadores web definidos como objetivo para las pruebas del MVP. |
 | **RNF-18** | Alcance responsable | Las explicaciones, simulaciones y respuestas generadas deberán mantener explícitamente el carácter educativo de PULSO y evitar presentar sus resultados como diagnóstico o recomendación clínica individual. |
+| **RNF-19** | Pertinencia de recuperación | El componente RAG deberá recuperar información documental relacionada con los factores prioritarios identificados para el perfil evaluado. Su comportamiento será verificado mediante métricas de recuperación como Precision@k, Hit Rate@k y cobertura de factores SHAP. |
+| **RNF-20** | Control de alcance RAG | Las respuestas generadas mediante RAG deberán mantenerse dentro de los factores relevantes para el perfil y del propósito educativo y preventivo de PULSO. La evaluación deberá registrar la proporción de respuestas que incorporen información no prioritaria o que exceda el alcance definido, diferenciando la severidad de las desviaciones detectadas. |
 
 ## 9. Evaluación de alternativas
 
