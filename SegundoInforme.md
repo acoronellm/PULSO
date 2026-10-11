@@ -858,6 +858,126 @@ Presenta las pruebas o validaciones realizadas hasta el momento para verificar e
 
 ### 13.1 Pruebas por componentes
 
+#### 13.1.X Evaluación del componente predictivo
+
+La evaluación del componente predictivo se realizó utilizando una partición independiente de los datos en conjuntos de entrenamiento, validación y prueba. Después del proceso de depuración del conjunto de datos se conservaron **68.610 registros**.
+
+La división se realizó de forma estratificada respecto a la variable objetivo `cardio`, con el propósito de mantener una proporción similar de las clases en cada subconjunto. Se utilizó `random_state = 42` para garantizar la reproducibilidad del procedimiento. La distribución final correspondió a **70 % para entrenamiento, 15 % para validación y 15 % para prueba**.
+
+| Conjunto | n | cardio = 0 | cardio = 1 | Prevalencia de `cardio = 1` |
+|---|---:|---:|---:|---:|
+| Total | 68.610 | 34.669 | 33.941 | 49,47 % |
+| Entrenamiento | 48.027 | 24.268 | 23.759 | 49,47 % |
+| Validación | 10.291 | 5.200 | 5.091 | 49,47 % |
+| Prueba | 10.292 | 5.201 | 5.091 | 49,47 % |
+
+La prevalencia de la clase positiva permaneció prácticamente constante entre las particiones, lo cual es consistente con el uso de estratificación durante la división de los datos.
+
+##### Comparación entre modelos
+
+Se evaluaron cinco algoritmos de clasificación: Logistic Regression, Decision Tree, Random Forest, XGBoost y Gradient Boosting. Para cada modelo se realizó ajuste de hiperparámetros mediante `GridSearchCV`, seguido de una evaluación de discriminación, calibración y selección de umbral.
+
+Las métricas utilizadas para comparar los modelos fueron Accuracy, Precision, Sensibilidad o Recall, Especificidad, F1-score y ROC-AUC. Adicionalmente, se evaluó la calidad de las probabilidades mediante Brier Score, Log Loss, Expected Calibration Error (ECE) y curvas de calibración.
+
+| Modelo | Threshold | Accuracy | Precision | Sensibilidad | Especificidad | F1 | ROC-AUC | Calibración | Brier | Log Loss | ECE |
+|---|---:|---:|---:|---:|---:|---:|---:|---|---:|---:|---:|
+| Logistic Regression | 0,37 | 0,6965 | 0,6588 | 0,8020 | 0,5933 | 0,7234 | 0,7798 | Isotónica | 0,1903 | 0,5645 | 0,0056 |
+| Decision Tree | 0,31 | 0,6814 | 0,6336 | 0,8440 | 0,5221 | 0,7238 | 0,7811 | Isotónica | 0,1888 | 0,5603 | 0,0087 |
+| Random Forest | 0,38 | 0,7026 | 0,6639 | 0,8077 | 0,5996 | 0,7288 | 0,7866 | Sin calibración adicional | 0,1872 | 0,5568 | 0,0075 |
+| XGBoost | 0,38 | 0,7059 | 0,6688 | 0,8030 | 0,6108 | 0,7298 | 0,7881 | Sin calibración adicional | 0,1864 | 0,5548 | 0,0051 |
+| Gradient Boosting | 0,38 | 0,7034 | 0,6660 | 0,8036 | 0,6054 | 0,7283 | 0,7881 | Sin calibración adicional | 0,1864 | 0,5547 | 0,0076 |
+
+Los resultados muestran que ningún modelo fue superior en todas las métricas. Decision Tree presentó la mayor sensibilidad, mientras que Gradient Boosting obtuvo valores ligeramente superiores en ROC-AUC y Brier Score. Sin embargo, XGBoost presentó el mejor balance global entre Accuracy, Precision, Especificidad y F1-score, manteniendo al mismo tiempo una sensibilidad superior al 80 %, un ROC-AUC prácticamente equivalente al mejor resultado observado y el menor ECE entre los modelos evaluados.
+
+A partir de esta evaluación conjunta se seleccionó **XGBoost** como modelo final de PULSO.
+
+##### Selección del umbral de decisión
+
+Para cada modelo se evaluaron diferentes umbrales de clasificación. La selección del threshold se realizó bajo el criterio de **mantener una sensibilidad o Recall igual o superior al 80 %**, debido a que se buscó reducir la proporción de registros positivos clasificados como negativos.
+
+Dentro de los umbrales que cumplían este criterio, se consideró también el comportamiento de Accuracy, Precision, Especificidad y F1-score, con el fin de evitar un deterioro excesivo del desempeño global del clasificador.
+
+Para XGBoost se seleccionó un umbral de decisión de **0,38**, con el cual se obtuvo una sensibilidad de aproximadamente **80,30 %** durante la etapa de selección. Este valor fue adoptado posteriormente como el threshold oficial de PULSO v1. De esta forma, una probabilidad estimada mayor o igual a 0,38 se clasifica como `cardio = 1`.
+
+##### Evaluación final de XGBoost en el conjunto de prueba
+
+Una vez seleccionado XGBoost, el modelo fue evaluado sobre el conjunto de prueba independiente, compuesto por **10.292 registros**, utilizando el threshold oficial de 0,38.
+
+| Métrica | Resultado |
+|---|---:|
+| Accuracy | 0,707928 |
+| Precision | 0,671492 |
+| Sensibilidad / Recall | 0,801807 |
+| Especificidad | 0,616035 |
+| F1-score | 0,730886 |
+| ROC-AUC | 0,796757 |
+| Brier Score | 0,182506 |
+| Log Loss | 0,545384 |
+| Threshold | 0,38 |
+
+La matriz de confusión obtenida fue:
+
+| | Predicho 0 | Predicho 1 |
+|---|---:|---:|
+| Real 0 | TN = 3.204 | FP = 1.997 |
+| Real 1 | FN = 1.009 | TP = 4.082 |
+
+Los resultados muestran que el modelo mantuvo en el conjunto de prueba el criterio establecido durante la selección del threshold, alcanzando una sensibilidad de aproximadamente **80,18 %**. La especificidad fue de aproximadamente **61,60 %**, lo cual refleja el compromiso introducido por la selección de un umbral orientado a conservar un Recall igual o superior al 80 %.
+
+##### Intervalos de confianza
+
+Para estimar la incertidumbre de las métricas obtenidas sobre el conjunto de prueba se calcularon intervalos de confianza del 95 % mediante **bootstrap percentil con 1.000 remuestreos**.
+
+| Métrica | Estimación | IC 95 % |
+|---|---:|---:|
+| Accuracy | 0,707928 | [0,698795; 0,716479] |
+| Precision | 0,671492 | [0,659351; 0,682883] |
+| Sensibilidad | 0,801807 | [0,790580; 0,812539] |
+| Especificidad | 0,616035 | [0,602269; 0,628803] |
+| F1-score | 0,730886 | [0,721116; 0,740472] |
+| ROC-AUC | 0,796757 | [0,788157; 0,805347] |
+
+Los intervalos obtenidos fueron relativamente estrechos, lo que indica una variabilidad limitada de las métricas frente a los remuestreos realizados sobre el conjunto de prueba.
+
+##### Evaluación de calibración
+
+Además de las métricas de clasificación y discriminación, se evaluó la calidad de las probabilidades estimadas por el modelo. Para XGBoost se obtuvo un **Brier Score de 0,182506** y un **Log Loss de 0,545384** en el conjunto de prueba.
+
+La evaluación se complementó mediante una curva de calibración, utilizada para comparar las probabilidades predichas por el modelo con la frecuencia observada de la clase positiva.
+
+<img width="567" height="455" alt="image" src="https://github.com/user-attachments/assets/6739d80a-2c1f-4142-a241-27b2d650f2ab" />
+
+**Curva de calibración del modelo XGBoost sobre el conjunto de prueba.**
+
+##### Evaluación por subgrupos
+
+Con el propósito de observar posibles diferencias en el comportamiento del modelo entre grupos presentes en el conjunto de datos, se realizó una evaluación por sexo y por grupos de edad.
+
+###### Resultados por sexo
+
+| Subgrupo | n | Prevalencia | Accuracy | Precision | Sensibilidad | Especificidad | F1 | ROC-AUC |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| gender_1 | 6.713 | 48,43 % | 0,7129 | 0,6684 | 0,8084 | 0,6233 | 0,7317 | 0,8029 |
+| gender_2 | 3.579 | 51,41 % | 0,6985 | 0,6772 | 0,7902 | 0,6015 | 0,7294 | 0,7846 |
+
+Los resultados muestran un comportamiento relativamente similar entre ambos grupos. `gender_1` presentó valores ligeramente superiores de Accuracy, Sensibilidad, Especificidad y ROC-AUC, mientras que `gender_2` presentó una precisión ligeramente mayor. Estas diferencias deben interpretarse de manera descriptiva y no constituyen por sí mismas evidencia de equidad o sesgo del modelo.
+
+###### Resultados por grupo de edad
+
+| Grupo etario | n | Prevalencia | Accuracy | Precision | Sensibilidad | Especificidad | F1 | ROC-AUC |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| < 50 años | 3.191 | 35,94 % | 0,7950 | 0,7528 | 0,6399 | 0,8821 | 0,6918 | 0,8201 |
+| 50–59 años | 5.245 | 51,65 % | 0,6656 | 0,6447 | 0,7852 | 0,5379 | 0,7081 | 0,7564 |
+| ≥ 60 años | 1.856 | 66,54 % | 0,6778 | 0,6765 | 0,9887 | 0,0596 | 0,8033 | 0,7243 |
+
+El comportamiento por edad presentó diferencias más marcadas. En el grupo menor de 50 años, el modelo alcanzó la mayor Accuracy, Especificidad y ROC-AUC, aunque con una sensibilidad inferior al 80 %. En el grupo de 50 a 59 años aumentó la sensibilidad y disminuyó la especificidad.
+
+El comportamiento más extremo se observó en el grupo de 60 años o más. En este subgrupo la sensibilidad alcanzó **0,9887**, mientras que la especificidad fue únicamente **0,0596** y el ROC-AUC fue **0,7243**. Esto indica que, con el umbral global de 0,38, el modelo clasifica correctamente a casi todos los registros positivos de este grupo, pero también clasifica como positivos a una proporción muy elevada de los registros negativos.
+
+Este resultado debe analizarse considerando que la prevalencia de `cardio = 1` también aumenta con la edad dentro del conjunto de datos, pasando de 35,94 % en menores de 50 años a 66,54 % en el grupo de 60 años o más. Por tanto, las diferencias observadas evidencian que el rendimiento del modelo no es uniforme entre grupos etarios y constituyen una limitación relevante para la interpretación de sus resultados.
+
+El análisis por subgrupos es de carácter exploratorio y no constituye una evaluación formal de equidad algorítmica ni una validación clínica del modelo.
+
 #### 13.1.X Evaluación funcional del componente RAG
 
 Con el fin de evaluar el comportamiento del componente de generación aumentada por recuperación (RAG) de PULSO, se realizó una evaluación funcional y exploratoria mediante un conjunto controlado de 20 casos de prueba. Esta evaluación no corresponde a una validación clínica del sistema, sino a una verificación técnica orientada a determinar la pertinencia de la información recuperada, la trazabilidad documental de las recomendaciones, la cobertura de los factores identificados mediante SHAP y el cumplimiento del alcance educativo y preventivo definido para la plataforma.
@@ -921,7 +1041,39 @@ No se identificaron desviaciones de severidad crítica durante los 20 casos eval
 
 Presenta los principales hallazgos obtenidos hasta el momento, interpreta su significado y analiza el nivel de avance del proyecto frente a los objetivos planteados.
 
-### 14.1 Resultados y discusión del componente RAG
+### 14.1 Resultados y discusión del componente predictivo
+
+La comparación entre los cinco algoritmos evaluados mostró un desempeño relativamente cercano entre los modelos de ensamble, especialmente Random Forest, XGBoost y Gradient Boosting. No se identificó un modelo superior en todas las métricas, por lo que la selección final se realizó considerando de forma conjunta discriminación, sensibilidad, especificidad, F1-score y comportamiento de las probabilidades estimadas.
+
+Decision Tree presentó la mayor sensibilidad durante la comparación, con un valor de 0,8440, pero este resultado estuvo acompañado por una menor especificidad de 0,5221. Gradient Boosting alcanzó marginalmente el mayor ROC-AUC y el menor Brier Score, mientras que XGBoost presentó el mejor Accuracy, Precision, Especificidad y F1-score, junto con un ROC-AUC prácticamente equivalente y el menor ECE. Este balance motivó su selección como modelo final de PULSO.
+
+La selección del umbral de decisión se realizó bajo el criterio de mantener un **Recall igual o superior al 80 %**. La prioridad otorgada a esta métrica también estuvo influenciada por la orientación de un asesor del proyecto, quien señaló la importancia de favorecer la identificación de los casos positivos que realmente se encuentran presentes en los datos. Bajo esta perspectiva, se consideró preferible reducir, dentro de límites razonables, la proporción de registros con `cardio = 1` que fueran clasificados como negativos.
+
+Esta decisión es coherente con el enfoque de **promoción y prevención (P&P)** definido para PULSO, en el que el modelo busca funcionar como una herramienta educativa y de orientación preventiva. Sin embargo, priorizar la sensibilidad implica necesariamente un compromiso con otras métricas. Al disminuir el umbral de clasificación para detectar una mayor proporción de positivos, puede aumentar también la cantidad de falsos positivos y reducirse la especificidad. Por esta razón, el Recall no se utilizó como único criterio de selección: entre los umbrales que cumplían la condición de alcanzar al menos un 80 % de sensibilidad se consideró también el comportamiento de Accuracy, Precision, Especificidad y F1-score.
+
+Para XGBoost se seleccionó un threshold de **0,38**, con el cual se obtuvo una sensibilidad superior al 80 % durante la etapa de validación. Este umbral representa, por tanto, un compromiso entre la prioridad otorgada a la identificación de registros positivos y la necesidad de mantener un desempeño global aceptable.
+
+En la evaluación independiente sobre el conjunto de prueba, XGBoost mantuvo este comportamiento, alcanzando una sensibilidad de **0,8018** y una especificidad de **0,6160** utilizando el umbral oficial de 0,38. Esto confirma que el criterio establecido para la selección del threshold se conservó también sobre datos no utilizados durante el proceso de selección.
+
+La matriz de confusión permite observar directamente el compromiso asociado con esta decisión. De los 5.091 registros positivos presentes en el conjunto de prueba, 4.082 fueron clasificados correctamente y 1.009 fueron clasificados como negativos. Entre los 5.201 registros negativos, 3.204 fueron clasificados correctamente y 1.997 fueron clasificados como positivos. En consecuencia, la priorización del Recall contribuye a identificar una mayor proporción de los casos positivos presentes en el conjunto de datos, pero también produce un número considerable de falsos positivos.
+
+Esta característica debe considerarse especialmente al comunicar los resultados de PULSO. Una clasificación positiva no debe interpretarse como confirmación de enfermedad cardiovascular, de la misma forma que una clasificación negativa no permite descartar clínicamente su presencia. El modelo identifica patrones aprendidos a partir del conjunto de datos utilizado y su salida corresponde exclusivamente a una estimación del clasificador.
+
+Los intervalos de confianza obtenidos mediante bootstrap mostraron una variabilidad relativamente reducida en las métricas globales del conjunto de prueba. Sin embargo, el análisis por subgrupos evidenció que este desempeño agregado no representa de manera uniforme todos los grupos presentes en los datos.
+
+Las diferencias más relevantes se observaron por edad. Mientras que el grupo menor de 50 años presentó una especificidad de 0,8821, una sensibilidad de 0,6399 y un ROC-AUC de 0,8201, en el grupo de 60 años o más la sensibilidad aumentó hasta 0,9887, la especificidad disminuyó hasta 0,0596 y el ROC-AUC fue de 0,7243.
+
+Este comportamiento evidencia que el umbral global de 0,38 produce efectos diferentes entre grupos etarios. En el grupo de mayor edad, el clasificador presenta una fuerte tendencia a asignar la clase positiva, lo que permite identificar casi todos los registros positivos, pero reduce considerablemente la capacidad para reconocer correctamente los registros negativos. Este hallazgo ejemplifica una de las principales limitaciones de priorizar globalmente la sensibilidad: el compromiso entre falsos negativos y falsos positivos puede manifestarse de manera distinta entre subgrupos.
+
+Esta diferencia debe interpretarse junto con el aumento de la prevalencia de la clase positiva entre los grupos etarios. La prevalencia pasó de 35,94 % en menores de 50 años a 66,54 % en personas de 60 años o más. En consecuencia, el buen valor global de sensibilidad no debe interpretarse como evidencia de un desempeño homogéneo en toda la población representada por el conjunto de datos.
+
+Los resultados por sexo fueron comparativamente más homogéneos, aunque se observaron diferencias menores en Accuracy, Sensibilidad, Especificidad y ROC-AUC. Estos análisis son exploratorios y no permiten concluir por sí solos la existencia o ausencia de sesgos. Sin embargo, evidencian la importancia de complementar las métricas globales con análisis desagregados por subgrupos.
+
+En conjunto, los resultados respaldan la selección de XGBoost como modelo del MVP desde una perspectiva experimental, al ofrecer un balance favorable entre las métricas evaluadas y cumplir con el criterio de Recall mínimo establecido. La decisión de priorizar la sensibilidad responde al enfoque preventivo del proyecto y a la intención de identificar una proporción elevada de los casos positivos presentes en los datos, pero debe entenderse siempre junto con el incremento asociado de falsos positivos y las diferencias observadas entre subgrupos.
+
+PULSO se mantiene en todo momento dentro de un alcance de **promoción y prevención (P&P)**. No constituye una herramienta diagnóstica, no reemplaza la valoración de un profesional de la salud y no ha sido clínicamente validado como calculadora de riesgo cardiovascular. Sus resultados deben interpretarse como estimaciones educativas derivadas del comportamiento del modelo sobre las variables disponibles en el conjunto de datos. Por esta razón, tanto la priorización del Recall como el umbral seleccionado deben entenderse como decisiones experimentales propias del diseño del MVP y no como criterios clínicos generalizables.
+
+### 14.2 Resultados y discusión del componente RAG
 
 Los resultados obtenidos permiten identificar una diferencia importante entre la capacidad del componente RAG para producir respuestas documentalmente respaldadas y su capacidad para recuperar únicamente información pertinente para cada perfil.
 
