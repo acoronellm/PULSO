@@ -690,6 +690,20 @@ Deben identificarse y explicarse:
 
 Esta parte debe terminar con el **diagrama de arquitectura del sistema**.
 
+### Componente RAG
+
+El componente RAG de PULSO constituye un servicio especializado encargado de complementar los resultados del modelo predictivo y las explicaciones SHAP mediante información preventiva recuperada desde un corpus documental controlado. Su función no consiste en modificar la predicción generada por el modelo de Machine Learning, sino en utilizar los factores prioritarios identificados para el perfil como contexto para recuperar documentación pertinente y generar información educativa sustentada en fuentes médicas previamente seleccionadas.
+
+El flujo RAG se implementa mediante un workflow en n8n. Este recibe desde el backend la información necesaria para contextualizar la consulta, incluyendo la predicción generada, los datos del usuario y los principales factores obtenidos mediante SHAP. A partir de esta información se construye una consulta para realizar recuperación semántica sobre los documentos almacenados en Supabase. Los fragmentos recuperados conservan metadatos asociados con su procedencia, permitiendo identificar posteriormente las fuentes utilizadas para respaldar cada recomendación.
+
+Supabase funciona como almacén vectorial del corpus documental. Los documentos son segmentados en fragmentos y representados mediante embeddings, lo que permite recuperar contenidos por similitud semántica. Este mecanismo es coherente con el uso de `pgvector` para almacenar embeddings y ejecutar búsquedas de similitud sobre PostgreSQL.
+
+Una vez recuperados los fragmentos más relevantes, el workflow normaliza su contenido y sus metadatos y construye el contexto documental que será enviado al modelo generativo. El modelo recibe instrucciones para utilizar exclusivamente la información recuperada, conservar el propósito educativo de PULSO, evitar diagnósticos o indicaciones terapéuticas y mantener la relación entre las recomendaciones y las fuentes utilizadas. Finalmente, la respuesta es estructurada antes de ser enviada nuevamente al backend.
+
+La salida del componente incluye un resumen general y un conjunto limitado de recomendaciones. Para cada recomendación se conserva información que permite identificar la fuente utilizada como respaldo documental. Esta decisión responde directamente a los requerimientos de trazabilidad del sistema y permite verificar posteriormente si una afirmación generada está respaldada por los fragmentos efectivamente recuperados.
+
+La separación del componente RAG respecto al servicio de Machine Learning permite que ambos evolucionen de forma independiente. El modelo predictivo continúa siendo responsable de generar la estimación y los factores SHAP, mientras que RAG se limita a recuperar y presentar información documental. De esta manera, una modificación del corpus, del mecanismo de recuperación o del modelo generativo no requiere reentrenar el clasificador cardiovascular.
+
 ### 10.3 Interacción entre módulos
 
 Debe explicarse:
@@ -723,17 +737,50 @@ Lista y justifica las tecnologías, frameworks, librerías y herramientas utiliz
 
 Describe qué módulos o componentes ya fueron construidos, qué funcionalidades cubren y cuál es su estado actual.
 
+####  Componente RAG implementado
+
+El componente RAG se encuentra implementado mediante un workflow en n8n conectado con un almacén vectorial en Supabase y un modelo generativo. El workflow recibe información procedente del componente predictivo, recupera los fragmentos documentales con mayor similitud semántica, prepara el contexto y genera una respuesta estructurada con información preventiva relacionada con los factores considerados prioritarios.
+
+El flujo incorpora etapas de normalización y preparación de los datos recuperados, con el propósito de conservar el contenido documental y los metadatos necesarios para identificar posteriormente la procedencia de la información. La respuesta final incluye un resumen y recomendaciones asociadas con identificadores de fuentes, permitiendo comprobar qué documentos y fragmentos fueron utilizados como evidencia.
+
+El componente fue sometido a una evaluación funcional mediante 20 casos controlados, cuyos resultados se presentan en la sección 13.1. La evaluación permitió verificar tanto el proceso de recuperación como la generación final y evidenció un comportamiento favorable en trazabilidad, aunque también identificó oportunidades de mejora relacionadas con la precisión de la recuperación y la selección de información prioritaria.
+
 ### 11.3 Integraciones realizadas
 
 Explica las integraciones ya desarrolladas con servicios externos, bases de datos, autenticación u otros componentes.
+
+#### Integración RAG
+
+La integración entre el backend de PULSO y el componente RAG se realiza mediante comunicación HTTP. El backend prepara una estructura que contiene la información necesaria para contextualizar la generación, incluyendo la predicción, datos relevantes del perfil y los principales factores identificados mediante SHAP. Esta estructura es enviada al servicio RAG, que ejecuta el workflow de recuperación y generación y retorna una respuesta estructurada.
+
+Para mantener un contrato definido entre los componentes, la respuesta RAG contempla información general de la respuesta, recomendaciones y datos de las fuentes utilizadas. El backend valida y procesa esta estructura antes de entregarla a la capa de presentación. De esta manera, el componente generativo permanece desacoplado del servicio de Machine Learning y puede modificarse sin cambiar la lógica interna del clasificador.
+
+La integración también contempla el manejo de errores de comunicación y respuestas que no cumplen la estructura esperada. Estos mecanismos resultan relevantes debido a que el componente RAG depende de servicios externos y presenta tiempos de respuesta y modos de fallo diferentes de los correspondientes al servicio predictivo.
 
 ### 11.4 Pendientes para la entrega final
 
 Indica qué elementos faltan por implementar, integrar, corregir o validar antes del cierre del proyecto.
 
+#### Pendientes RAG
+
+A partir de la evaluación funcional realizada, el principal pendiente del componente RAG corresponde a mejorar la pertinencia de los fragmentos recuperados y reducir la generación de información relacionada con factores secundarios o no prioritarios. Aunque la trazabilidad documental presentó resultados altos, la Precision@5 obtenida evidencia que parte del contexto recuperado puede contener información poco relacionada con los factores prioritarios del perfil.
+
+Para la siguiente iteración se plantea mejorar la construcción de las consultas utilizadas en la recuperación semántica, priorizar explícitamente los factores SHAP modificables y evitar que factores no accionables generen recomendaciones artificiales. También se incorporarán mecanismos posteriores a la generación para comprobar que las recomendaciones finales correspondan con los factores prioritarios y con las fuentes documentales utilizadas.
+
+La nueva versión será evaluada utilizando el mismo conjunto de casos empleado en la evaluación inicial. Esto permitirá comparar directamente Precision@5, Hit Rate@5, cobertura de factores SHAP, trazabilidad, uso de `insufficient_information` y tasa de respuestas fuera de alcance antes y después de los ajustes.
+
 ## 12. Despliegue y operación preliminar
 
 Describe cómo se ejecuta actualmente la solución, en qué entorno funciona, qué dependencias requiere y cuál es su estado de despliegue o configuración.
+
+### Despliegue y operación preliminar del RAG
+
+El componente RAG opera actualmente como un servicio externo al proceso de predicción principal. El backend de PULSO se comunica con el workflow mediante solicitudes HTTP y recibe como respuesta una estructura con el resumen, las recomendaciones y la información de trazabilidad asociada con las fuentes recuperadas.
+
+El workflow depende de la disponibilidad de n8n, del almacén vectorial configurado en Supabase y del servicio generativo utilizado para construir la respuesta. Supabase permite almacenar embeddings y ejecutar búsquedas de similitud sobre los documentos representados vectorialmente, funcionalidad utilizada para seleccionar el contexto documental que se suministra al modelo generativo.
+
+Debido a estas dependencias, el componente RAG presenta características operacionales diferentes del servicio de Machine Learning. Una falla o un tiempo de respuesta elevado en el servicio generativo, el workflow o la base vectorial puede impedir la generación de información preventiva sin que necesariamente deba impedir la ejecución de la predicción cardiovascular. Esta separación será considerada durante las pruebas de integración, disponibilidad y tolerancia a fallos de la arquitectura.
+
 
 ## 13. Validación preliminar
 
@@ -829,6 +876,14 @@ Estos ajustes serán evaluados utilizando el mismo conjunto de 20 casos de prueb
 ## 15. Plan de cierre hacia la entrega final
 
 Describe las actividades restantes, prioridades, riesgos y estrategia de cierre para completar el proyecto en las semanas finales.
+
+###  Plan de cierre del RAG
+
+Como parte del cierre del proyecto, el componente RAG requiere una nueva iteración orientada principalmente a aumentar la precisión de la recuperación y reducir las respuestas fuera del alcance esperado. La primera prioridad será modificar la construcción de las consultas de recuperación para que los factores SHAP accionables tengan mayor peso en la selección de los fragmentos documentales.
+
+La segunda prioridad será incorporar reglas que permitan diferenciar explícitamente factores modificables y no modificables antes de generar recomendaciones. Cuando el perfil no proporcione factores accionables respaldados adecuadamente por el corpus, el sistema deberá utilizar el mecanismo de información insuficiente en lugar de introducir recomendaciones relacionadas con variables secundarias.
+
+Finalmente, se incorporará una validación posterior a la generación destinada a comprobar que las recomendaciones correspondan con los factores prioritarios y que las fuentes declaradas respalden semánticamente el contenido generado. Una vez aplicados estos cambios, se repetirá la evaluación sobre los mismos 20 casos para determinar si disminuye la tasa de respuestas fuera de alcance y aumenta la Precision@5 sin comprometer la trazabilidad y cobertura ya alcanzadas.
 
 ## 16. Referencias
 
