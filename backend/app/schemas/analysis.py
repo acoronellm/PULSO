@@ -36,7 +36,10 @@ class ShapFactor(BaseModel):
     feature: str
     value: float
     shap_value: float
-    direction: Literal["increase", "decrease"]
+    direction: Literal[
+        "increase",
+        "decrease",
+    ]
 
 
 class ShapData(BaseModel):
@@ -50,7 +53,10 @@ class RagRequest(BaseModel):
 
 
 class RagSourceLines(BaseModel):
-    from_: int = Field(..., alias="from")
+    from_: int = Field(
+        ...,
+        alias="from",
+    )
     to: int
 
     model_config = {
@@ -81,7 +87,9 @@ class RagRecommendation(BaseModel):
 class RagResponse(BaseModel):
     summary: str
 
-    recommendations: list[RagRecommendation] = Field(
+    recommendations: list[
+        RagRecommendation
+    ] = Field(
         default_factory=list
     )
 
@@ -89,7 +97,82 @@ class RagResponse(BaseModel):
     note: str
     insufficient_information: bool
 
+
 class AnalysisResponse(BaseModel):
     prediction: PredictionData
     shap: ShapData
     rag: RagResponse
+
+
+# -------------------------
+# Simulation
+# -------------------------
+
+class SimulationChanges(BaseModel):
+    weight: float | None = Field(
+        default=None,
+        ge=30,
+        le=200,
+    )
+
+    ap_hi: float | None = Field(
+        default=None,
+        ge=70,
+        le=250,
+    )
+
+    ap_lo: float | None = Field(
+        default=None,
+        ge=40,
+        le=150,
+    )
+
+    smoke: int | None = Field(
+        default=None,
+        ge=0,
+        le=1,
+    )
+
+    alco: int | None = Field(
+        default=None,
+        ge=0,
+        le=1,
+    )
+
+    active: int | None = Field(
+        default=None,
+        ge=0,
+        le=1,
+    )
+
+
+class SimulationRequest(BaseModel):
+    original: UserData
+    changes: SimulationChanges
+
+
+class SimulationResult(BaseModel):
+    probability: float = Field(
+        ...,
+        ge=0,
+        le=1,
+    )
+
+    classification: int = Field(
+        ...,
+        ge=0,
+        le=1,
+    )
+
+
+class SimulationResponse(BaseModel):
+    original: SimulationResult
+    simulated: SimulationResult
+    probability_difference: float
+    applied_changes: dict
+    model_version: str
+    threshold: float = Field(
+        ...,
+        ge=0,
+        le=1,
+    )

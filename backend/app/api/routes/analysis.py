@@ -4,10 +4,13 @@ from backend.app.schemas.analysis import (
     AnalysisResponse,
     RagRequest,
     RagResponse,
+    SimulationRequest,
+    SimulationResponse,
     UserData,
 )
 from backend.app.services.ml_client import (
     MLClientError,
+    MLValidationError,
     generate_prediction,
     generate_explanation,
     simulate_scenario
@@ -84,14 +87,23 @@ async def analyze(
             detail=str(exc),
         ) from exc
 
-@router.post("/simulate")
+@router.post(
+    "/simulate",
+    response_model=SimulationResponse,
+)
 async def simulate(
-    payload: dict,
+    payload: SimulationRequest,
 ):
     try:
         return await simulate_scenario(
             payload
         )
+
+    except MLValidationError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=str(exc),
+        ) from exc
 
     except MLClientError as exc:
         raise HTTPException(

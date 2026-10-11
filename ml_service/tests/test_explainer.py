@@ -175,3 +175,65 @@ def test_explain_sets_direction_from_sign(
         factors["active"].direction
         == "decrease"
     )
+
+def test_explain_maps_transformed_feature_names(
+    monkeypatch,
+):
+    class TransformedPreprocessor:
+        def transform(self, X):
+            return np.array([
+                [
+                    1.0,
+                    150.0,
+                    1.0,
+                ]
+            ])
+
+        def get_feature_names_out(self):
+            return np.array([
+                "categorical__gender_1",
+                "continuous__ap_hi",
+                "binary__smoke",
+            ])
+
+    class TransformedPipeline:
+        named_steps = {
+            "preprocessor": TransformedPreprocessor(),
+        }
+
+    class Explanation:
+        values = np.array([
+            [
+                0.10,
+                0.50,
+                0.30,
+            ]
+        ])
+
+    class Explainer:
+        def __call__(self, X):
+            return Explanation()
+
+    monkeypatch.setattr(
+        "ml_service.app.explainer.load_model",
+        lambda: TransformedPipeline(),
+    )
+
+    monkeypatch.setattr(
+        "ml_service.app.explainer.get_explainer",
+        lambda: Explainer(),
+    )
+
+    result = explain(
+        build_request(),
+        top_n=3,
+    )
+
+    features = [
+        factor.feature
+        for factor in result.top_factors
+    ]
+
+    assert "gender" in features
+    assert "ap_hi" in features
+    assert "smoke" in features
