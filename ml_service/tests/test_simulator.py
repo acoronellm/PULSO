@@ -112,3 +112,28 @@ def test_simulation_recalculates_bmi(
     expected_bmi = 80 / (1.72 ** 2)
 
     assert simulated_request.bmi == expected_bmi
+
+def test_simulation_rejects_invalid_blood_pressure():
+    request = SimulationRequest(
+        original=PredictionRequest(
+            gender=1,
+            height=172,
+            weight=88,
+            ap_hi=150,
+            ap_lo=92,
+            smoke=1,
+            alco=0,
+            active=0,
+            age_years=61,
+            bmi=29.75,
+        ),
+        changes=SimulationChanges(
+            ap_hi=80,
+        ),
+    )
+
+    with pytest.raises(
+        Exception,
+    ):
+        simulate(request)
+

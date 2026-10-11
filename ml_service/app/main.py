@@ -3,10 +3,9 @@ from .explainer import explain
 from .config import MODEL_VERSION
 from .model_loader import load_model
 from .predictor import predict
-from .schemas import (PredictionRequest, PredictionResponse, ExplanationResponse, SimulationRequest, SimulationResponse,
-SimulationResponse)
+from .schemas import (PredictionRequest, PredictionResponse, ExplanationResponse, SimulationRequest, SimulationResponse)
 from .simulator import simulate
-
+from pydantic import ValidationError
 
 app = FastAPI(
     title="PULSO ML Service",
@@ -68,6 +67,12 @@ def simulate_endpoint(
 ):
     try:
         return simulate(request)
+
+    except ValidationError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=exc.errors(),
+        ) from exc
 
     except Exception as exc:
         raise HTTPException(

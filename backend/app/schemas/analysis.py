@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class PredictionData(BaseModel):
@@ -21,6 +21,15 @@ class UserData(BaseModel):
     active: int = Field(..., ge=0, le=1)
     age_years: float = Field(..., gt=0)
     bmi: float = Field(..., gt=0)
+
+    @model_validator(mode="after")
+    def validate_blood_pressure(self):
+        if self.ap_hi <= self.ap_lo:
+            raise ValueError(
+                "ap_hi debe ser mayor que ap_lo."
+            )
+
+        return self
 
 
 class ShapFactor(BaseModel):
