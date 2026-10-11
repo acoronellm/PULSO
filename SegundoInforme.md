@@ -731,6 +731,61 @@ Presenta las pruebas o validaciones realizadas hasta el momento para verificar e
 
 ### 13.1 Pruebas por componentes
 
+#### 13.1.X Evaluación funcional del componente RAG
+
+Con el fin de evaluar el comportamiento del componente de generación aumentada por recuperación (RAG) de PULSO, se realizó una evaluación funcional y exploratoria mediante un conjunto controlado de 20 casos de prueba. Esta evaluación no corresponde a una validación clínica del sistema, sino a una verificación técnica orientada a determinar la pertinencia de la información recuperada, la trazabilidad documental de las recomendaciones, la cobertura de los factores identificados mediante SHAP y el cumplimiento del alcance educativo y preventivo definido para la plataforma.
+
+Cada caso de prueba incluyó el perfil del usuario, la probabilidad generada por el modelo de clasificación, el umbral de decisión, los principales factores obtenidos mediante SHAP y un comportamiento esperado. Para cada caso, el componente RAG recuperó los cinco fragmentos con mayor similitud desde la base vectorial y posteriormente generó un máximo de tres recomendaciones utilizando únicamente el contexto documental recuperado.
+
+La evaluación se dividió en dos etapas. En primer lugar, se analizó el proceso de recuperación de información mediante las métricas Precision@5, Hit Rate@5 y cobertura de factores SHAP. En segundo lugar, se evaluó la respuesta generada considerando la trazabilidad técnica de las fuentes, la trazabilidad semántica de las recomendaciones, la presencia de información fuera del alcance esperado y el manejo de situaciones con información insuficiente.
+
+Para apoyar la revisión de los fragmentos recuperados y las recomendaciones generadas se utilizó NotebookLM con el mismo corpus documental empleado por PULSO. Los 20 casos fueron divididos en cuatro grupos de cinco casos y cada grupo fue evaluado dos veces de forma independiente utilizando la misma rúbrica. Las discrepancias entre ambas evaluaciones fueron posteriormente revisadas contra los fragmentos recuperados, la respuesta original del RAG y las reglas funcionales establecidas para PULSO. Por esta razón, NotebookLM se utilizó como herramienta de apoyo para la revisión y no como evaluador único del sistema.
+
+Las métricas utilizadas fueron las siguientes:
+
+- **Precision@5:** proporción de fragmentos directamente pertinentes entre los cinco resultados recuperados.
+- **Hit Rate@5:** proporción de casos en los que al menos uno de los cinco fragmentos recuperados fue directamente pertinente.
+- **Cobertura SHAP:** proporción de factores con dirección de aumento para los cuales se recuperó evidencia documental pertinente.
+- **Cobertura SHAP accionable:** cobertura de los factores modificables con dirección de aumento, excluyendo variables no modificables como edad, sexo o estatura.
+- **Trazabilidad técnica:** proporción de recomendaciones que utilizaron identificadores de fuentes realmente presentes entre los fragmentos recuperados.
+- **Trazabilidad semántica:** grado en el que el contenido de cada recomendación estuvo respaldado por la información de los fragmentos citados.
+- **Tasa de respuestas fuera de alcance:** proporción de casos en los que se identificaron recomendaciones o afirmaciones que no correspondían a los factores prioritarios del perfil o excedían el propósito educativo y preventivo del sistema.
+- **Uso correcto de `insufficient_information`:** proporción de casos en los que el sistema manejó adecuadamente escenarios donde la evidencia disponible no justificaba recomendaciones específicas.
+
+Los resultados consolidados se presentan en la Tabla.
+
+| Métrica | Resultado |
+|---|---:|
+| Casos evaluados | 20 |
+| Precision@5 promedio | 35,0 % |
+| Hit Rate@5 | 85,0 % |
+| Cobertura SHAP total | 75,5 % |
+| Cobertura SHAP accionable | 100 % en casos aplicables |
+| Trazabilidad técnica | 100 % |
+| Trazabilidad semántica estricta | 98,3 % |
+| Trazabilidad semántica amplia | 100 % |
+| Respuestas fuera de alcance | 65,0 % |
+| Uso correcto de `insufficient_information` | 90,0 % |
+
+**Resultados consolidados de la evaluación funcional del componente RAG.**
+
+Para interpretar las desviaciones de alcance identificadas durante la evaluación del componente RAG, se definieron cuatro niveles de severidad. La **severidad 0** corresponde a los casos en los que la respuesta se mantiene completamente alineada con los factores prioritarios y con el alcance educativo y preventivo de PULSO. La **severidad 1 o desviación menor** se asigna cuando aparece información secundaria o una recomendación adicional no prioritaria, pero esta no modifica sustancialmente el sentido de la respuesta ni introduce implicaciones clínicas relevantes. La **severidad 2 o desviación relevante** se utiliza cuando la respuesta incorpora recomendaciones claramente ajenas a los factores identificados, interpreta incorrectamente un factor protector o introduce contenido clínico que excede el propósito del sistema, aunque sin llegar a constituir una situación crítica. Finalmente, la **severidad 3 o desviación crítica** corresponde a respuestas que podrían inducir a interpretaciones clínicas inapropiadas, como emitir diagnósticos, afirmar presencia o ausencia de enfermedad, recomendar tratamientos o medicamentos, o presentar la probabilidad o el umbral del modelo como una medida clínica de riesgo.
+
+| Severidad | Casos | Porcentaje |
+|---|---:|---:|
+| 0 – Sin desviación | 7 | 35 % |
+| 1 – Desviación menor | 8 | 40 % |
+| 2 – Desviación relevante | 5 | 25 % |
+| 3 – Desviación crítica | 0 | 0 % |
+
+**Distribución de severidad de las desviaciones de alcance detectadas.**
+
+Los resultados muestran que el sistema logró recuperar al menos un fragmento pertinente en el 85 % de los casos y alcanzó una cobertura completa de los factores SHAP modificables en aquellos escenarios donde existían factores accionables. Asimismo, todas las recomendaciones utilizaron fuentes pertenecientes al contexto recuperado y el 98,3 % presentó respaldo semántico completo.
+
+No obstante, la Precision@5 promedio fue del 35 %, lo que indica que, aunque habitualmente se recupera al menos un fragmento útil, una parte importante de los cinco primeros resultados contiene información secundaria o poco relacionada con los factores prioritarios del caso. Esta situación también se reflejó en la tasa de respuestas fuera de alcance, debido a que el modelo generador puede utilizar información documentalmente válida presente en los fragmentos recuperados para formular recomendaciones que no necesariamente corresponden a los factores identificados mediante SHAP.
+
+No se identificaron desviaciones de severidad crítica durante los 20 casos evaluados.
+
 ### 13.2 Pruebas de integración
 
 ### 13.3 Pruebas de usabilidad
@@ -738,6 +793,28 @@ Presenta las pruebas o validaciones realizadas hasta el momento para verificar e
 ## 14. Resultados parciales y discusión
 
 Presenta los principales hallazgos obtenidos hasta el momento, interpreta su significado y analiza el nivel de avance del proyecto frente a los objetivos planteados.
+
+### 14.1 Resultados y discusión del componente RAG
+
+Los resultados obtenidos permiten identificar una diferencia importante entre la capacidad del componente RAG para producir respuestas documentalmente respaldadas y su capacidad para recuperar únicamente información pertinente para cada perfil.
+
+En términos de trazabilidad, el comportamiento observado fue favorable. El 100 % de las recomendaciones utilizó referencias correspondientes a fragmentos realmente recuperados y la trazabilidad semántica estricta alcanzó el 98,3 %. Esto indica que el principal problema detectado no corresponde a una generación de información sin respaldo documental, sino a la selección y priorización de la información utilizada para construir la respuesta.
+
+El proceso de recuperación presentó un Hit Rate@5 del 85 %, lo que evidencia que en la mayoría de los casos se logró recuperar al menos un fragmento directamente relacionado con los factores prioritarios. Sin embargo, la Precision@5 promedio fue del 35 %. Esto significa que varios de los fragmentos restantes del Top-5 correspondían a contenidos generales o a temas secundarios que no necesariamente estaban relacionados con los principales factores SHAP del caso.
+
+Durante la evaluación se observó especialmente una alta presencia de fragmentos provenientes de documentación relacionada con hipertensión arterial, medición de presión, seguimiento clínico y protocolos de tratamiento. Este comportamiento apareció incluso en casos donde los principales factores estaban relacionados con tabaquismo, actividad física, consumo de alcohol o peso corporal. Como consecuencia, el modelo generador podía encontrar recomendaciones válidas dentro de estos fragmentos y utilizarlas en la respuesta, aunque no fueran prioritarias para el perfil analizado.
+
+Este comportamiento explica la tasa de respuestas fuera de alcance del 65 %. Sin embargo, dicha métrica debe interpretarse junto con la distribución de severidad: el 40 % de todos los casos presentó únicamente desviaciones menores y no se identificaron desviaciones críticas. En estos casos, las recomendaciones adicionales generalmente estaban respaldadas por el corpus, pero correspondían a factores secundarios o no prioritarios.
+
+Un ejemplo de este comportamiento se presentó en casos donde el tabaquismo o la inactividad física constituían los principales factores de aumento según SHAP. El sistema generaba correctamente recomendaciones relacionadas con estos factores, pero posteriormente podía añadir una recomendación sobre medición de presión arterial debido a que este contenido también se encontraba entre los fragmentos recuperados.
+
+Otro hallazgo relevante fue el comportamiento frente a factores no modificables. En escenarios donde los factores principales correspondían únicamente a variables como edad, sexo o estatura, el sistema mostró tendencia a generar recomendaciones preventivas relacionadas con otros factores en lugar de limitar la respuesta o utilizar el indicador `insufficient_information`. Estos casos evidenciaron la necesidad de incorporar reglas explícitas para diferenciar factores accionables y no accionables antes de realizar la generación.
+
+En contraste, la cobertura SHAP accionable alcanzó el 100 % en los casos aplicables. Esto indica que cuando existía un factor modificable con dirección de aumento —como presión arterial, tabaquismo, actividad física, consumo de alcohol o peso/IMC— el proceso de recuperación logró encontrar al menos un fragmento pertinente relacionado con dicho factor. Por lo tanto, la principal oportunidad de mejora no consiste únicamente en recuperar más información, sino en aumentar la precisión y diversidad de los fragmentos seleccionados.
+
+A partir de estos resultados se identificaron tres líneas principales de mejora para una siguiente iteración del componente RAG: restringir la generación a factores SHAP accionables, mejorar la construcción de las consultas enviadas al almacén vectorial y añadir mecanismos de validación posteriores a la generación que impidan que recomendaciones relacionadas con factores no prioritarios sean entregadas al usuario.
+
+Estos ajustes serán evaluados utilizando el mismo conjunto de 20 casos de prueba, permitiendo comparar directamente el comportamiento de la versión actual con una versión posterior del componente RAG.
 
 ## 15. Plan de cierre hacia la entrega final
 
