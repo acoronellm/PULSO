@@ -1,7 +1,7 @@
 param(
     [string]$Architecture = "services",
     [string]$HostUrl = "http://localhost:8000",
-    [int]$DurationSeconds = 60
+    [int]$DurationSeconds = 420
 )
 
 $ErrorActionPreference = "Stop"
