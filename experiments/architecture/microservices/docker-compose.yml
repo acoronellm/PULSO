@@ -1,0 +1,49 @@
+services:
+  prediction-service:
+    build:
+      context: ../../..
+      dockerfile: experiments/architecture/microservices/Dockerfile
+    command: python -m uvicorn experiments.architecture.microservices.prediction_service.main:app --host 0.0.0.0 --port 8001
+    volumes:
+      - ../../../artifacts:/app/artifacts:ro
+    ports:
+      - "8101:8001"
+
+  shap-service:
+    build:
+      context: ../../..
+      dockerfile: experiments/architecture/microservices/Dockerfile
+    command: python -m uvicorn experiments.architecture.microservices.shap_service.main:app --host 0.0.0.0 --port 8002
+    volumes:
+      - ../../../artifacts:/app/artifacts:ro
+    ports:
+      - "8102:8002"
+
+  simulation-service:
+    build:
+      context: ../../..
+      dockerfile: experiments/architecture/microservices/Dockerfile
+    command: python -m uvicorn experiments.architecture.microservices.simulation_service.main:app --host 0.0.0.0 --port 8003
+    volumes:
+      - ../../../artifacts:/app/artifacts:ro
+    ports:
+      - "8103:8003"
+
+  gateway:
+    build:
+      context: ../../..
+      dockerfile: experiments/architecture/microservices/Dockerfile
+    command: python -m uvicorn experiments.architecture.microservices.gateway.main:app --host 0.0.0.0 --port 8000
+    environment:
+      PREDICTION_SERVICE_URL: http://prediction-service:8001
+      SHAP_SERVICE_URL: http://shap-service:8002
+      SIMULATION_SERVICE_URL: http://simulation-service:8003
+      SERVICE_TIMEOUT_SECONDS: 30
+      RAG_SERVICE_URL: ${RAG_SERVICE_URL}
+      RAG_TIMEOUT_SECONDS: 30
+    ports:
+      - "8100:8000"
+    depends_on:
+      - prediction-service
+      - shap-service
+      - simulation-service
