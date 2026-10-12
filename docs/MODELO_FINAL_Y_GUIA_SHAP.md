@@ -616,3 +616,42 @@ Recall Test:
 No se deben volver a realizar tuning, calibración o selección de threshold durante el desarrollo de SHAP.
 
 SHAP debe construirse sobre el modelo definitivo ya seleccionado.
+
+---
+
+## 19. Implementación disponible
+
+La integración está implementada en:
+
+```text
+ml/shap_explain.py
+```
+
+Para generar las explicaciones globales y locales se debe ejecutar primero la evaluación final, si el modelo serializado todavía no existe:
+
+```bash
+python -m ml.final_evaluate --config ml/configs/final_model.yaml
+```
+
+Después se ejecuta:
+
+```bash
+python -m ml.shap_explain
+```
+
+El comando utiliza una muestra de Test para las explicaciones globales. Como el explicador usa `feature_perturbation="tree_path_dependent"`, SHAP utiliza los conteos internos de las hojas del modelo y no un dataset de background externo. Para reducir el costo computacional se explican por defecto 1,000 registros; este tamaño puede cambiarse mediante:
+
+```bash
+python -m ml.shap_explain --sample-size 500
+```
+
+Los resultados se guardan en:
+
+```text
+artifacts/shap/global_feature_importance.csv
+artifacts/shap/shap_bar.png
+artifacts/shap/shap_summary.png
+artifacts/shap/local_explanations.csv
+```
+
+La versión actual calcula SHAP en escala `raw_log_odds`, debido a la compatibilidad entre SHAP y XGBoost 3.x. La suma del valor base y las contribuciones SHAP se transforma mediante la función sigmoide y reproduce la probabilidad de `predict_proba()`. El archivo local incluye además la probabilidad, el threshold `0.38` y la clasificación resultante.
