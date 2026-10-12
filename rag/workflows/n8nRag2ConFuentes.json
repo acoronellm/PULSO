@@ -1,0 +1,248 @@
+{
+  "name": "n8nRag2ConFuentes",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "aba6c9f2-ac36-4c6e-888c-735546b85145",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -320,
+        0
+      ],
+      "id": "dd69c2ce-6b81-4134-904a-d7ce78eb45e0",
+      "name": "Webhook",
+      "webhookId": "aba6c9f2-ac36-4c6e-888c-735546b85145"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const body = $json.body ?? $json;\n\nconst prediction = body.prediction;\nconst user = body.user_data;\nconst shap = body.shap;\n\n// -----------------------------\n// 1. Validaciones mínimas\n// -----------------------------\n\nif (!prediction || !user || !shap) {\n  throw new Error(\"El JSON recibido no contiene prediction, user_data o shap.\");\n}\n\n// El RAG solo debería ejecutarse para casos por debajo del umbral.\n// Si llega uno por encima, mejor detener el flujo.\nif (prediction.probability >= prediction.threshold) {\n  throw new Error(\n    \"La probabilidad es igual o superior al umbral. Este caso no debe ser procesado por el RAG.\"\n  );\n}\n\n// -----------------------------\n// 2. Interpretación de variables\n// -----------------------------\n\nconst genderMap = {\n  1: \"mujer\",\n  2: \"hombre\"\n};\n\nconst yesNoMap = {\n  0: \"no\",\n  1: \"sí\"\n};\n\nconst smokeMap = {\n  0: \"no fumador\",\n  1: \"fumador\"\n};\n\nconst activityMap = {\n  0: \"inactivo\",\n  1: \"activo\"\n};\n\nconst alcoholMap = {\n  0: \"no consume alcohol\",\n  1: \"consume alcohol\"\n};\n\nfunction interpretFeature(feature, value) {\n  switch (feature) {\n    case \"gender\":\n      return genderMap[value] ?? `valor desconocido (${value})`;\n\n    case \"smoke\":\n      return smokeMap[value] ?? `valor desconocido (${value})`;\n\n    case \"active\":\n      return activityMap[value] ?? `valor desconocido (${value})`;\n\n    case \"alco\":\n      return alcoholMap[value] ?? `valor desconocido (${value})`;\n\n    case \"ap_hi\":\n      return `${value} mmHg de presión arterial sistólica`;\n\n    case \"ap_lo\":\n      return `${value} mmHg de presión arterial diastólica`;\n\n    case \"age_years\":\n      return `${value} años`;\n\n    case \"height\":\n      return `${value} cm`;\n\n    case \"weight\":\n      return `${value} kg`;\n\n    case \"bmi\":\n      return `IMC de ${value}`;\n\n    default:\n      return String(value);\n  }\n}\n\n// -----------------------------\n// 3. Cercanía al umbral\n// -----------------------------\n\nconst probability = Number(prediction.probability);\nconst threshold = Number(prediction.threshold);\n\nconst distanceToThreshold = threshold - probability;\nconst thresholdRatio = probability / threshold;\n\nlet thresholdProximity;\n\nif (thresholdRatio >= 0.9) {\n  thresholdProximity = \"muy próximo al umbral\";\n} else if (thresholdRatio >= 0.7) {\n  thresholdProximity = \"próximo al umbral\";\n} else {\n  thresholdProximity = \"alejado del umbral\";\n}\n\n// -----------------------------\n// 4. Procesamiento de SHAP\n// -----------------------------\n\nconst topFactors = Array.isArray(shap.top_factors)\n  ? shap.top_factors\n  : [];\n\nconst interpretedFactors = topFactors.map((factor, index) => {\n  return {\n    priority: index + 1,\n    feature: factor.feature,\n    raw_value: factor.value,\n    interpreted_value: interpretFeature(\n      factor.feature,\n      factor.value\n    ),\n    shap_value: factor.shap_value,\n    direction: factor.direction\n  };\n});\n\nconst shapText = interpretedFactors\n  .map(factor => {\n    const directionText =\n      factor.direction === \"increase\"\n        ? \"aumentó la predicción\"\n        : factor.direction === \"decrease\"\n        ? \"disminuyó la predicción\"\n        : factor.direction;\n\n    return `${factor.priority}. ${factor.feature}\n- Valor: ${factor.interpreted_value}\n- Impacto SHAP: ${factor.shap_value}\n- Efecto: ${directionText}`;\n  })\n  .join(\"\\n\\n\");\n\n// -----------------------------\n// 5. Construcción del input para el RAG\n// -----------------------------\n\nconst input = `\nAnaliza el siguiente perfil cardiovascular y genera recomendaciones educativas personalizadas utilizando únicamente la información contenida en los documentos recuperados.\n\nRESULTADO DEL MODELO\n\n- Probabilidad estimada: ${(probability * 100).toFixed(1)}%\n- Umbral de decisión del modelo: ${(threshold * 100).toFixed(1)}%\n- Clasificación del modelo: ${prediction.classification}\n- Versión del modelo: ${prediction.model_version}\n- Distancia al umbral: ${(distanceToThreshold * 100).toFixed(1)} puntos porcentuales\n- Relación respecto al umbral: ${(thresholdRatio * 100).toFixed(1)}%\n- Situación respecto al umbral: ${thresholdProximity}\n\nLa probabilidad está por debajo del umbral de decisión utilizado por PULSO.\nLa cercanía al umbral debe utilizarse únicamente para ajustar la prioridad y prudencia de las recomendaciones.\nNo debe interpretarse como una categoría clínica ni como diagnóstico.\n\nDATOS DEL USUARIO\n\n- Sexo: ${genderMap[user.gender] ?? \"desconocido\"}\n- Edad: ${user.age_years} años\n- Altura: ${user.height} cm\n- Peso: ${user.weight} kg\n- IMC: ${user.bmi}\n- Presión arterial sistólica: ${user.ap_hi} mmHg\n- Presión arterial diastólica: ${user.ap_lo} mmHg\n- Tabaquismo: ${smokeMap[user.smoke] ?? \"desconocido\"}\n- Consumo de alcohol: ${alcoholMap[user.alco] ?? \"desconocido\"}\n- Actividad física: ${activityMap[user.active] ?? \"desconocido\"}\n\nPRINCIPALES FACTORES IDENTIFICADOS POR SHAP\n\n${shapText}\n\nINSTRUCCIONES PARA LA RESPUESTA\n\n- Genera recomendaciones educativas de prevención cardiovascular.\n- Utiliza únicamente información respaldada por los documentos recuperados.\n- Prioriza especialmente los factores que SHAP identificó como contribuyentes al aumento de la predicción.\n- Ten en cuenta qué tan cerca está la probabilidad del umbral.\n- Si el resultado está muy próximo al umbral, utiliza un tono más prudente y enfatiza el seguimiento de los factores modificables.\n- Si está alejado del umbral, mantén un enfoque preventivo y educativo.\n- No recalcules la probabilidad.\n- No modifiques la clasificación.\n- No diagnostiques enfermedades.\n- No afirmes que estar cerca del umbral significa tener una enfermedad.\n- No presentes el umbral como una frontera clínica.\n- No inventes información.\n- Si los documentos recuperados no contienen evidencia suficiente para recomendar algo sobre un factor, indícalo.\n`;\n\n// -----------------------------\n// 6. Salida del nodo\n// -----------------------------\n\nreturn {\n  json: {\n    chatInput: input,\n\n    prediction_context: {\n      probability,\n      threshold,\n      classification: prediction.classification,\n      threshold_proximity: thresholdProximity\n    },\n\n    interpreted_user_data: {\n      gender: genderMap[user.gender] ?? \"desconocido\",\n      age_years: user.age_years,\n      bmi: user.bmi,\n      systolic_pressure: user.ap_hi,\n      diastolic_pressure: user.ap_lo,\n      smoking: smokeMap[user.smoke] ?? \"desconocido\",\n      alcohol: alcoholMap[user.alco] ?? \"desconocido\",\n      physical_activity: activityMap[user.active] ?? \"desconocido\"\n    },\n\n    interpreted_shap: {\n      top_factors: interpretedFactors\n    }\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -96,
+        0
+      ],
+      "id": "6c8cd67b-8af8-4555-b55c-ca1f5fb1cec4",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "prompt": "=Información preventiva cardiovascular relacionada con:\n{{ $json.interpreted_shap.top_factors.filter(f => f.direction === \"increase\").map(f => f.interpreted_value).join(\", \") }}",
+        "topK": 5,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        608
+      ],
+      "id": "773a5947-617c-4902-bb14-03b66890ec29",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "vgolZwLFRr8x9nIZ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================================\n// PULSO - Preparar contexto documental y fuentes\n// =====================================================\n\n// Recuperar directamente los resultados del nodo Supabase\nconst supabaseItems = $(\"Supabase Vector Store\").all();\n\n// Recuperar el perfil preparado por el primer Code\nconst original = $(\"Code in JavaScript\").first().json;\n\n// =====================================================\n// 1. Inicializar estructuras\n// =====================================================\n\nconst sourceMap = {};\nconst contextParts = [];\n\nlet sourceCounter = 1;\n\n// =====================================================\n// 2. Procesar resultados recuperados desde Supabase\n// =====================================================\n\nfor (const item of supabaseItems) {\n\n  const result = item.json ?? {};\n\n  // Estructura esperada:\n  // {\n  //   document: {\n  //     pageContent: \"...\",\n  //     metadata: {...}\n  //   },\n  //   score: 0.72\n  // }\n\n  const document = result.document;\n\n  if (\n    !document ||\n    typeof document.pageContent !== \"string\" ||\n    document.pageContent.trim() === \"\"\n  ) {\n    continue;\n  }\n\n  const sourceId = `SOURCE_${sourceCounter}`;\n\n  const metadata = document.metadata ?? {};\n\n  const source =\n    metadata.source ??\n    \"Fuente no identificada\";\n\n  const score =\n    typeof result.score === \"number\"\n      ? result.score\n      : null;\n\n  const lines =\n    metadata.loc?.lines ?? null;\n\n  // ===================================================\n  // Relación interna controlada por PULSO\n  // ===================================================\n\n  sourceMap[sourceId] = {\n    source,\n    score,\n    lines\n  };\n\n  // ===================================================\n  // Fragmento que verá el LLM\n  // ===================================================\n\n  contextParts.push(\n`[${sourceId}]\n${document.pageContent.trim()}`\n  );\n\n  sourceCounter++;\n}\n\n// =====================================================\n// 3. Validación\n// =====================================================\n\nif (contextParts.length === 0) {\n  throw new Error(\n    `El nodo Supabase devolvió ${supabaseItems.length} resultados, ` +\n    `pero ninguno contiene document.pageContent válido.`\n  );\n}\n\n// =====================================================\n// 4. Construcción del contexto documental\n// =====================================================\n\nconst context =\n  contextParts.join(\"\\n\\n---\\n\\n\");\n\n// =====================================================\n// 5. Salida final\n// =====================================================\n\nreturn [\n  {\n    json: {\n\n      // Perfil cardiovascular\n      chatInput:\n        original.chatInput,\n\n      prediction_context:\n        original.prediction_context,\n\n      interpreted_user_data:\n        original.interpreted_user_data,\n\n      interpreted_shap:\n        original.interpreted_shap,\n\n      // Contexto para el LLM\n      context,\n\n      // Mapa real de fuentes\n      sourceMap,\n\n      // Información para evaluación del retrieval\n      retrieval_info: {\n        documents_retrieved:\n          contextParts.length,\n\n        source_ids:\n          Object.keys(sourceMap),\n\n        scores:\n          Object.entries(sourceMap).map(\n            ([source_id, data]) => ({\n              source_id,\n              score: data.score\n            })\n          )\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        128,
+        688
+      ],
+      "id": "b8c74403-d5e2-48f2-98ae-c022b607c269",
+      "name": "Preparar contexto y fuentes"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -320,
+        800
+      ],
+      "id": "a45c3844-15e9-4394-8a33-0c8781cd18b5",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ATxSNR5CqCM10FFR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Eres el módulo de recomendaciones educativas cardiovasculares del sistema PULSO.\n\nTu función es generar recomendaciones educativas claras, prudentes y personalizadas a partir de:\n\n1. El perfil cardiovascular proporcionado en el mensaje del usuario.\n2. La predicción generada por el modelo de Machine Learning incluida en dicho perfil.\n3. Los principales factores identificados mediante SHAP incluidos en dicho perfil.\n4. La información recuperada desde la base documental de PULSO.\n\nCONTEXTO DOCUMENTAL RECUPERADO:\n\n{{ $json.context }}\n\nINSTRUCCIONES GENERALES:\n\n- Utiliza únicamente información médica o preventiva que esté respaldada por el contexto documental recuperado.\n- No utilices conocimiento médico externo al contexto proporcionado.\n- No inventes información.\n- No agregues recomendaciones que no puedan sustentarse con los fragmentos recuperados.\n- El perfil, la predicción y los factores SHAP proceden del sistema PULSO y deben utilizarse únicamente para contextualizar y priorizar las recomendaciones.\n- No diagnostiques enfermedades.\n- No afirmes que el usuario tiene o no tiene una enfermedad cardiovascular.\n- No reemplaces la evaluación de un profesional de la salud.\n- No recalcules la probabilidad generada por el modelo.\n- No modifiques la clasificación producida por el modelo.\n- No modifiques ni reinterpretres los valores SHAP.\n- No interpretes el umbral del modelo como una frontera clínica.\n- No conviertas la probabilidad del clasificador en una estimación de riesgo cardiovascular futuro.\n- No atribuyas un horizonte temporal a la probabilidad.\n- No afirmes relaciones causales a partir de SHAP.\n\nINTERPRETACIÓN DE LA PREDICCIÓN:\n\nEl perfil recibido corresponde a un caso cuya probabilidad está por debajo del umbral de decisión del modelo. Los casos iguales o superiores al umbral son gestionados previamente por el backend de PULSO y no deben llegar a este módulo.\n\nUtiliza la cercanía al umbral únicamente para ajustar la prioridad y prudencia de las recomendaciones.\n\n- Si el perfil está alejado del umbral, mantén un enfoque principalmente preventivo.\n- Si está próximo al umbral, enfatiza la importancia de trabajar sobre los factores modificables identificados.\n- Si está muy próximo al umbral, utiliza un lenguaje más prudente y enfatiza el seguimiento y control de los factores modificables.\n\nNunca interpretes \"próximo al umbral\" como enfermedad, diagnóstico, severidad clínica o riesgo cardiovascular alto.\n\nNo recomiendes consultar a un profesional de la salud únicamente por la cercanía al umbral. Los casos que requieren una derivación directa son gestionados previamente por el backend de PULSO.\n\nUSO DE SHAP:\n\nLos factores SHAP incluidos en el perfil indican qué variables tuvieron mayor influencia sobre la predicción individual del modelo.\n\n- Prioriza los factores cuya dirección sea \"increase\".\n- Da mayor importancia a los factores con menor número de prioridad.\n- Utiliza los valores ya interpretados proporcionados en el perfil.\n- No expliques los valores numéricos de SHAP al usuario salvo que sea estrictamente necesario.\n- No afirmes causalidad.\n- No digas que un factor \"causó\" el resultado.\n\nPuedes utilizar expresiones como:\n\n- \"fue uno de los factores que más influyó en la predicción\";\n- \"contribuyó al aumento de la predicción\";\n- \"fue identificado como un factor relevante por el modelo\".\n\nPrioriza las recomendaciones directamente relacionadas con los factores SHAP identificados como \"increase\".\n\nNo agregues recomendaciones sobre otros factores del perfil salvo que sean necesarias para contextualizar la respuesta y estén claramente respaldadas por los documentos recuperados.\n\nFACTORES MODIFICABLES:\n\nCuando la documentación recuperada lo permita, prioriza recomendaciones asociadas con factores modificables, especialmente:\n\n- presión arterial;\n- tabaquismo;\n- actividad física;\n- peso o IMC;\n- consumo de alcohol;\n\nsiempre que dichos factores aparezcan como relevantes en el perfil recibido.\n\nNo generes una recomendación específica sobre un factor si el contexto documental no contiene información suficiente para respaldarla.\n\nFACTORES NO MODIFICABLES:\n\nVariables como edad o sexo pueden utilizarse para contextualizar el perfil, pero no deben presentarse como características que el usuario pueda modificar.\n\nTRAZABILIDAD DOCUMENTAL:\n\nCada fragmento del contexto documental está identificado mediante un identificador con formato SOURCE_X, por ejemplo:\n\nSOURCE_1\nSOURCE_2\nSOURCE_3\n\nEstos identificadores representan fragmentos realmente recuperados desde la base documental de PULSO.\n\nPara cada recomendación:\n\n- Incluye uno o más identificadores SOURCE_X que respalden directamente la información utilizada.\n- Utiliza únicamente identificadores SOURCE_X presentes literalmente en el contexto documental recuperado.\n- No inventes identificadores.\n- No modifiques los identificadores.\n- No escribas nombres de archivos.\n- No inventes autores, títulos, organizaciones, páginas, URLs ni referencias bibliográficas.\n- No intentes deducir qué archivo corresponde a un SOURCE_X.\n- Si varios fragmentos respaldan una recomendación, puedes utilizar varios SOURCE_X.\n- No asignes una fuente si su fragmento no respalda realmente la recomendación.\n- Si ningún fragmento respalda suficientemente una posible recomendación, no generes esa recomendación.\n\nUn fragmento recuperado no debe utilizarse únicamente porque aparece en el contexto. Evalúa primero si su contenido es pertinente para los factores relevantes del perfil.\n\nALCANCE DE LA RESPUESTA:\n\n- Mantén la respuesta enfocada en los factores más relevantes del perfil.\n- No agregues información cardiovascular general innecesaria.\n- No agregues señales de alarma, síntomas de emergencia ni recomendaciones generales si no son directamente necesarias para los factores identificados.\n- Ignora fragmentos recuperados que sean irrelevantes para los factores identificados, aunque aparezcan dentro del contexto documental.\n- Evita introducir factores secundarios que no hayan sido identificados como relevantes.\n- Genera como máximo 3 recomendaciones prioritarias.\n- Mantén el contenido textual total aproximadamente por debajo de 200 palabras.\n- Evita repetir la misma información entre resumen, recomendaciones y consideraciones.\n\nESTILO:\n\nUtiliza lenguaje comprensible para una persona sin conocimientos médicos.\n\nEvita terminología excesivamente técnica.\n\nNo menciones en el texto destinado al usuario:\n\n- RAG;\n- embeddings;\n- base vectorial;\n- Supabase;\n- recuperación semántica;\n- detalles técnicos internos de SHAP;\n- prompts;\n- contexto documental;\n- SOURCE_X.\n\nLos identificadores SOURCE_X son exclusivamente información técnica para el procesamiento posterior del sistema.\n\nCONSIDERACIONES:\n\n- No introduzcas nuevos factores que no estén entre los principales factores SHAP recibidos.\n- Utiliza este campo únicamente para aclarar la interpretación del resultado, la cercanía al umbral o las limitaciones de la predicción.\n- Si no existe una consideración adicional necesaria, devuelve una cadena vacía.\n\nFORMATO DE SALIDA:\n\nDevuelve exclusivamente un objeto JSON válido.\n\nNo utilices Markdown.\nNo encierres el JSON en bloques de código.\nNo escribas ningún texto antes ni después del JSON.\n\nUtiliza exactamente esta estructura:\n\n{\n  \"summary\": \"Resumen breve de los factores que merecen mayor atención y, cuando corresponda, una mención prudente de la cercanía al umbral.\",\n  \"recommendations\": [\n    {\n      \"factor\": \"Nombre comprensible del factor relevante\",\n      \"recommendation\": \"Explicación breve y acción preventiva respaldada por el contexto documental.\",\n      \"source_ids\": [\"SOURCE_1\"]\n    }\n  ],\n  \"considerations\": \"Información adicional directamente relevante para interpretar el perfil.\",\n  \"note\": \"PULSO ofrece información educativa y preventiva y no constituye un diagnóstico médico.\",\n  \"insufficient_information\": false\n}\n\nREGLAS DEL JSON:\n\n- \"recommendations\" debe contener como máximo 3 elementos.\n- Cada recomendación debe contener al menos un identificador válido dentro de \"source_ids\".\n- \"source_ids\" debe ser siempre un arreglo.\n- No incluyas SOURCE_X que no aparezcan en el contexto documental.\n- \"summary\", \"considerations\" y \"note\" deben ser cadenas de texto.\n- \"insufficient_information\" debe ser un valor booleano.\n- No agregues propiedades diferentes a las definidas anteriormente.\n- No incluyas comentarios dentro del JSON.\n\nSI LA INFORMACIÓN ES INSUFICIENTE:\n\nSi el contexto documental no contiene información suficiente para producir ninguna recomendación respaldada, devuelve exactamente:\n\n{\n  \"summary\": \"\",\n  \"recommendations\": [],\n  \"considerations\": \"\",\n  \"note\": \"No hay suficiente información en la base documental para generar recomendaciones respaldadas para este perfil.\",\n  \"insufficient_information\": true\n}"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        496,
+        672
+      ],
+      "id": "7badaa10-eb9f-4499-b543-2e353b7c02a0",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3-flash-preview",
+        "options": {
+          "temperature": 0,
+          "topK": 1,
+          "topP": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        448,
+        1024
+      ],
+      "id": "260fd459-92b2-4a8b-ac45-bdba49924c15",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ATxSNR5CqCM10FFR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================================================\n// PULSO - Validar y resolver fuentes del LLM\n// =====================================================\n\n// Salida del Basic LLM Chain\nconst llmItem = $input.first().json;\n\n// Mapa real de fuentes generado antes del LLM\nconst sourceMap =\n  $(\"Preparar contexto y fuentes\").first().json.sourceMap;\n\n// =====================================================\n// 1. Obtener y parsear respuesta del LLM\n// =====================================================\n\nconst rawText = llmItem.text;\n\nif (!rawText || typeof rawText !== \"string\") {\n  throw new Error(\n    \"El LLM no devolvió un campo 'text' válido.\"\n  );\n}\n\nlet parsed;\n\ntry {\n  parsed = JSON.parse(rawText);\n} catch (error) {\n  throw new Error(\n    \"La respuesta del LLM no contiene un JSON válido.\"\n  );\n}\n\n// =====================================================\n// 2. Validar estructura mínima\n// =====================================================\n\nif (!Array.isArray(parsed.recommendations)) {\n  throw new Error(\n    \"La respuesta del LLM no contiene un arreglo 'recommendations'.\"\n  );\n}\n\n// =====================================================\n// 3. Validar SOURCE_X y resolver fuentes reales\n// =====================================================\n\nconst validatedRecommendations = [];\n\nfor (const recommendation of parsed.recommendations) {\n\n  const sourceIds = Array.isArray(recommendation.source_ids)\n    ? recommendation.source_ids\n    : [];\n\n  // Solamente aceptar SOURCE_X que realmente existan\n  const validSourceIds = sourceIds.filter(\n    id => sourceMap[id]\n  );\n\n  // Si la recomendación no tiene ninguna fuente válida,\n  // no debe llegar al usuario\n  if (validSourceIds.length === 0) {\n    continue;\n  }\n\n  const sources = validSourceIds.map(id => ({\n    source_id: id,\n    source: sourceMap[id].source,\n    score: sourceMap[id].score,\n    lines: sourceMap[id].lines\n  }));\n\n  validatedRecommendations.push({\n    factor: recommendation.factor,\n    recommendation: recommendation.recommendation,\n    source_ids: validSourceIds,\n    sources\n  });\n}\n\n// =====================================================\n// 4. Determinar si quedó información utilizable\n// =====================================================\n\nconst insufficientInformation =\n  parsed.insufficient_information === true ||\n  validatedRecommendations.length === 0;\n\n// =====================================================\n// 5. Generar salida final\n// =====================================================\n\nreturn [\n  {\n    json: {\n      summary: insufficientInformation\n        ? \"\"\n        : parsed.summary ?? \"\",\n\n      recommendations: validatedRecommendations,\n\n      considerations: insufficientInformation\n        ? \"\"\n        : parsed.considerations ?? \"\",\n\n      note: insufficientInformation\n        ? \"No hay suficiente información en la base documental para generar recomendaciones respaldadas para este perfil.\"\n        : parsed.note ??\n          \"PULSO ofrece información educativa y preventiva y no constituye un diagnóstico médico.\",\n\n      insufficient_information: insufficientInformation\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        848,
+        704
+      ],
+      "id": "5e4efe32-f2ee-4887-ab38-f9a6ba94bd3f",
+      "name": "Code in JavaScript1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Preparar contexto y fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Preparar contexto y fuentes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar contexto y fuentes": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a160b153-018f-46a9-87f8-c3f97f357978",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "60c403970cc7472dd86121e1b9947a287ee51ffea187b84a98fa83999e296b2f"
+  },
+  "id": "TKwrFwcC3IreWKkM",
+  "tags": []
+}

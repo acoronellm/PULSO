@@ -20,46 +20,63 @@ En cuanto al estado actual del proyecto, se ha completado la selección del conj
 
 ## 2. Marco conceptual
 
-El desarrollo de PULSO requiere integrar conceptos provenientes de la salud cardiovascular, el aprendizaje automático, la inteligencia artificial explicable y la ingeniería de software. Estos fundamentos permiten comprender tanto el problema que aborda el proyecto como el funcionamiento de los componentes que conformarán la plataforma. De la misma forma, proporcionan las bases necesarias para interpretar correctamente las estimaciones generadas por el modelo, explicar sus resultados y establecer los límites de su utilización en un contexto preventivo y educativo.
-El marco conceptual se organiza alrededor de los fundamentos de la evaluación cardiovascular, los modelos de clasificación, la explicabilidad mediante SHAP, la simulación de escenarios hipotéticos, la generación aumentada por recuperación y las prácticas de desarrollo y operación de software. Estos conceptos se relacionan entre sí dentro de PULSO, pero cumplen funciones diferentes: el modelo genera una estimación, SHAP contribuye a explicar su comportamiento, la simulación permite explorar cambios en las entradas y RAG complementa los resultados con información documental.
-La integración de estas tecnologías requiere considerar sus limitaciones. Una predicción estadística no constituye por sí misma un diagnóstico médico, una explicación de un modelo no demuestra causalidad y una respuesta generada mediante inteligencia artificial no garantiza que su contenido sea clínicamente correcto. Por esta razón, el diseño de PULSO debe fundamentarse en la interpretación responsable de las estimaciones y en la comunicación clara de sus condiciones de aplicación.
+El desarrollo de PULSO integra fundamentos provenientes de la salud cardiovascular, el aprendizaje automático, la inteligencia artificial explicable, la recuperación de información y la ingeniería de software. Estos conceptos permiten comprender tanto la naturaleza del problema abordado como el funcionamiento de los componentes que conforman la plataforma. Su definición resulta especialmente importante debido a que PULSO combina una estimación generada mediante un modelo de clasificación con mecanismos de explicación, simulación e información documental dirigida a personas no especializadas.
+Dentro de la plataforma, cada componente cumple una función diferente. El modelo de Machine Learning estima la probabilidad de que un registro pertenezca a la clase asociada con la presencia de enfermedad cardiovascular; SHAP permite analizar cómo contribuyeron las variables de entrada a dicha estimación; la simulación permite observar cómo cambia la salida del modelo cuando se modifican determinadas variables; y el componente de Retrieval-Augmented Generation (RAG) utiliza documentación previamente seleccionada para complementar el resultado con información preventiva sustentada en fuentes trazables. Estas funciones deben diferenciarse para evitar que una predicción estadística, una explicación del modelo o una respuesta generada sean interpretadas como equivalentes a una valoración clínica.
+Por esta razón, el marco conceptual también considera las limitaciones asociadas con el uso de estas tecnologías. Una probabilidad generada por un clasificador depende de los datos utilizados durante su desarrollo, una explicación de Machine Learning describe el comportamiento del modelo pero no demuestra causalidad, y una respuesta generada mediante inteligencia artificial puede contener errores aun cuando utilice documentación recuperada. En consecuencia, PULSO se plantea como una herramienta de prevención y educación cardiovascular y no como un sistema de diagnóstico, prescripción o sustitución de la valoración realizada por profesionales de la salud.
 
 ## 2.1. Enfermedades cardiovasculares y factores de riesgo
-Las enfermedades cardiovasculares comprenden un conjunto de trastornos que afectan el corazón y los vasos sanguíneos, entre los que se encuentran la enfermedad coronaria y la enfermedad cerebrovascular. Su desarrollo puede relacionarse con diferentes características individuales, condiciones metabólicas y hábitos de vida. Entre los factores asociados se encuentran la hipertensión arterial, el tabaquismo, la inactividad física, la obesidad, las alteraciones del colesterol y los niveles elevados de glucosa. La identificación de estos factores constituye un elemento relevante para la prevención y la educación cardiovascular.
-Los factores de riesgo pueden clasificarse en modificables y no modificables. Los primeros corresponden a características o comportamientos sobre los cuales pueden realizarse intervenciones, como el tabaquismo, la actividad física o determinadas condiciones metabólicas. Los segundos incluyen características como la edad y ciertos antecedentes personales o familiares. Esta clasificación permite distinguir entre factores que pueden ser objeto de acciones preventivas y aquellos que deben considerarse para contextualizar la condición de una persona.
-En PULSO, estos factores constituyen parte de la información que podrá utilizarse como entrada del modelo predictivo. Sin embargo, su inclusión dependerá de las variables disponibles en el conjunto de datos seleccionado y de las características del modelo finalmente utilizado. Además, aunque una variable esté asociada estadísticamente con una condición cardiovascular, esto no significa que modificarla produzca necesariamente un cambio equivalente en la condición clínica de una persona.
+Las enfermedades cardiovasculares comprenden un conjunto de trastornos que afectan el corazón y los vasos sanguíneos, entre ellos la enfermedad coronaria, la enfermedad cerebrovascular y otras alteraciones del sistema cardiovascular. Constituyen la principal causa de muerte a nivel mundial. De acuerdo con la Organización Mundial de la Salud, aproximadamente 19,8 millones de personas murieron por enfermedades cardiovasculares en 2022, lo que representó alrededor del 32 % de las defunciones mundiales (Organización Mundial de la Salud [OMS], 2025).
+El desarrollo y la progresión de estas enfermedades están relacionados con múltiples factores. Entre los principales factores conductuales identificados por la OMS se encuentran el consumo de tabaco, la alimentación poco saludable, la inactividad física y el consumo nocivo de alcohol. Sus efectos pueden manifestarse mediante factores metabólicos o intermedios como presión arterial elevada, glucosa sanguínea elevada, alteraciones de los lípidos y sobrepeso u obesidad (OMS, 2025). Junto con ellos existen características no modificables o difícilmente modificables, como la edad y determinados antecedentes individuales.
+La distinción entre factores modificables y no modificables resulta relevante para PULSO porque permite diferenciar entre características utilizadas únicamente para contextualizar una estimación y aquellas que pueden explorarse mediante escenarios hipotéticos. No obstante, que una variable contribuya a una predicción no significa que exista una relación causal demostrada ni que modificarla produzca necesariamente un cambio equivalente en la condición cardiovascular real de una persona. Esta diferencia constituye uno de los principios utilizados para comunicar responsablemente los resultados del modelo y de las simulaciones.
 
-## 2.2. Evaluación de riesgo cardiovascular y clasificación de enfermedad cardiovascular
-El riesgo cardiovascular se refiere a la probabilidad de presentar un evento cardiovascular definido durante un periodo determinado. Herramientas como SCORE2, PREVENT y Framingham utilizan características individuales y factores clínicos para estimar este riesgo en poblaciones específicas. Sus resultados dependen del desenlace considerado, el horizonte temporal y las características de la población utilizada para desarrollar el modelo.
-PULSO utiliza un enfoque diferente, basado en un problema de clasificación binaria. Para ello, se seleccionó el Cardiovascular Disease Dataset, publicado por sulianova en Kaggle, cuya variable objetivo cardio representa la presencia o ausencia de enfermedad cardiovascular en los registros. El modelo buscará estimar la probabilidad de pertenecer a la clase cardio = 1. Esta estimación no equivale a la probabilidad de presentar un evento cardiovascular futuro durante un horizonte temporal determinado ni constituye un diagnóstico médico.
+## 2.2.  Riesgo cardiovascular y clasificación de enfermedad cardiovascular
+El riesgo cardiovascular suele definirse como la probabilidad de que una persona presente un evento cardiovascular específico durante un horizonte temporal determinado. Herramientas clínicas como SCORE2, PREVENT, Framingham, Pooled Cohort Equations y QRISK utilizan variables clínicas y demográficas para estimar este tipo de riesgo en poblaciones y periodos definidos. Por tanto, una estimación de riesgo cardiovascular requiere especificar tanto el desenlace estudiado como el horizonte temporal y la población sobre la cual fue desarrollado o validado el modelo.
+El componente predictivo de PULSO responde a un problema diferente. El conjunto de datos utilizado contiene una variable objetivo binaria denominada cardio, que diferencia registros asociados con presencia (cardio = 1) y ausencia (cardio = 0) de enfermedad cardiovascular. En consecuencia, el modelo de PULSO estima, a partir de las variables disponibles, una probabilidad de pertenencia a la clase cardio = 1. Esta salida corresponde a la probabilidad estimada por un clasificador y no a la probabilidad de sufrir un infarto, accidente cerebrovascular u otro evento cardiovascular durante los próximos cinco o diez años.
+Esta distinción delimita el significado clínico y metodológico de los resultados. La salida de PULSO no debe interpretarse como equivalente a las estimaciones producidas por herramientas clínicas validadas para riesgo cardiovascular futuro, ni como un diagnóstico de enfermedad cardiovascular. Su utilidad dentro del proyecto radica en utilizar un problema de clasificación como base para una experiencia educativa en la que el usuario pueda observar qué características fueron relevantes para el modelo, explorar escenarios alternativos y consultar información preventiva relacionada con los factores identificados.
 
-## 2.3. Aprendizaje automático y modelos de clasificación
-El aprendizaje automático (Machine Learning) es una disciplina de la inteligencia artificial que permite desarrollar modelos capaces de identificar patrones a partir de datos. En el aprendizaje supervisado, los algoritmos utilizan ejemplos con variables de entrada y una variable objetivo conocida para aprender relaciones que posteriormente pueden aplicarse a nuevas observaciones. La clasificación binaria constituye una modalidad de aprendizaje supervisado en la que se busca distinguir entre dos clases.
-En PULSO se consideran algoritmos como regresión logística, árbol de decisión y Random Forest. La regresión logística modela la probabilidad de pertenecer a una clase, el árbol de decisión utiliza reglas de división sobre las características y Random Forest combina múltiples árboles para generar una predicción conjunta. Estos modelos serán comparados mediante métricas de evaluación para seleccionar uno que pueda integrarse al flujo de predicción, explicación y simulación de la plataforma.
+## 2.3. Conjunto de datos utilizado
+Para el desarrollo del componente predictivo se utiliza el Cardiovascular Disease Dataset, publicado por Svetlana Ulianova en Kaggle. La versión original contiene 70.000 registros y once características, además de la variable objetivo cardio (Ulianova, s. f.). Entre las variables originales se encuentran edad (age), sexo (gender), estatura (height), peso (weight), presión arterial sistólica (ap_hi), presión arterial diastólica (ap_lo), colesterol (cholesterol), glucosa (gluc), tabaquismo (smoke), consumo de alcohol (alco) y actividad física (active).
+Durante la preparación realizada para PULSO se identificaron registros con valores inconsistentes o fisiológicamente poco plausibles y se aplicaron criterios de depuración, obteniéndose 68.610 observaciones para las etapas posteriores del proyecto. También se transformó la edad original, expresada en días, a años (age_years) y se calculó el índice de masa corporal (bmi) a partir del peso y la estatura. La versión utilizada por el modelo considera las variables gender, height, weight, ap_hi, ap_lo, smoke, alco, active, age_years y bmi. Las variables cholesterol y gluc no se incorporaron a la versión final debido a que se encuentran representadas mediante categorías cuya correspondencia clínica no se encuentra documentada con suficiente claridad en la fuente utilizada.
+Una limitación particularmente importante corresponde a la procedencia y representatividad de los datos. La publicación disponible en Kaggle describe la estructura y las variables del conjunto, pero no proporciona el nivel de documentación de una cohorte clínica formal respecto a aspectos como el proceso de reclutamiento, instituciones participantes, estrategia de muestreo o representatividad para la población colombiana. Por tanto, no puede asumirse que las probabilidades aprendidas por el modelo sean directamente generalizables a Colombia o América Latina. Esta limitación debe mantenerse explícita tanto durante la evaluación del clasificador como durante la comunicación de sus resultados y constituye una diferencia fundamental frente a herramientas clínicas desarrolladas y validadas sobre cohortes poblacionales claramente caracterizadas.
 
-## 2.4. Preparación de datos y evaluación de modelos
-El análisis exploratorio de datos (Exploratory Data Analysis, EDA) permite examinar la estructura, distribución y características de un conjunto de datos antes del entrenamiento. A partir de sus resultados se pueden identificar inconsistencias, valores atípicos y relaciones entre variables. La preparación de datos comprende procesos como limpieza, transformación y selección de características, necesarios para adecuar la información al entrenamiento de los modelos.
-La evaluación de los clasificadores permite determinar su comportamiento sobre datos no utilizados durante el entrenamiento. Entre las métricas consideradas se encuentran exactitud, precisión, sensibilidad, especificidad, F1-score y ROC-AUC. También resulta importante evaluar la calibración, que permite analizar la correspondencia entre las probabilidades estimadas y las frecuencias observadas. En PULSO, estas métricas permitirán comparar los modelos desarrollados y fundamentar la selección del clasificador definitivo.
+## 2.4. Aprendizaje automático, clasificación y evaluación de modelos
+El aprendizaje automático o Machine Learning comprende métodos computacionales capaces de identificar patrones a partir de datos y utilizarlos posteriormente para realizar predicciones sobre observaciones no utilizadas durante el entrenamiento. En el aprendizaje supervisado, cada observación dispone de características de entrada y de una variable objetivo conocida. Cuando la variable objetivo presenta dos posibles clases, como ocurre con cardio = 0 y cardio = 1, el problema corresponde a una clasificación binaria.
+Durante el desarrollo de PULSO se evaluaron diferentes algoritmos de clasificación, incluyendo regresión logística, árbol de decisión, Random Forest, Gradient Boosting y XGBoost. Este último pertenece a la familia de métodos de gradient tree boosting, en los cuales múltiples árboles se construyen de manera secuencial para corregir progresivamente los errores cometidos por el conjunto anterior. XGBoost incorpora mecanismos de regularización y optimizaciones destinadas a mejorar la eficiencia y capacidad predictiva del proceso de boosting (Chen & Guestrin, 2016). La comparación experimental realizada en PULSO permitió seleccionar XGBoost como modelo para el componente predictivo.
+La evaluación de un clasificador no debe limitarse a una sola métrica. La exactitud (accuracy) indica la proporción total de predicciones correctas; la precisión (precision) expresa qué proporción de los registros clasificados como positivos son realmente positivos; la sensibilidad o recall indica qué proporción de los positivos reales fue identificada por el modelo; la especificidad mide la capacidad para identificar los negativos reales; y F1-score combina precisión y sensibilidad. Por su parte, ROC-AUC evalúa la capacidad del modelo para discriminar entre las clases a través de diferentes umbrales de decisión (Fawcett, 2006). Estas métricas deben analizarse conjuntamente porque optimizar una puede deteriorar otra, especialmente cuando se modifica el umbral utilizado para producir la clasificación final.
 
-## 2.5. IA explicable y SHAP
-La inteligencia artificial explicable (Explainable Artificial Intelligence, XAI) comprende métodos que permiten interpretar el comportamiento de los modelos de inteligencia artificial. Su propósito es facilitar la comprensión de las predicciones y de las características que influyen en ellas. Esta capacidad resulta especialmente relevante para PULSO, debido a que sus usuarios no necesariamente tendrán conocimientos técnicos o médicos para interpretar una estimación probabilística.
-SHAP (SHapley Additive exPlanations) es un método de explicabilidad basado en los valores de Shapley de la teoría de juegos cooperativos. Permite atribuir contribuciones a las variables utilizadas por un modelo para explicar una predicción respecto a un valor de referencia. En PULSO se utilizará para identificar los factores que más contribuyen a cada estimación y presentarlos de manera comprensible. Estas contribuciones explican el comportamiento del clasificador, pero no demuestran relaciones causales entre las variables y la condición cardiovascular.
+## 2.5. Probabilidades, calibración, umbral de decisión e inteligencia artificial explicable
+Los modelos de clasificación probabilística pueden generar, además de una clase, una probabilidad estimada asociada con cada observación. Sin embargo, una buena capacidad de discriminación no implica necesariamente que dichas probabilidades estén correctamente calibradas. Un clasificador se considera adecuadamente calibrado cuando, para grupos de observaciones a los que asigna una determinada probabilidad, la frecuencia observada de resultados positivos se aproxima a esa probabilidad. La calibración puede analizarse mediante curvas de calibración y métricas como el Brier Score, que cuantifica el error cuadrático entre las probabilidades predichas y los resultados observados (Brier, 1950).
+Para convertir una probabilidad en una clasificación es necesario establecer un umbral de decisión. Cuando la probabilidad estimada es igual o superior al umbral, el registro se asigna a la clase positiva; en caso contrario se clasifica como negativo. La selección de este valor modifica el equilibrio entre falsos positivos y falsos negativos y, por tanto, afecta métricas como sensibilidad y especificidad. En PULSO, el umbral no se considera un valor implícito del algoritmo, sino una decisión que debe justificarse a partir de los objetivos del proyecto y del comportamiento observado sobre datos de validación.
+La inteligencia artificial explicable (Explainable Artificial Intelligence, XAI) comprende técnicas destinadas a facilitar la comprensión del comportamiento de modelos cuya lógica puede resultar difícil de interpretar directamente. PULSO utiliza SHAP (SHapley Additive exPlanations), un enfoque propuesto por Lundberg y Lee (2017) que asigna a cada característica una contribución a la predicción individual con base en conceptos derivados de los valores de Shapley. Esto permite identificar qué variables contribuyeron a aumentar o disminuir la salida del modelo con respecto a un valor de referencia. Sin embargo, un valor SHAP explica el comportamiento matemático del clasificador y no demuestra que la característica identificada sea la causa clínica del resultado observado.
 
-## 2.6 Simulación de escenarios hipotéticos
-La simulación de escenarios consiste en modificar determinadas variables de entrada de un modelo para observar cómo cambia su resultado bajo diferentes condiciones. Esta técnica permite comparar una estimación inicial con otras estimaciones generadas mediante combinaciones alternativas de características, facilitando la exploración del comportamiento del modelo predictivo.
-En PULSO, el usuario podrá modificar factores potencialmente controlables y compatibles con el modelo seleccionado para obtener una nueva estimación y compararla con la original. Esta funcionalidad tendrá una finalidad educativa y exploratoria, ya que las variaciones observadas representan cambios en la salida del clasificador y no garantizan efectos equivalentes sobre la salud real de una persona.
+## 2.6. Generación aumentada por recuperación (RAG)
 
-## 2.7. Generación aumentada por recuperación (RAG)
-a generación aumentada por recuperación (Retrieval-Augmented Generation, RAG) es una técnica que combina la recuperación de información documental con modelos generativos de lenguaje. Su funcionamiento consiste en recuperar fragmentos relevantes de un conjunto de documentos y utilizarlos como contexto para generar respuestas. Esto permite incorporar información procedente de fuentes seleccionadas sin necesidad de reentrenar el modelo generativo.
-En PULSO, RAG utilizará guías clínicas y fuentes médicas confiables para proporcionar información preventiva relacionada con los factores cardiovasculares. Las respuestas se presentarán en un lenguaje comprensible y deberán mantener referencias a los documentos consultados. Sin embargo, esta técnica no elimina completamente el riesgo de generar información incorrecta, por lo que será necesario validar las respuestas y mantener las restricciones del alcance educativo del proyecto.
+La generación aumentada por recuperación (Retrieval-Augmented Generation, RAG) es una arquitectura que combina la recuperación de información desde una colección de documentos con un modelo de lenguaje generativo. Su propósito es proporcionar al modelo información externa y pertinente para elaborar respuestas fundamentadas en fuentes documentales, en lugar de depender exclusivamente de los conocimientos adquiridos durante su entrenamiento. Esta arquitectura permite incorporar documentación especializada y actualizar las fuentes consultadas sin necesidad de volver a entrenar el modelo de lenguaje (Lewis et al., 2020).
 
-## 2.8. Arquitectura de software y servicios web
-La arquitectura de software define la organización de los componentes de un sistema, sus responsabilidades y los mecanismos mediante los cuales interactúan. En una plataforma web, estos componentes pueden incluir frontend, backend, base de datos y servicios especializados. Su distribución influye en atributos como rendimiento, mantenibilidad, disponibilidad y capacidad de evolución. Las API permiten establecer interfaces de comunicación entre componentes, mientras que REST proporciona un estilo arquitectónico para diseñar servicios que interactúan mediante HTTP.
-La contenerización permite empaquetar aplicaciones junto con sus dependencias para ejecutarlas en entornos aislados y reproducibles. Docker es una tecnología que facilita la construcción y ejecución de contenedores. Para PULSO se consideran alternativas monolíticas modulares, orientadas a servicios y basadas en microservicios, todas ellas contenerizadas. Su evaluación permitirá establecer una estructura para integrar el frontend, backend, Machine Learning y RAG de acuerdo con los requerimientos y recursos disponibles.
+En PULSO, RAG se utilizará para complementar las estimaciones del modelo predictivo con información procedente de guías, documentos científicos y fuentes confiables sobre prevención y riesgo cardiovascular. De esta manera, el sistema podrá generar explicaciones en lenguaje sencillo sobre la interpretación del riesgo y los factores relacionados con su estimación. Este componente tendrá una función informativa y educativa, independiente de la predicción realizada por el modelo de aprendizaje automático, y no sustituirá el diagnóstico ni la valoración de un profesional de la salud.
 
-## 2.9. Integración continua y MLOps
-La integración continua (Continuous Integration, CI) es una práctica de ingeniería de software que permite incorporar cambios al código de manera controlada mediante verificaciones automatizadas. Estas pueden incluir pruebas, análisis de calidad y comprobaciones de construcción. Herramientas como GitHub Actions permiten implementar flujos de trabajo que ejecutan estas verificaciones cuando se realizan cambios en el repositorio.
-MLOps (Machine Learning Operations) comprende prácticas orientadas a gestionar el ciclo de vida de los modelos de aprendizaje automático, incluyendo la preparación de datos, el entrenamiento, la evaluación, el versionamiento y la integración. En PULSO se incorporarán prácticas básicas de MLOps para mantener la trazabilidad y reproducibilidad de los experimentos, permitiendo identificar qué datos, configuraciones y métricas corresponden a cada versión del modelo.
+## 2.7. Recuperación semántica, embeddings y bases de datos vectoriales
+
+La recuperación semántica es una técnica de búsqueda de información que permite identificar fragmentos de documentos según su significado y contexto, en lugar de depender exclusivamente de la coincidencia exacta de palabras. Para ello, se transforma la consulta del usuario y el contenido documental en representaciones numéricas que permiten comparar su similitud semántica y recuperar los fragmentos más relevantes (Reimers y Gurevych, 2019).
+
+Los embeddings son representaciones numéricas de textos que permiten capturar características de su significado en un espacio vectorial. Estas representaciones facilitan la comparación entre consultas y documentos para identificar contenidos relacionados. Por su parte, una base de datos vectorial (vector store) permite almacenar estos vectores junto con los fragmentos de texto y sus metadatos, y realizar búsquedas de similitud para recuperar información pertinente de manera eficiente. Ambos componentes constituyen elementos fundamentales de los sistemas RAG basados en recuperación semántica.
+
+En PULSO, estos mecanismos permitirán organizar y consultar un corpus documental compuesto por fuentes científicas y guías confiables sobre prevención y riesgo cardiovascular. Cuando el usuario formule una pregunta, el sistema buscará los fragmentos más relevantes y los proporcionará al modelo de lenguaje como contexto para generar una respuesta comprensible y fundamentada en la documentación recuperada. Esto facilitará el acceso a información especializada sin exigir que el usuario consulte e interprete documentos técnicos completos. La calidad de las respuestas dependerá, entre otros factores, de la pertinencia, actualidad y confiabilidad de las fuentes, así como de la calidad de la recuperación y de la generación del modelo.
+
+## 2.8. Simulación de escenarios hipotéticos
+La simulación de escenarios aplicada a un modelo predictivo consiste en modificar una o más variables de entrada y volver a ejecutar el modelo para observar cómo cambia su salida. A diferencia de una predicción independiente, la simulación conserva una situación inicial como referencia y permite comparar sistemáticamente el resultado obtenido antes y después de realizar determinados cambios sobre las características del registro.
+En PULSO, esta funcionalidad se aplica únicamente a variables consideradas potencialmente modificables y compatibles con las características utilizadas por el modelo. El sistema genera inicialmente una estimación a partir de los datos proporcionados por el usuario y posteriormente permite introducir valores alternativos para producir una nueva estimación. La interfaz puede entonces mostrar la diferencia entre ambas probabilidades y facilitar la comprensión de cómo responde el modelo ante las modificaciones realizadas.
+Esta comparación debe interpretarse exclusivamente como un análisis contrafactual simplificado del comportamiento del clasificador. Si al modificar una variable disminuye la probabilidad estimada, no puede concluirse que realizar ese mismo cambio en la vida real producirá exactamente dicha reducción ni que exista una relación causal demostrada. La simulación tampoco se utilizará para proponer cambios en tratamientos, medicamentos o decisiones clínicas; su finalidad consiste en apoyar la exploración educativa de los factores considerados por el modelo.
+
+## 2.9. Arquitectura de software, servicios web y contenerización
+La arquitectura de software establece la organización de los componentes de un sistema, las responsabilidades asignadas a cada uno y los mecanismos mediante los cuales intercambian información. En aplicaciones distribuidas, estas decisiones influyen sobre características como acoplamiento, mantenibilidad, escalabilidad, rendimiento y tolerancia a fallos. Para la comunicación entre componentes, las interfaces de programación de aplicaciones (API) permiten exponer funcionalidades mediante contratos definidos. REST constituye un estilo arquitectónico para sistemas distribuidos basado en restricciones destinadas, entre otros objetivos, a favorecer interfaces uniformes y la evolución independiente de componentes (Fielding, 2000).
+En PULSO se adopta una arquitectura modular orientada a servicios contenerizados. Esta organización separa principalmente la interfaz web, el backend, el servicio de Machine Learning y el servicio RAG. La separación permite que componentes con características operacionales diferentes evolucionen de forma relativamente independiente, sin llegar al nivel de fragmentación de una arquitectura de microservicios más granular. El servicio de Machine Learning concentra la predicción, la generación de explicaciones SHAP y la simulación, debido a que estas funcionalidades dependen del mismo modelo y de las mismas transformaciones de datos.
+La contenerización complementa esta arquitectura al empaquetar las aplicaciones junto con sus dependencias en entornos aislados y reproducibles. Docker permite crear y ejecutar estos contenedores de manera independiente, reduciendo diferencias entre entornos de desarrollo y ejecución (Docker, s. f.). En PULSO, este enfoque facilita la ejecución coordinada de frontend, backend, Machine Learning, RAG y demás componentes de infraestructura, además de permitir aislar parcialmente fallos y gestionar sus dependencias mediante configuraciones reproducibles.
+
+## 2.10. Integración continua, trazabilidad experimental y MLOps
+La integración continua (Continuous Integration, CI) es una práctica de ingeniería de software mediante la cual los cambios incorporados al repositorio se verifican automáticamente antes de integrarse a la rama principal. Estas verificaciones pueden incluir ejecución de pruebas, validaciones estáticas, construcción de artefactos y otras comprobaciones destinadas a detectar errores de forma temprana. En PULSO, GitHub y GitHub Actions se utilizan para apoyar este flujo de integración y mantener control sobre los cambios realizados durante el desarrollo.
+Los sistemas de Machine Learning requieren además conservar información sobre los datos, configuraciones, parámetros, métricas y artefactos asociados con cada experimento. Esta trazabilidad permite reproducir resultados, comparar modelos y determinar qué versión fue utilizada posteriormente dentro de una aplicación. Para este propósito, PULSO utiliza MLflow, cuya funcionalidad de tracking permite registrar parámetros, métricas, versiones de código y artefactos asociados con las ejecuciones de entrenamiento y evaluación (MLflow, s. f.).
+Estas prácticas forman parte de un enfoque más amplio conocido como MLOps (Machine Learning Operations), orientado a integrar las actividades de desarrollo de modelos con las prácticas de ingeniería necesarias para probarlos, versionarlos, desplegarlos y mantenerlos de forma consistente. MLOps extiende principios de DevOps a sistemas de aprendizaje automático e incorpora elementos como automatización, experimentación reproducible, validación, despliegue y monitoreo del ciclo de vida del modelo (Google Cloud, 2024). En PULSO se implementa un alcance básico de MLOps centrado principalmente en la reproducibilidad de los experimentos, el registro de métricas, la selección de umbrales, el versionamiento del modelo y su integración controlada con los demás componentes del MVP.
 
 
 
@@ -219,42 +236,91 @@ Diseñar e implementar, antes de noviembre de 2026, un MVP de una plataforma web
 
 ## 5. Estado del arte / soluciones relacionadas
 
-Para analizar las soluciones existentes relacionadas con la evaluación del riesgo cardiovascular, se revisaron diferentes calculadoras y herramientas utilizadas para estimar dicho riesgo. La comparación considera aspectos como la estimación del riesgo, las recomendaciones proporcionadas, el público objetivo, el alcance geográfico, la cantidad de información solicitada, la posibilidad de modificar los datos y la forma en que se presentan los escenarios de riesgo.
+### 5.1 Modelos clínicos de estimación del riesgo cardiovascular
 
-Las herramientas revisadas utilizan distintos modelos y metodologías para evaluar el riesgo cardiovascular, por lo que sus resultados no son necesariamente equivalentes. Algunas estiman la probabilidad de presentar eventos cardiovasculares durante un horizonte temporal específico, mientras que otras ofrecen funcionalidades adicionales para interpretar los resultados o explorar escenarios hipotéticos. Su análisis permite identificar características relevantes para el diseño de PULSO, especialmente aquellas relacionadas con la presentación comprensible de los resultados, la explicación de los factores considerados y la comparación entre escenarios.
+La estimación del riesgo cardiovascular ha sido abordada mediante diferentes modelos desarrollados a partir de cohortes poblacionales y registros clínicos. Aunque estas herramientas comparten el propósito general de apoyar la prevención cardiovascular, existen diferencias importantes en las poblaciones utilizadas para su desarrollo, los desenlaces considerados, los horizontes temporales de predicción, las variables empleadas y los procesos de validación. Estas características condicionan la interpretación de sus resultados y la posibilidad de aplicarlos a poblaciones diferentes de aquellas en las que fueron desarrollados.
 
-La siguiente tabla presenta una síntesis de las características identificadas durante la revisión realizada en el primer informe.
+Entre los modelos más representativos se encuentran el **Framingham General Cardiovascular Disease Risk Score**, las **Pooled Cohort Equations (PCE)**, **SCORE2**, **QRISK3** y **PREVENT**. En términos generales, todos incorporan factores de riesgo cardiovascular tradicionales, como edad, sexo, presión arterial y tabaquismo; sin embargo, algunos amplían la evaluación mediante variables metabólicas, renales, clínicas o sociales. Asimismo, aunque gran parte de estos modelos estima riesgo a diez años, existen diferencias importantes en la definición del evento cardiovascular que cada uno busca predecir.
 
-| Solución | Estimación del riesgo | Recomendaciones | Público objetivo | Simulación / comparación | Características destacadas |
-|---|---|---|---|---|---|
-| **SCORE2 / HeartScore** | Sí, proporciona un porcentaje de riesgo | Sí, incluye recomendaciones personalizadas | Principalmente profesionales de la salud | Permite modificar los datos y recalcular el riesgo, pero no presenta directamente una comparación con el resultado inicial en la herramienta revisada | Orientada principalmente a población europea |
-| **PREVENT** | Sí, proporciona un porcentaje de riesgo | Sí, principalmente como guía general para interpretar los resultados | Principalmente profesionales de la salud | Permite modificar los datos y recalcular el riesgo, pero no presenta directamente una comparación con el estado inicial en la herramienta revisada | Incorpora información cardiovascular, renal y metabólica |
-| **Framingham – Canadian Cardiovascular Society** | Sí, proporciona un porcentaje de riesgo | Sí, principalmente como guía general para interpretar los resultados | Principalmente profesionales de la salud | Permite modificar los datos y recalcular el riesgo, pero no presenta directamente una comparación con el estado inicial en la herramienta revisada | Utiliza un modelo de estimación de riesgo cardiovascular |
-| **CVD Risk Estimator Plus – PREVENT** | Sí, proporciona un porcentaje de riesgo | Sí, enfocadas en la persona evaluada | Principalmente profesionales de la salud | Permite modificar los datos y recalcular el riesgo, pero no presenta directamente una comparación con el estado inicial en la herramienta revisada | Presenta recomendaciones personalizadas |
-| **CVD Risk Estimator Plus – Pooled Cohort** | Sí, proporciona un porcentaje de riesgo | No se identificaron recomendaciones en la herramienta revisada | Principalmente profesionales de la salud | Permite modificar los datos y recalcular el riesgo, pero no presenta directamente una comparación con el estado inicial en la herramienta revisada | Orientada principalmente al contexto estadounidense |
-| **QRISK** | Sí, proporciona un porcentaje de riesgo | No se identificaron recomendaciones en la herramienta revisada | No delimitado en la revisión inicial | Permite comparar directamente el riesgo actual con un escenario hipotético | Solicita una cantidad amplia de información y presenta una interfaz sencilla |
+| Modelo | Población de desarrollo | Tamaño de muestra | Desenlace principal | Horizonte temporal | Variables principales | Validación y generalización |
+|---|---|---:|---|---|---|---|
+| **Framingham General CVD Risk Score** | Adultos de 30 a 74 años de las cohortes Original y Offspring de Framingham, Massachusetts, EE. UU., sin enfermedad cardiovascular previa | La fuente revisada identifica las cohortes utilizadas, pero no especifica en el material recopilado un tamaño único de muestra para esta versión del modelo | Enfermedad cardiovascular global: muerte coronaria, infarto de miocardio, insuficiencia coronaria, angina, ictus, ataque isquémico transitorio, enfermedad arterial periférica e insuficiencia cardíaca | 10 años | Edad, sexo, colesterol total, colesterol HDL, presión arterial sistólica, tratamiento antihipertensivo, tabaquismo y diabetes. Existe una versión simplificada que sustituye el perfil lipídico por IMC | Desarrollado principalmente en una población blanca de una localidad estadounidense. Su aplicación en otras poblaciones puede requerir recalibración y se ha señalado posible sobreestimación del riesgo en cohortes contemporáneas (D'Agostino et al., 2008) |
+| **Pooled Cohort Equations (PCE)** | Adultos de 40 a 79 años de EE. UU. sin enfermedad cardiovascular previa, provenientes de ARIC, CHS, CARDIA y Framingham; incluye población blanca y afroamericana | 24.626 participantes | Primer evento ateroesclerótico cardiovascular grave (*hard ASCVD*): infarto de miocardio no fatal, muerte por enfermedad coronaria o ictus fatal/no fatal | 10 años | Edad, sexo, raza, colesterol total, colesterol HDL, presión arterial sistólica, tratamiento antihipertensivo, diabetes y tabaquismo | Validación interna y externa. Se reportaron valores del estadístico C entre 0,713 y 0,818 según sexo y raza. La generalización a poblaciones como hispanos o asiáticos requiere precaución y posible recalibración (Goff et al., 2014) |
+| **SCORE2** | Adultos europeos, principalmente entre 40 y 69 años, sin enfermedad cardiovascular previa ni diabetes conocida, procedentes de 45 cohortes de 13 países | 677.684 participantes en derivación y más de 1,13 millones en validación externa | Primer evento cardiovascular fatal o no fatal: muerte cardiovascular, infarto de miocardio no fatal o ictus no fatal | 10 años | Edad, sexo, tabaquismo, presión arterial sistólica y colesterol no-HDL | Validado externamente en 25 cohortes de 15 países europeos. Se reportaron valores de C-index entre aproximadamente 0,67 y 0,81. El modelo fue recalibrado para cuatro regiones europeas de riesgo y requiere adaptación para su utilización fuera de Europa (SCORE2 Working Group & ESC Cardiovascular Risk Collaboration, 2021) |
+| **QRISK3** | Pacientes de 25 a 84 años registrados en atención primaria en Inglaterra, sin enfermedad cardiovascular previa ni uso de estatinas al inicio | 7,89 millones en derivación y 2,67 millones en validación | Enfermedad cardiovascular compuesta: enfermedad coronaria, ictus isquémico o ataque isquémico transitorio | 10 años | Edad, etnia, privación social, presión arterial sistólica, variabilidad de presión arterial, IMC, colesterol, tabaquismo, diabetes, antecedentes familiares, enfermedad renal, fibrilación auricular y otras condiciones clínicas y farmacológicas | Validación en una cohorte independiente de 2,67 millones de pacientes. Se reportaron valores del C-statistic de aproximadamente 0,88 en mujeres y 0,86 en hombres. Su utilización fuera del Reino Unido requiere validación y posible recalibración (Hippisley-Cox et al., 2017) |
+| **PREVENT** | Adultos de 30 a 79 años de EE. UU. provenientes de cohortes poblacionales y grandes bases de datos clínicas, con representación de diferentes grupos étnicos y sin enfermedad cardiovascular al inicio | 3,28 millones en derivación y 3,33 millones en validación externa | Enfermedad cardiovascular total, compuesta por ASCVD e insuficiencia cardíaca; también dispone de modelos específicos para ASCVD e insuficiencia cardíaca | 10 y 30 años | Edad, sexo, presión arterial sistólica, colesterol no-HDL, colesterol HDL, función renal estimada mediante eGFR, tabaquismo, diabetes, tratamiento antihipertensivo y estatinas. Puede incorporar UACR, HbA1c y deprivación social | Validado externamente en aproximadamente 3,33 millones de personas. Para enfermedad cardiovascular total se reportaron valores medianos del C-statistic de 0,794 en mujeres y 0,757 en hombres, además de una adecuada calibración. Fue desarrollado para población estadounidense y requiere validación antes de utilizarse en otros países (Khan et al., 2024) |
 
-### Análisis de las soluciones existentes
+### 5.2 Explicabilidad en modelos de predicción cardiovascular
 
-A partir de la comparación realizada, se observa que las herramientas revisadas cuentan con la capacidad de estimar el riesgo cardiovascular, generalmente mediante la presentación de un porcentaje. Sin embargo, existen diferencias importantes en la cantidad de información solicitada, la forma de presentar los resultados y las funcionalidades disponibles para su interpretación. Estas diferencias son relevantes para el diseño de una plataforma dirigida a personas no especializadas, ya que la utilidad de una estimación no depende únicamente del resultado numérico, sino también de la capacidad del usuario para comprender su significado y sus limitaciones.
+El incremento en el uso de modelos de Machine Learning para la predicción de enfermedades y eventos cardiovasculares ha generado la necesidad de incorporar mecanismos que permitan comprender cómo se producen sus resultados. Esta necesidad resulta especialmente relevante cuando se utilizan modelos complejos, como Random Forest, XGBoost o redes neuronales, cuyo comportamiento no siempre puede interpretarse directamente a partir de sus parámetros internos. En este contexto, diferentes investigaciones han utilizado técnicas de inteligencia artificial explicable (XAI) para identificar las variables que influyen en las predicciones, analizar relaciones entre factores clínicos y proporcionar explicaciones tanto a nivel global como individual.
 
-En cuanto a las recomendaciones, la revisión inicial identificó que SCORE2 / HeartScore y CVD Risk Estimator Plus (PREVENT) proporcionan información personalizada relacionada con los resultados obtenidos. Por su parte, PREVENT y Framingham – Canadian Cardiovascular Society presentan principalmente información general que sirve como guía para interpretar las estimaciones. En las versiones de Pooled Cohort y QRISK examinadas durante el primer informe no se identificaron recomendaciones dentro de la herramienta. Estas observaciones evidencian diferencias en la manera en que las soluciones complementan sus resultados con información orientada a la prevención.
+#### Aplicación de SHAP en modelos cardiovasculares
 
-Respecto a la cantidad de información solicitada, QRISK destacó en la revisión inicial por requerir un conjunto amplio de datos. Esto permite considerar un mayor número de variables, aunque también incrementa la cantidad de información que debe proporcionar el usuario. Para una plataforma dirigida al público general, este aspecto representa una consideración importante de diseño, puesto que la disponibilidad de los datos y la facilidad para comprender los campos solicitados pueden influir en la experiencia de uso.
+Una de las técnicas utilizadas con mayor frecuencia es SHAP (*SHapley Additive exPlanations*), que permite atribuir a cada variable una contribución sobre la predicción generada por un modelo. Zhu et al. (2026) desarrollaron un modelo para estimar el riesgo de enfermedad cardiovascular incidente a nueve años en adultos chinos de 45 años o más utilizando datos longitudinales del estudio CHARLS. La investigación comparó diez algoritmos de Machine Learning y seleccionó Random Forest como modelo final, con un AUC de 0,829. Posteriormente, SHAP fue utilizado tanto para explicaciones globales como individuales, permitiendo jerarquizar las variables según su influencia y representar predicciones específicas mediante gráficos como *summary plots*, *dependence plots* y *force plots*. Entre los factores con mayor influencia se encontraron la circunferencia de cintura, los triglicéridos, la edad y la hipertensión. Los autores también identificaron relaciones no lineales entre algunas variables y la predicción y desarrollaron una calculadora web para presentar los resultados de manera interactiva.
 
-En relación con la experiencia de usuario, se identificaron diferencias entre las herramientas. Algunas están diseñadas principalmente para personas con conocimientos especializados en salud, lo que puede dificultar su interpretación por parte de usuarios no especializados. La revisión del primer informe también identificó oportunidades de mejora en la claridad de las interfaces y en la presentación de la información. Estos hallazgos constituyen referencias para el diseño de una interfaz que facilite el ingreso de datos, la comprensión de las estimaciones y la identificación de los factores considerados por el modelo.
+Otro estudio realizado por Chen et al. (2022) utilizó SHAP para interpretar modelos orientados a la estratificación del riesgo de enfermedad coronaria y accidente cerebrovascular isquémico en población china. La investigación analizó 8.624 registros médicos electrónicos y utilizó un *Balanced Bagging Classifier* basado en Random Forest para manejar el desequilibrio de clases. SHAP permitió identificar variables relevantes tanto de manera global como individual y analizar diferencias entre los factores asociados con enfermedad coronaria y accidente cerebrovascular. Entre las características con mayor influencia común se encontraron la edad, la rigidez arterial medida mediante velocidad de onda de pulso, la hipertensión y el colesterol LDL. La técnica también fue utilizada para reducir el número de variables de los modelos manteniendo un desempeño elevado, alcanzando valores de AUC de 0,905 para enfermedad coronaria y 0,889 para accidente cerebrovascular isquémico.
 
-Otro aspecto relevante es la modificación de los datos para explorar diferentes escenarios. Todas las herramientas revisadas permiten modificar los datos introducidos y realizar nuevamente el cálculo del riesgo. Sin embargo, existe una diferencia importante en la manera de presentar estos cambios. En las versiones examinadas de las herramientas distintas de QRISK, al modificar los datos se realiza un nuevo cálculo, pero no se presenta directamente una comparación entre el resultado original y el nuevo resultado dentro de la plataforma. QRISK sí permite realizar esta comparación directamente, mostrando el riesgo correspondiente al estado actual frente al obtenido en un escenario hipotético. Esta funcionalidad constituye una referencia para el componente de simulación de PULSO.
+Estos estudios muestran que SHAP puede cumplir diferentes funciones dentro de los modelos cardiovasculares. Además de generar una jerarquía global de variables, puede utilizarse para explicar predicciones individuales, estudiar relaciones no lineales e interacciones entre características y apoyar la selección de predictores. No obstante, los resultados obtenidos mediante SHAP deben interpretarse como explicaciones del comportamiento estadístico del modelo. Zhu et al. señalan explícitamente que las contribuciones SHAP no representan efectos causales ni mecanismos biológicos directos, sino contribuciones estadísticas marginales asociadas con la salida del modelo.
 
-Finalmente, también se identifican diferencias en el alcance geográfico de las herramientas. SCORE2 está orientada principalmente a población europea, mientras que PREVENT y Pooled Cohort presentan un enfoque asociado a población estadounidense y QRISK al Reino Unido. Esto constituye un aspecto relevante al momento de interpretar los resultados, debido a que los modelos de riesgo pueden estar desarrollados y calibrados para poblaciones específicas. La procedencia de los datos y las características de la población utilizada durante el desarrollo de un modelo deben considerarse antes de interpretar sus resultados en otros contextos.
+#### Otras técnicas de explicabilidad
 
-### Oportunidad identificada
+La explicabilidad en modelos cardiovasculares no se limita al uso de SHAP. También se han utilizado técnicas como LIME (*Local Interpretable Model-Agnostic Explanations*), importancia por permutación (*Permutation Feature Importance*, PFI) y gráficos de dependencia parcial (*Partial Dependence Plots*, PDP), entre otros enfoques. Estas técnicas pueden ofrecer diferentes niveles de interpretación y utilizarse de manera complementaria para explicar tanto el comportamiento general de un modelo como predicciones particulares.
 
-A partir de la revisión, se observa que no existe una única característica que diferencie completamente a PULSO de las herramientas analizadas, ya que algunas soluciones existentes presentan funcionalidades que también se contemplan en el proyecto. Sin embargo, estas características se encuentran distribuidas de diferentes maneras entre las herramientas. La oportunidad identificada consiste en integrar funcionalidades relacionadas con la estimación, la explicación de resultados, la comparación de escenarios y el acceso a información preventiva dentro de una misma plataforma orientada a personas no especializadas.
+Ansari et al. (2026) propusieron un marco dual de explicabilidad que combina LIME y PFI para la predicción de enfermedad cardíaca utilizando el conjunto de datos Cleveland de UCI. El estudio comparó siete algoritmos de clasificación y utilizó PFI para determinar la importancia global de las variables, mientras que LIME proporcionó explicaciones locales a nivel de cada paciente. Entre las características identificadas como relevantes se encontraron la depresión del segmento ST inducida por ejercicio, el tipo de dolor torácico, la frecuencia cardíaca máxima, la talasemia y otras variables clínicas. Los autores destacan que esta combinación permite disponer simultáneamente de una perspectiva global y una explicación local del comportamiento del modelo, con un menor costo computacional que otros métodos como SHAP. Sin embargo, también reconocen que LIME puede presentar variaciones en las explicaciones cuando cambia el muestreo utilizado para generar las perturbaciones locales.
 
-Por ejemplo, SCORE2 / HeartScore constituye una referencia para la presentación de recomendaciones preventivas, mientras que QRISK aporta elementos relevantes para la comparación directa entre el estado inicial y los escenarios hipotéticos. Estas características representan referencias importantes para el diseño de PULSO. No obstante, las herramientas revisadas utilizan metodologías y poblaciones de desarrollo diferentes, por lo que sus estimaciones no deben considerarse directamente equivalentes a las generadas por el modelo de clasificación que se desarrollará en el proyecto.
+Salah y Srinivas (2022) utilizaron técnicas de explicabilidad para analizar modelos destinados a estimar el riesgo cardiovascular a largo plazo a partir de factores observados durante la adolescencia. El estudio empleó información longitudinal de 14.083 participantes del estudio estadounidense Add Health y comparó diferentes algoritmos de Machine Learning. La importancia por permutación permitió identificar factores globalmente relevantes, mientras que los gráficos de dependencia parcial fueron utilizados para analizar relaciones lineales y no lineales entre determinadas características y la predicción. Entre las variables más importantes se encontraron la edad, el índice de masa corporal, el ingreso de los padres, la actividad física y el consumo de comida rápida. El estudio también complementó estas técnicas con SHAP para comparar diferentes formas de interpretar la importancia de los predictores.
 
-En este sentido, PULSO propone integrar un modelo de Machine Learning de clasificación entrenado con el *Cardiovascular Disease Dataset*, mecanismos de explicabilidad mediante SHAP, simulación de escenarios e información preventiva sustentada en fuentes médicas confiables mediante RAG. A diferencia de las calculadoras que estiman la probabilidad de presentar un evento cardiovascular durante un horizonte temporal determinado, el componente predictivo de PULSO buscará estimar la probabilidad de pertenecer a la clase `cardio = 1`, asociada con la presencia de enfermedad cardiovascular en los registros del conjunto de datos. La propuesta busca que el usuario no solo obtenga una estimación, sino que también comprenda qué representa, identifique los factores que influyen en ella y explore escenarios hipotéticos de manera informada, sin interpretar los resultados como diagnósticos o predicciones clínicas de eventos futuros.
+La diversidad de técnicas utilizadas evidencia que no existe un único mecanismo de explicabilidad adecuado para todos los propósitos. Algunas técnicas se orientan principalmente a identificar la importancia global de las variables, mientras que otras buscan explicar casos particulares o visualizar relaciones entre las características y las predicciones. Por esta razón, diferentes investigaciones combinan métodos globales y locales para proporcionar una representación más completa del comportamiento de los modelos.
+
+#### Limitaciones de la explicabilidad en salud
+
+Aunque las técnicas XAI pueden aumentar la transparencia de los modelos, la literatura señala diferentes limitaciones que deben considerarse cuando se utilizan en contextos de salud. Una de las principales corresponde a la diferencia entre asociación predictiva y causalidad. Métodos como SHAP o LIME pueden identificar qué variables influyen en la salida de un modelo, pero estas contribuciones no demuestran que modificar una variable produzca necesariamente un cambio clínico equivalente. De manera similar, una característica con alta importancia predictiva no debe interpretarse automáticamente como un factor causal de la enfermedad.
+
+Mienye et al. (2024), en una revisión sobre inteligencia artificial explicable en salud, señalan desafíos relacionados con la estabilidad de las explicaciones, la fidelidad con respecto al comportamiento real del modelo, los sesgos, la dificultad de integración en flujos clínicos y la ausencia de causalidad en muchos métodos post-hoc. Los autores también destacan que pequeñas variaciones en los datos pueden modificar las explicaciones obtenidas y que una representación simplificada puede generar una falsa sensación de transparencia si no refleja adecuadamente el funcionamiento del modelo subyacente. Asimismo, resaltan que las necesidades de explicación varían entre desarrolladores, profesionales de la salud y pacientes, por lo que el formato y nivel de detalle deben adaptarse al público objetivo.
+
+Las limitaciones de XAI también se relacionan con la manera en que las personas interpretan las explicaciones. Rosenbacke et al. (2024), mediante una revisión sistemática sobre la confianza de los profesionales de la salud en aplicaciones de inteligencia artificial, encontraron que proporcionar explicaciones no garantiza necesariamente un aumento de la confianza. Las explicaciones complejas, contradictorias o extensas pueden aumentar la carga cognitiva y ser ignoradas durante la toma de decisiones. Por otra parte, una explicación aparentemente convincente puede generar sobreconfianza y llevar al usuario a aceptar una recomendación incorrecta del sistema. Los autores plantean que el propósito de la explicabilidad no debe ser maximizar la confianza en la inteligencia artificial, sino contribuir a establecer un nivel de confianza adecuadamente calibrado.
+
+En conjunto, los trabajos revisados muestran que la explicabilidad puede aportar valor al análisis de modelos cardiovasculares al permitir identificar variables influyentes, examinar relaciones entre predictores y explicar resultados individuales. Sin embargo, también evidencian que una explicación técnicamente correcta no garantiza una interpretación clínica adecuada ni una comprensión efectiva por parte del usuario. La utilidad de XAI depende tanto de la fidelidad y estabilidad de la técnica empleada como de la forma en que las explicaciones son presentadas, del público al que están dirigidas y de la claridad con la que se comuniquen sus limitaciones. Por esta razón, la incorporación de mecanismos de explicabilidad en aplicaciones de salud debe acompañarse de una presentación responsable que distinga entre contribución predictiva, asociación y causalidad.
+
+### 5.3 Comunicación y visualización del riesgo cardiovascular
+
+La utilidad de una herramienta de estimación cardiovascular no depende únicamente de la capacidad del modelo para producir una estimación, sino también de la manera en que dicha información es presentada al usuario. La comunicación del riesgo puede incluir porcentajes, categorías, explicaciones textuales, recomendaciones, comparaciones entre escenarios o representaciones complementarias que permitan contextualizar el resultado. Estas características adquieren especial importancia cuando las herramientas pueden ser utilizadas por personas sin formación médica, ya que un porcentaje aislado puede resultar difícil de interpretar si no se acompaña de información que explique su significado, alcance y limitaciones.
+
+Para analizar cómo se comunica actualmente el riesgo cardiovascular, se revisaron cuatro herramientas: **CVD Risk Estimator Plus** del American College of Cardiology, **PREVENT Calculator** de la American Heart Association, la calculadora **Framingham Risk Score** de la Canadian Cardiovascular Society y **QRISK3 Lifetime**. Aunque estas herramientas se basan en modelos y poblaciones diferentes, permiten observar distintas estrategias para presentar y contextualizar estimaciones cardiovasculares.
+
+| Herramienta | Resultado principal | Forma de contextualización | Factores modificables | Comparación de escenarios | Recomendaciones | Limitaciones de comunicación identificadas |
+|---|---|---|---|---|---|---|
+| **ACC CVD Risk Estimator Plus** | Riesgo porcentual y categorías de riesgo | Recursos explicativos, categorías y revisión de valores previos | Parcialmente diferenciados | Sí, mediante funciones clínicas y escenarios proyectados | Generales, personalizadas, clínicas y preventivas | Orientación principalmente clínica; no se confirmó una explicación individual de la contribución de cada variable ni una representación uniforme de la incertidumbre |
+| **AHA PREVENT Calculator** | Riesgo porcentual a 10 y 30 años | Explicación mediante frecuencias naturales y percentiles según edad y sexo | Reconocidos conceptualmente, aunque no se confirmó una separación visual completa | Permite recalcular, pero no está diseñada para estimar directamente el efecto real de una intervención | Preventivas y clínicas | La interpretación puede requerir conocimientos clínicos; el recálculo hipotético no debe interpretarse como beneficio clínico validado |
+| **CCS Framingham Risk Score** | Riesgo cardiovascular a 10 años y edad cardíaca | Categorías de riesgo y edad cardíaca | Parcialmente identificables | Principalmente recálculo; no se confirmó comparación automática entre valor inicial y nuevo | Preventivas y clínicas en documentación complementaria | Parte de la orientación se encuentra fuera de la interfaz y no se confirmó una representación explícita de incertidumbre o contribución individual de variables |
+| **QRISK3 Lifetime** | Riesgo cardiovascular a lo largo de la vida | Comparación entre situación actual y escenario hipotético de buen control | Sí, diferenciados explícitamente | Sí, mediante campos paralelos *Current* y *What if?* | Preventivas de forma indirecta mediante el escenario de control | No se confirmaron recomendaciones personalizadas detalladas ni representación explícita de incertidumbre; el escenario hipotético podría interpretarse erróneamente como garantía de beneficio |
+
+El **CVD Risk Estimator Plus** combina resultados cuantitativos con categorías de riesgo, recomendaciones y recursos dirigidos tanto a profesionales como a pacientes. La herramienta permite introducir y modificar diferentes variables clínicas, consultar estimaciones previas y, en determinadas funciones, proyectar escenarios asociados con diferentes estrategias de tratamiento. Además, proporciona acceso a la metodología y a los modelos utilizados. Sin embargo, la revisión realizada no permitió confirmar que la herramienta muestre una descomposición individual de la contribución de cada variable comparable con técnicas de explicabilidad como SHAP, ni que presente una visualización uniforme de la incertidumbre asociada con cada estimación. 
+
+La herramienta **PREVENT** presenta estimaciones porcentuales para horizontes de diez y treinta años y cuenta con documentación específica para apoyar la interpretación del resultado. Una característica relevante de su estrategia de comunicación es la recomendación de expresar el porcentaje mediante frecuencias naturales, por ejemplo indicando que determinado número de cada cien personas con características similares podría desarrollar enfermedad cardiovascular durante el periodo evaluado. Esta forma de expresión permite contextualizar el porcentaje mediante una representación potencialmente más intuitiva. La documentación también permite contextualizar el riesgo mediante percentiles de edad y sexo. No obstante, la American Heart Association advierte que modificar valores y recalcular el riesgo no permite estimar directamente cuánto disminuiría el riesgo real de una persona como consecuencia de una intervención específica. 
+
+La calculadora **Framingham Risk Score** de la Canadian Cardiovascular Society utiliza como resultado principal un porcentaje de riesgo cardiovascular a diez años y lo complementa mediante el concepto de **edad cardíaca**. Esta medida permite contextualizar el resultado comparando el perfil cardiovascular de la persona con el correspondiente a una determinada edad equivalente. Además, la documentación complementaria incorpora categorías de riesgo y orientación preventiva y clínica. Aunque esta forma de presentación puede facilitar la interpretación del resultado, parte de la información necesaria para comprenderlo se encuentra fuera de la interfaz principal y no se confirmó que exista una comparación automática entre el valor original y un escenario modificado ni una representación explícita de la incertidumbre de la estimación. 
+
+Por su parte, **QRISK3 Lifetime** incorpora una estrategia de comunicación basada explícitamente en la comparación de escenarios. La herramienta diferencia entre la situación actual del usuario y un escenario hipotético asociado con un mejor control de determinados factores modificables, utilizando columnas paralelas identificadas como *Current* y *What if?*. Además, distingue de manera explícita los factores modificables y permite cambiar valores relacionados con tabaquismo, índice de masa corporal, colesterol y presión arterial. Esta estructura facilita observar cómo cambia la estimación al modificar determinadas entradas. Sin embargo, el resultado obtenido bajo un escenario hipotético no debe interpretarse automáticamente como una garantía del efecto clínico real de modificar dichos factores. 
+
+La comparación muestra que las herramientas revisadas utilizan diferentes estrategias para facilitar la interpretación del riesgo. Algunas complementan el porcentaje mediante categorías o recomendaciones, otras utilizan conceptos adicionales como la edad cardíaca, y QRISK3 Lifetime incorpora directamente una comparación entre el estado actual y un escenario hipotético. También existen diferencias en la manera en que se presentan los factores modificables, las advertencias, las limitaciones y la metodología utilizada para realizar el cálculo.
+
+A pesar de estas diferencias, se identifican algunas limitaciones comunes. En las herramientas revisadas no se confirmó de manera consistente la presentación de intervalos de incertidumbre asociados con la estimación individual ni una explicación específica de cuánto contribuye cada variable al resultado. Asimismo, la posibilidad de modificar valores y recalcular el riesgo puede generar interpretaciones equivocadas si el usuario considera que la diferencia entre ambos resultados representa necesariamente el efecto clínico que produciría una intervención real. Estas observaciones muestran que la comunicación del riesgo requiere no solo presentar una estimación numérica, sino también explicar su significado, sus condiciones de aplicación y las limitaciones asociadas con la interpretación de escenarios hipotéticos.
+### 5.4 Síntesis y posicionamiento de la propuesta
+
+La revisión realizada muestra que las soluciones existentes para la evaluación cardiovascular abordan el problema desde perspectivas diferentes. Los modelos clínicos como Framingham, Pooled Cohort Equations, SCORE2, QRISK3 y PREVENT estiman riesgo cardiovascular utilizando poblaciones, desenlaces, horizontes temporales y conjuntos de variables específicos. Estas diferencias hacen que sus resultados no sean directamente intercambiables y resaltan la importancia de considerar el contexto poblacional y metodológico en el que cada modelo fue desarrollado y validado.
+
+Asimismo, la literatura reciente evidencia un creciente interés por incorporar mecanismos de inteligencia artificial explicable en modelos de predicción cardiovascular. Técnicas como SHAP, LIME, Permutation Feature Importance y Partial Dependence Plots han sido utilizadas para identificar variables relevantes, analizar relaciones entre predictores y proporcionar explicaciones tanto globales como individuales. Sin embargo, estos trabajos también muestran que la explicabilidad presenta limitaciones importantes: una contribución predictiva no implica causalidad, la importancia de una variable no equivale necesariamente a un efecto clínico y las explicaciones pueden variar dependiendo del modelo, los datos y la técnica utilizada.
+
+Por otra parte, las herramientas de riesgo cardiovascular revisadas muestran distintas estrategias para comunicar sus resultados. Algunas integran categorías, comparaciones o explicaciones dentro de la interfaz, mientras que otras dependen en mayor medida de documentos complementarios, guías clínicas o de la interpretación realizada por un profesional de la salud. Esto evidencia que la comunicación del riesgo no se limita a mostrar un porcentaje, sino que requiere contextualizar el resultado, explicar sus limitaciones y facilitar su interpretación dentro de un proceso preventivo o clínico.
+
+En conjunto, el estado del arte permite identificar cuatro elementos relevantes para el diseño de soluciones orientadas a la evaluación cardiovascular: una estimación basada en datos, mecanismos de explicabilidad, herramientas para explorar escenarios y estrategias adecuadas de comunicación del resultado. Sin embargo, estos elementos no siempre se encuentran integrados de la misma manera en una única solución, y su implementación depende del propósito específico de cada herramienta, del público objetivo y del contexto clínico o educativo en el que será utilizada.
+
+En este contexto, PULSO se posiciona como una propuesta de carácter educativo y preventivo que busca integrar en una misma plataforma un modelo de Machine Learning de clasificación, mecanismos de explicabilidad mediante SHAP, simulación de escenarios hipotéticos y generación de información preventiva mediante RAG. A diferencia de las calculadoras clínicas analizadas, el componente predictivo de PULSO no fue desarrollado a partir de una cohorte longitudinal orientada a estimar la probabilidad de un evento cardiovascular durante un horizonte temporal determinado. En su lugar, utiliza el *Cardiovascular Disease Dataset* y plantea un problema de clasificación binaria en el que la variable `cardio` representa la presencia o ausencia de enfermedad cardiovascular en los registros.
+
+Por esta razón, la probabilidad generada por PULSO no debe interpretarse como equivalente a las estimaciones de riesgo a diez o treinta años proporcionadas por modelos clínicos como SCORE2, PREVENT, Framingham, Pooled Cohort Equations o QRISK. La propuesta tampoco pretende sustituir estas herramientas ni reemplazar la valoración de un profesional de la salud. Su aporte se encuentra principalmente en la integración de diferentes mecanismos orientados a facilitar la comprensión del comportamiento del modelo, explorar de manera controlada escenarios hipotéticos y complementar la estimación con información preventiva sustentada en fuentes seleccionadas.
+
+La revisión realizada también permite identificar una limitación fundamental para la generalización de PULSO: el desempeño y significado de su clasificador dependen directamente de las características y representatividad del conjunto de datos utilizado. Por tanto, cualquier interpretación de sus resultados debe considerar las restricciones poblacionales y metodológicas del *Cardiovascular Disease Dataset*. En consecuencia, el valor del MVP debe evaluarse principalmente por su capacidad para integrar predicción, explicabilidad, simulación y comunicación responsable dentro de una experiencia educativa, y no por una equivalencia clínica con calculadoras cardiovasculares validadas para poblaciones específicas.
 
 ## 6. Solución propuesta
 
@@ -405,15 +471,75 @@ El cronograma deberá actualizarse de acuerdo con los avances alcanzados y las a
 
 ## 8. Requerimientos
 
-Presenta los requerimientos que guían el desarrollo de la solución.
+Los requerimientos de PULSO se definen a partir del alcance actualizado del MVP y de los componentes previstos para la solución. Estos requerimientos establecen las funcionalidades que debe ofrecer la plataforma y los atributos de calidad que deberán considerarse durante su implementación y validación. Su definición permite relacionar las decisiones de diseño y arquitectura con comportamientos verificables del sistema.
 
-### 8.1 Funcionales
+Debido a que PULSO utiliza un modelo de clasificación entrenado con el *Cardiovascular Disease Dataset*, la salida predictiva se interpreta como la probabilidad estimada de pertenecer a la clase `cardio = 1`. Por tanto, los requerimientos evitan presentar esta salida como equivalente a un riesgo clínico de presentar un evento cardiovascular durante un horizonte temporal determinado. Asimismo, las explicaciones, simulaciones y la información preventiva proporcionadas por la plataforma mantendrán un carácter educativo y no diagnóstico.
 
-Describe las funcionalidades y comportamientos que el sistema debe ofrecer.
+Los requerimientos se clasifican en funcionales y no funcionales. Los primeros describen las operaciones que deberá ejecutar la plataforma, mientras que los segundos establecen condiciones relacionadas con rendimiento, seguridad, privacidad, usabilidad, mantenibilidad, trazabilidad, interoperabilidad, reproducibilidad y fiabilidad. Algunos de estos requerimientos no funcionales deberán complementarse posteriormente con valores cuantitativos obtenidos o definidos durante las pruebas de rendimiento, integración y validación del MVP.
 
-### 8.2 No funcionales
+### 8.1 Requerimientos funcionales
 
-Define atributos de calidad y restricciones del sistema, como rendimiento, seguridad, usabilidad, mantenibilidad o escalabilidad.
+Los requerimientos funcionales definen las operaciones principales que deberá ofrecer PULSO desde el ingreso de información hasta la presentación de la estimación, su explicación, la simulación de escenarios y la generación de información preventiva.
+
+La explicabilidad y la simulación forman parte del comportamiento funcional de la plataforma. La primera deberá permitir identificar las variables que contribuyeron a una predicción específica, mientras que la segunda permitirá modificar únicamente determinados factores definidos como potencialmente controlables y observar el comportamiento del clasificador bajo un escenario hipotético. En ambos casos deberá comunicarse que los resultados representan el comportamiento del modelo y no relaciones causales o efectos clínicos garantizados.
+
+El componente RAG complementará el resultado utilizando un corpus documental previamente seleccionado. Su función será proporcionar información preventiva respaldada por las fuentes recuperadas, manteniendo trazabilidad documental y evitando respuestas que excedan el alcance educativo definido para PULSO.
+
+| ID | Requerimiento funcional |
+|---|---|
+| **RF-01** | El sistema deberá permitir al usuario ingresar las variables requeridas por la versión del modelo de Machine Learning integrada en PULSO. |
+| **RF-02** | El sistema deberá mostrar para cada variable solicitada su unidad de medida, formato esperado e información necesaria para reducir errores de ingreso. |
+| **RF-03** | El sistema deberá validar los datos ingresados antes de enviarlos al componente predictivo, verificando campos obligatorios, tipos de datos y rangos permitidos. |
+| **RF-04** | Ante un dato inválido, incompleto o fuera de rango, el sistema deberá impedir la ejecución de la predicción y mostrar un mensaje que permita identificar y corregir el problema. |
+| **RF-05** | El sistema deberá procesar los datos válidos mediante la versión del modelo de clasificación desplegada en el servicio de Machine Learning. |
+| **RF-06** | El sistema deberá presentar la probabilidad estimada de pertenecer a la clase `cardio = 1` y comunicar de manera explícita el significado y alcance de esta salida. |
+| **RF-07** | El sistema deberá aplicar el umbral de decisión definido para el modelo seleccionado cuando sea necesario presentar la clasificación correspondiente. |
+| **RF-08** | El sistema deberá informar que la estimación generada no constituye un diagnóstico médico ni representa necesariamente el riesgo de presentar un evento cardiovascular futuro en un horizonte temporal determinado. |
+| **RF-09** | El sistema deberá generar una explicación individual de la predicción mediante SHAP utilizando la misma versión del modelo que produjo la estimación. |
+| **RF-10** | El sistema deberá identificar y presentar las variables con mayor contribución a la predicción, indicando la dirección de su influencia sobre la salida del modelo. |
+| **RF-11** | El sistema deberá comunicar que las contribuciones obtenidas mediante SHAP explican el comportamiento del modelo y no demuestran relaciones causales. |
+| **RF-12** | El sistema deberá permitir seleccionar y modificar únicamente las variables definidas como potencialmente controlables y habilitadas para simulación. |
+| **RF-13** | El sistema deberá conservar los valores originales ingresados por el usuario al iniciar una simulación. |
+| **RF-14** | El sistema deberá generar una nueva estimación utilizando los valores modificados en el escenario hipotético. |
+| **RF-15** | El sistema deberá presentar de manera diferenciada la estimación original y la estimación obtenida mediante la simulación. |
+| **RF-16** | El sistema deberá comunicar que la diferencia entre la estimación original y la simulada no representa un efecto clínico garantizado ni una recomendación de tratamiento. |
+| **RF-17** | El sistema deberá generar información preventiva mediante el componente RAG utilizando exclusivamente el corpus documental seleccionado para el MVP. |
+| **RF-18** | Las respuestas generadas mediante RAG deberán mantener trazabilidad hacia las fuentes documentales utilizadas para construir la respuesta. |
+| **RF-19** | El sistema deberá evitar que el componente RAG proporcione diagnósticos, prescripciones o instrucciones para iniciar, modificar o suspender tratamientos médicos. |
+| **RF-20** | Ante la imposibilidad de recuperar información suficiente o pertinente, el sistema deberá evitar generar una respuesta presentada como respaldada por las fuentes y deberá comunicar esta limitación al usuario. |
+| **RF-21** | El sistema deberá permitir realizar una nueva evaluación modificando los datos de entrada sin conservar automáticamente una interpretación clínica del resultado anterior. |
+| **RF-22** | El sistema deberá manejar fallos de los servicios de Machine Learning, RAG o almacenamiento mediante respuestas controladas, evitando presentar resultados parciales como si fueran completos. |
+
+### 8.2 Requerimientos no funcionales
+
+Los requerimientos no funcionales establecen las condiciones de calidad bajo las cuales deberán operar los componentes de PULSO. Dado que el MVP integra servicios con características diferentes, como predicción, explicabilidad y recuperación documental, estos requerimientos consideran no solamente la experiencia de uso, sino también la capacidad de verificar el comportamiento técnico de cada componente.
+
+Los requerimientos de rendimiento, capacidad, disponibilidad y recuperación deberán contrastarse posteriormente mediante pruebas experimentales. Para ello se utilizarán métricas como latencia p50 y p95, tasa de errores, comportamiento bajo concurrencia, consumo de recursos y recuperación ante fallos parciales. Los valores objetivo definitivos deberán definirse antes de ejecutar las pruebas finales del MVP, de manera que sea posible verificar su cumplimiento.
+
+También se consideran requerimientos asociados con reproducibilidad y trazabilidad del componente de Machine Learning y del sistema RAG. Estos atributos son necesarios para identificar qué modelo produjo una determinada salida, mantener consistencia entre experimentos y despliegues y comprobar qué documentos respaldaron la información preventiva generada.
+
+| ID | Categoría | Requerimiento no funcional |
+|---|---|---|
+| **RNF-01** | Rendimiento | La predicción del modelo deberá cumplir el objetivo de latencia definido para el MVP bajo la carga concurrente establecida en el protocolo de pruebas. |
+| **RNF-02** | Rendimiento | La generación de explicaciones SHAP deberá cumplir el objetivo de latencia definido para el MVP bajo la carga esperada. |
+| **RNF-03** | Rendimiento | Las respuestas del componente RAG deberán evaluarse mediante latencia p50 y p95 y cumplir los límites establecidos para la carga esperada. |
+| **RNF-04** | Capacidad | El sistema deberá soportar la cantidad de usuarios concurrentes definida para el escenario de carga esperada manteniendo la tasa de errores dentro del límite establecido. |
+| **RNF-05** | Disponibilidad | El fallo de un servicio independiente deberá afectar únicamente las funcionalidades que dependan de dicho servicio, siempre que la arquitectura seleccionada lo permita. |
+| **RNF-06** | Recuperación | Los servicios contenerizados deberán disponer de mecanismos de detección de estado y recuperación definidos para el entorno de despliegue. |
+| **RNF-07** | Seguridad | Las comunicaciones que involucren información ingresada por los usuarios deberán utilizar los mecanismos de protección definidos para el entorno de despliegue y evitar exposición innecesaria de datos. |
+| **RNF-08** | Privacidad | PULSO deberá minimizar la recopilación y persistencia de información personal y no requerirá datos identificables que no sean necesarios para las funcionalidades del MVP. |
+| **RNF-09** | Usabilidad | La interfaz deberá indicar claramente el significado, formato y unidad de las variables solicitadas y diferenciar la estimación original de los escenarios simulados. |
+| **RNF-10** | Accesibilidad | La interfaz deberá diseñarse considerando criterios básicos de accesibilidad web en textos, controles, estructura y presentación de información. |
+| **RNF-11** | Reproducibilidad | Los mismos datos de entrada, utilizando la misma versión del modelo y las mismas condiciones de procesamiento, deberán producir la misma estimación cuando el algoritmo utilizado sea determinista o su aleatoriedad se encuentre controlada. |
+| **RNF-12** | Trazabilidad ML | Deberá poder identificarse la versión del modelo, la configuración de entrenamiento y la versión o identificación del conjunto de datos asociados con cada modelo desplegado. |
+| **RNF-13** | Trazabilidad RAG | Las respuestas generadas mediante RAG deberán permitir identificar los documentos o fragmentos utilizados como evidencia. |
+| **RNF-14** | Mantenibilidad | Los componentes de frontend, backend, Machine Learning y RAG deberán mantener responsabilidades separadas de acuerdo con la arquitectura definida, de manera que puedan modificarse con impacto limitado sobre los demás componentes. |
+| **RNF-15** | Interoperabilidad | La comunicación entre servicios deberá realizarse mediante interfaces, estructuras de datos y contratos definidos y documentados. |
+| **RNF-16** | Fiabilidad | Los errores de validación, comunicación o ejecución deberán producir respuestas controladas y no resultados incorrectos presentados silenciosamente como válidos. |
+| **RNF-17** | Compatibilidad | La aplicación deberá funcionar correctamente en los navegadores web definidos como objetivo para las pruebas del MVP. |
+| **RNF-18** | Alcance responsable | Las explicaciones, simulaciones y respuestas generadas deberán mantener explícitamente el carácter educativo de PULSO y evitar presentar sus resultados como diagnóstico o recomendación clínica individual. |
+| **RNF-19** | Pertinencia de recuperación | El componente RAG deberá recuperar información documental relacionada con los factores prioritarios identificados para el perfil evaluado. Su comportamiento será verificado mediante métricas de recuperación como Precision@k, Hit Rate@k y cobertura de factores SHAP. |
+| **RNF-20** | Control de alcance RAG | Las respuestas generadas mediante RAG deberán mantenerse dentro de los factores relevantes para el perfil y del propósito educativo y preventivo de PULSO. La evaluación deberá registrar la proporción de respuestas que incorporen información no prioritaria o que exceda el alcance definido, diferenciando la severidad de las desviaciones detectadas. |
 
 ## 9. Evaluación de alternativas
 
@@ -596,6 +722,38 @@ flowchart LR
     MOD --> MLF[MLflow / versionado]
 ```
 
+### Componente RAG
+
+El componente RAG de PULSO constituye un servicio especializado encargado de complementar los resultados del modelo predictivo y las explicaciones SHAP mediante información preventiva recuperada desde un corpus documental controlado. Su función no consiste en modificar la predicción generada por el modelo de Machine Learning, sino en utilizar los factores prioritarios identificados para el perfil como contexto para recuperar documentación pertinente y generar información educativa sustentada en fuentes médicas previamente seleccionadas.
+
+El flujo RAG se implementa mediante un workflow en n8n. Este recibe desde el backend la información necesaria para contextualizar la consulta, incluyendo la predicción generada, los datos del usuario y los principales factores obtenidos mediante SHAP. A partir de esta información se construye una consulta para realizar recuperación semántica sobre los documentos almacenados en Supabase. Los fragmentos recuperados conservan metadatos asociados con su procedencia, permitiendo identificar posteriormente las fuentes utilizadas para respaldar cada recomendación.
+
+Supabase funciona como almacén vectorial del corpus documental. Los documentos son segmentados en fragmentos y representados mediante embeddings, lo que permite recuperar contenidos por similitud semántica. Este mecanismo es coherente con el uso de `pgvector` para almacenar embeddings y ejecutar búsquedas de similitud sobre PostgreSQL.
+
+Una vez recuperados los fragmentos más relevantes, el workflow normaliza su contenido y sus metadatos y construye el contexto documental que será enviado al modelo generativo. El modelo recibe instrucciones para utilizar exclusivamente la información recuperada, conservar el propósito educativo de PULSO, evitar diagnósticos o indicaciones terapéuticas y mantener la relación entre las recomendaciones y las fuentes utilizadas. Finalmente, la respuesta es estructurada antes de ser enviada nuevamente al backend.
+
+El componente RAG utiliza un corpus documental controlado compuesto inicialmente por **13 fuentes seleccionadas** relacionadas con prevención y salud cardiovascular. Estas fuentes corresponden a documentos médicos y guías consideradas pertinentes para los factores contemplados por PULSO. El contenido documental es segmentado en fragmentos antes de generar sus representaciones vectoriales y almacenarlas en Supabase para realizar posteriormente la recuperación semántica. La selección del corpus busca limitar la generación a información procedente de fuentes previamente revisadas y facilitar la trazabilidad de las recomendaciones producidas por el sistema.
+
+| ID | Título de la fuente | Institución / Autor | Tipo de documento | Tema principal | Factores o temas cubiertos | Observaciones |
+|---|---|---|---|---|---|---|
+| **SRC-01** | *Respuestas del corazón: Estilo de Vida + Reducción de Factores de Riesgos - ¿Cómo puedo perder peso?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para la pérdida de peso sostenible y reducción del riesgo cardiovascular. | Peso corporal, IMC / obesidad, actividad física, presión arterial, colesterol, prevención cardiovascular general. | Material educativo dirigido a pacientes. |
+| **SRC-02** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Fumar - ¿Cómo dejo de fumar?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para abandonar el consumo de tabaco y productos relacionados. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en cesación de tabaquismo. |
+| **SRC-03** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Dieta + Nutrición - ¿Cómo puedo seguir un patrón de alimentación saludable?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Adopción de patrones de alimentación saludables para el corazón y control de porciones. | Alimentación, peso corporal, presión arterial, prevención cardiovascular general. | Incluye recomendaciones sobre alimentos, sodio, azúcares y grasas. |
+| **SRC-04** | *Respuestas del corazón: Estilo de vida + reducción de riesgos Presión arterial alta - ¿Qué es la presión arterial alta?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Explicación de la hipertensión arterial, categorías de presión y factores asociados. | Presión arterial / hipertensión, tabaquismo, peso corporal / obesidad, consumo de alcohol, actividad física, edad, sexo, colesterol. | Fuente centrada en hipertensión y factores de riesgo relacionados. |
+| **SRC-05** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar la presión arterial* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Clasificación de la presión arterial y estrategias para mantener niveles saludables. | Presión arterial / hipertensión, tabaquismo, actividad física, peso corporal, consumo de alcohol, prevención cardiovascular general. | Documento sintético con alta concentración temática en hipertensión. |
+| **SRC-06** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo alimentarse mejor* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Orientaciones para mantener un patrón alimentario saludable. | Alimentación, consumo de alcohol, presión arterial, prevención cardiovascular general. | Enfatiza reducción de sodio, azúcares añadidos y grasas saturadas. |
+| **SRC-07** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el colesterol* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre colesterol y estrategias relacionadas con su control. | Colesterol HDL / LDL, tabaquismo, actividad física, prevención cardiovascular general. | Fuente concentrada principalmente en perfil lipídico. |
+| **SRC-08** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dormir lo suficiente* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Importancia del sueño adecuado para la salud cardiovascular. | Sueño, prevención cardiovascular general, presión arterial, peso corporal / obesidad. | Fuente especializada en hábitos de sueño. |
+| **SRC-09** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el azúcar en la sangre* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre glucemia y hábitos asociados con su control. | Glucemia / diabetes, peso corporal, tabaquismo, actividad física, prevención cardiovascular general. | Incluye información sobre rangos de glucemia y hábitos preventivos. |
+| **SRC-10** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo mantener un peso saludable* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Control del peso corporal y utilización del índice de masa corporal. | Peso corporal, IMC / obesidad, actividad física, prevención cardiovascular general. | Fuente centrada en peso corporal e IMC. |
+| **SRC-11** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo ser más activo* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Recomendaciones sobre actividad física aeróbica y fortalecimiento muscular. | Actividad física, prevención cardiovascular general. | Fuente especializada en actividad física e inactividad. |
+| **SRC-12** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dejar el tabaco y los productos de nicotina* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Riesgos relacionados con nicotina y estrategias para abandonar su consumo. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en tabaquismo y nicotina. |
+| **SRC-13** | *HEARTS en las Américas: Compendio de herramientas clínicas esenciales 2023* | Organización Panamericana de la Salud (OPS) / OMS; Andrés Rosende, Pedro Orduñez et al. | Guía clínica / Documento técnico institucional | Herramientas clínicas para el manejo de hipertensión arterial y riesgo cardiovascular en atención primaria. | Presión arterial / hipertensión, tabaquismo, actividad física, consumo de alcohol, peso corporal / IMC, edad, sexo, prevención cardiovascular general. | Documento técnico extenso orientado principalmente a profesionales de la salud y con alta densidad de contenido sobre hipertensión. |
+
+La salida del componente incluye un resumen general y un conjunto limitado de recomendaciones. Para cada recomendación se conserva información que permite identificar la fuente utilizada como respaldo documental. Esta decisión responde directamente a los requerimientos de trazabilidad del sistema y permite verificar posteriormente si una afirmación generada está respaldada por los fragmentos efectivamente recuperados.
+
+La separación del componente RAG respecto al servicio de Machine Learning permite que ambos evolucionen de forma independiente. El modelo predictivo continúa siendo responsable de generar la estimación y los factores SHAP, mientras que RAG se limita a recuperar y presentar información documental. De esta manera, una modificación del corpus, del mecanismo de recuperación o del modelo generativo no requiere reentrenar el clasificador cardiovascular.
+
 ### 10.3 Interacción entre módulos
 
 La interacción entre módulos se diseña con un nivel de acoplamiento moderado-bajo. El frontend no comunica directamente con el servicio de inferencia ni con la base de conocimiento. En cambio, accede al backend a través de una API y recibe respuestas ya estructuradas y procesadas. Esta decisión centraliza la validación, el control del flujo y la lógica de integración, reduciendo la dependencia directa entre las interfaces de usuario y los componentes computacionalmente más pesados.
@@ -677,29 +835,287 @@ Documenta el estado real de construcción del sistema y el grado de avance alcan
 
 ### 11.1 Stack tecnológico
 
-Lista y justifica las tecnologías, frameworks, librerías y herramientas utilizadas.
+PULSO integra tecnologías orientadas al desarrollo web, aprendizaje automático, explicabilidad, recuperación documental, contenerización, integración continua y trazabilidad de experimentos. La selección del stack busca mantener una separación clara entre los componentes principales de la plataforma y facilitar su integración dentro de una arquitectura modular orientada a servicios.
+
+- **React:** biblioteca utilizada para el desarrollo de la interfaz web de PULSO. Permite construir componentes reutilizables y gestionar de manera dinámica la interacción del usuario con los formularios, resultados de predicción, explicaciones, simulaciones e información generada mediante RAG.
+
+- **FastAPI:** framework utilizado para la construcción del backend y de las interfaces de programación de aplicaciones. Permite exponer endpoints para la comunicación entre el frontend y los servicios internos del sistema, además de facilitar la validación de datos mediante modelos estructurados.
+
+- **Python:** lenguaje principal utilizado para el desarrollo del backend, el procesamiento de datos, el entrenamiento y evaluación de modelos de Machine Learning, la generación de explicaciones mediante SHAP y la integración con otros servicios.
+
+- **Pydantic:** biblioteca utilizada para definir y validar los contratos de datos intercambiados entre los diferentes componentes del sistema. Permite verificar que las solicitudes y respuestas cumplan con las estructuras esperadas.
+
+- **httpx:** biblioteca utilizada para realizar solicitudes HTTP desde el backend hacia servicios externos o componentes independientes, particularmente en la integración con el servicio RAG.
+
+- **scikit-learn:** biblioteca utilizada para el procesamiento de datos, entrenamiento, evaluación y comparación de diferentes modelos de Machine Learning, así como para el cálculo de métricas y la construcción de pipelines de modelado.
+
+- **XGBoost:** biblioteca utilizada para implementar el modelo de Gradient Boosting seleccionado para el componente predictivo de PULSO. El modelo genera una probabilidad asociada con la pertenencia a la clase `cardio = 1`.
+
+- **SHAP:** biblioteca de explicabilidad utilizada para calcular la contribución de las variables de entrada sobre las predicciones individuales del modelo. Sus resultados permiten identificar los factores con mayor influencia sobre cada estimación.
+
+- **MLflow:** herramienta utilizada para registrar y mantener la trazabilidad de los experimentos de Machine Learning. Permite almacenar información asociada con modelos, parámetros, métricas, umbrales de decisión y artefactos generados durante la experimentación.
+
+- **n8n:** plataforma utilizada para orquestar el workflow del componente RAG. Coordina la recepción de la información procedente del backend, la recuperación documental, la preparación del contexto, la interacción con el modelo generativo y la construcción de la respuesta final.
+
+- **Supabase:** plataforma utilizada para gestionar servicios de almacenamiento y base de datos asociados con la aplicación. En el componente RAG se emplea para almacenar el corpus documental y facilitar la recuperación de fragmentos mediante búsqueda vectorial.
+
+- **PostgreSQL:** sistema de gestión de bases de datos relacional utilizado como base de la infraestructura de almacenamiento proporcionada por Supabase.
+
+- **pgvector:** extensión de PostgreSQL utilizada para almacenar representaciones vectoriales y ejecutar búsquedas por similitud semántica entre las consultas y los fragmentos documentales del corpus RAG.
+
+- **Google Gemini:** modelo generativo utilizado en el componente RAG para construir respuestas en lenguaje natural utilizando como contexto los fragmentos documentales recuperados previamente.
+
+- **Embeddings:** representaciones vectoriales utilizadas para transformar consultas y fragmentos documentales en estructuras numéricas comparables, permitiendo realizar recuperación semántica dentro del corpus.
+
+- **JavaScript:** lenguaje utilizado principalmente dentro de nodos de código del workflow de n8n para normalizar información, preparar el contexto documental, procesar metadatos y estructurar la respuesta final del componente RAG.
+
+- **Docker:** plataforma de contenerización utilizada para empaquetar los componentes de PULSO junto con sus dependencias, facilitando la ejecución reproducible y el aislamiento entre servicios.
+
+- **Docker Compose:** herramienta utilizada para definir y ejecutar conjuntamente los diferentes contenedores que conforman la plataforma, incluyendo sus redes, puertos, variables de entorno y dependencias.
+
+- **Nginx:** servidor web utilizado como proxy inverso para centralizar el acceso externo a los diferentes servicios de la plataforma y redirigir las solicitudes hacia los componentes correspondientes.
+
+- **Git:** sistema de control de versiones utilizado para registrar y gestionar los cambios realizados sobre el código fuente del proyecto.
+
+- **GitHub:** plataforma utilizada para alojar el repositorio del proyecto y gestionar el flujo colaborativo de desarrollo mediante ramas, pull requests y revisión de código.
+
+- **GitHub Actions:** servicio de integración continua utilizado para automatizar verificaciones sobre el código, ejecutar pruebas y validar cambios antes de su incorporación a las ramas principales del proyecto.
+
+- **Pytest:** framework utilizado para implementar y ejecutar pruebas automatizadas sobre los componentes desarrollados en Python, incluyendo funcionalidades relacionadas con el backend y el servicio de Machine Learning.
+
+- **JSON:** formato utilizado para el intercambio estructurado de información entre el frontend, backend, servicio de Machine Learning, componente RAG y otros elementos de la arquitectura.
 
 ### 11.2 Componentes implementados
 
 Describe qué módulos o componentes ya fueron construidos, qué funcionalidades cubren y cuál es su estado actual.
 
+####  Componente RAG implementado
+
+El componente RAG se encuentra implementado mediante un workflow en n8n conectado con un almacén vectorial en Supabase y un modelo generativo. El workflow recibe información procedente del componente predictivo, recupera los fragmentos documentales con mayor similitud semántica, prepara el contexto y genera una respuesta estructurada con información preventiva relacionada con los factores considerados prioritarios.
+
+El flujo incorpora etapas de normalización y preparación de los datos recuperados, con el propósito de conservar el contenido documental y los metadatos necesarios para identificar posteriormente la procedencia de la información. La respuesta final incluye un resumen y recomendaciones asociadas con identificadores de fuentes, permitiendo comprobar qué documentos y fragmentos fueron utilizados como evidencia.
+
+Como parte de la implementación del componente RAG, se construyó un corpus documental inicial compuesto por **13 fuentes** relacionadas con prevención y factores cardiovasculares. Los documentos fueron incorporados al flujo de vectorización y almacenados en la base vectorial junto con metadatos destinados a conservar la identificación de la fuente y la localización de los fragmentos. Este corpus constituye la base documental utilizada actualmente durante las pruebas funcionales del sistema y podrá ampliarse o ajustarse en iteraciones posteriores de acuerdo con los resultados de la evaluación de recuperación.
+
+El componente fue sometido a una evaluación funcional mediante 20 casos controlados, cuyos resultados se presentan en la sección 13.1. La evaluación permitió verificar tanto el proceso de recuperación como la generación final y evidenció un comportamiento favorable en trazabilidad, aunque también identificó oportunidades de mejora relacionadas con la precisión de la recuperación y la selección de información prioritaria.
+
 ### 11.3 Integraciones realizadas
 
 Explica las integraciones ya desarrolladas con servicios externos, bases de datos, autenticación u otros componentes.
+
+#### Integración RAG
+
+La integración entre el backend de PULSO y el componente RAG se realiza mediante comunicación HTTP. El backend prepara una estructura que contiene la información necesaria para contextualizar la generación, incluyendo la predicción, datos relevantes del perfil y los principales factores identificados mediante SHAP. Esta estructura es enviada al servicio RAG, que ejecuta el workflow de recuperación y generación y retorna una respuesta estructurada.
+
+Para mantener un contrato definido entre los componentes, la respuesta RAG contempla información general de la respuesta, recomendaciones y datos de las fuentes utilizadas. El backend valida y procesa esta estructura antes de entregarla a la capa de presentación. De esta manera, el componente generativo permanece desacoplado del servicio de Machine Learning y puede modificarse sin cambiar la lógica interna del clasificador.
+
+La integración también contempla el manejo de errores de comunicación y respuestas que no cumplen la estructura esperada. Estos mecanismos resultan relevantes debido a que el componente RAG depende de servicios externos y presenta tiempos de respuesta y modos de fallo diferentes de los correspondientes al servicio predictivo.
 
 ### 11.4 Pendientes para la entrega final
 
 Indica qué elementos faltan por implementar, integrar, corregir o validar antes del cierre del proyecto.
 
+#### Pendientes RAG
+
+A partir de la evaluación funcional realizada, el principal pendiente del componente RAG corresponde a mejorar la pertinencia de los fragmentos recuperados y reducir la generación de información relacionada con factores secundarios o no prioritarios. Aunque la trazabilidad documental presentó resultados altos, la Precision@5 obtenida evidencia que parte del contexto recuperado puede contener información poco relacionada con los factores prioritarios del perfil.
+
+Para la siguiente iteración se plantea mejorar la construcción de las consultas utilizadas en la recuperación semántica, priorizar explícitamente los factores SHAP modificables y evitar que factores no accionables generen recomendaciones artificiales. También se incorporarán mecanismos posteriores a la generación para comprobar que las recomendaciones finales correspondan con los factores prioritarios y con las fuentes documentales utilizadas.
+
+La nueva versión será evaluada utilizando el mismo conjunto de casos empleado en la evaluación inicial. Esto permitirá comparar directamente Precision@5, Hit Rate@5, cobertura de factores SHAP, trazabilidad, uso de `insufficient_information` y tasa de respuestas fuera de alcance antes y después de los ajustes.
+
 ## 12. Despliegue y operación preliminar
 
 Describe cómo se ejecuta actualmente la solución, en qué entorno funciona, qué dependencias requiere y cuál es su estado de despliegue o configuración.
+
+### Despliegue y operación preliminar del RAG
+
+El componente RAG opera actualmente como un servicio externo al proceso de predicción principal. El backend de PULSO se comunica con el workflow mediante solicitudes HTTP y recibe como respuesta una estructura con el resumen, las recomendaciones y la información de trazabilidad asociada con las fuentes recuperadas.
+
+El workflow depende de la disponibilidad de n8n, del almacén vectorial configurado en Supabase y del servicio generativo utilizado para construir la respuesta. Supabase permite almacenar embeddings y ejecutar búsquedas de similitud sobre los documentos representados vectorialmente, funcionalidad utilizada para seleccionar el contexto documental que se suministra al modelo generativo.
+
+Debido a estas dependencias, el componente RAG presenta características operacionales diferentes del servicio de Machine Learning. Una falla o un tiempo de respuesta elevado en el servicio generativo, el workflow o la base vectorial puede impedir la generación de información preventiva sin que necesariamente deba impedir la ejecución de la predicción cardiovascular. Esta separación será considerada durante las pruebas de integración, disponibilidad y tolerancia a fallos de la arquitectura.
+
 
 ## 13. Validación preliminar
 
 Presenta las pruebas o validaciones realizadas hasta el momento para verificar el comportamiento del sistema y su grado de cumplimiento frente a los requerimientos.
 
 ### 13.1 Pruebas por componentes
+
+#### 13.1.X Evaluación del componente predictivo
+
+La evaluación del componente predictivo se realizó utilizando una partición independiente de los datos en conjuntos de entrenamiento, validación y prueba. Después del proceso de depuración del conjunto de datos se conservaron **68.610 registros**.
+
+La división se realizó de forma estratificada respecto a la variable objetivo `cardio`, con el propósito de mantener una proporción similar de las clases en cada subconjunto. Se utilizó `random_state = 42` para garantizar la reproducibilidad del procedimiento. La distribución final correspondió a **70 % para entrenamiento, 15 % para validación y 15 % para prueba**.
+
+| Conjunto | n | cardio = 0 | cardio = 1 | Prevalencia de `cardio = 1` |
+|---|---:|---:|---:|---:|
+| Total | 68.610 | 34.669 | 33.941 | 49,47 % |
+| Entrenamiento | 48.027 | 24.268 | 23.759 | 49,47 % |
+| Validación | 10.291 | 5.200 | 5.091 | 49,47 % |
+| Prueba | 10.292 | 5.201 | 5.091 | 49,47 % |
+
+La prevalencia de la clase positiva permaneció prácticamente constante entre las particiones, lo cual es consistente con el uso de estratificación durante la división de los datos.
+
+##### Comparación entre modelos
+
+Se evaluaron cinco algoritmos de clasificación: Logistic Regression, Decision Tree, Random Forest, XGBoost y Gradient Boosting. Para cada modelo se realizó ajuste de hiperparámetros mediante `GridSearchCV`, seguido de una evaluación de discriminación, calibración y selección de umbral.
+
+Las métricas utilizadas para comparar los modelos fueron Accuracy, Precision, Sensibilidad o Recall, Especificidad, F1-score y ROC-AUC. Adicionalmente, se evaluó la calidad de las probabilidades mediante Brier Score, Log Loss, Expected Calibration Error (ECE) y curvas de calibración.
+
+| Modelo | Threshold | Accuracy | Precision | Sensibilidad | Especificidad | F1 | ROC-AUC | Calibración | Brier | Log Loss | ECE |
+|---|---:|---:|---:|---:|---:|---:|---:|---|---:|---:|---:|
+| Logistic Regression | 0,37 | 0,6965 | 0,6588 | 0,8020 | 0,5933 | 0,7234 | 0,7798 | Isotónica | 0,1903 | 0,5645 | 0,0056 |
+| Decision Tree | 0,31 | 0,6814 | 0,6336 | 0,8440 | 0,5221 | 0,7238 | 0,7811 | Isotónica | 0,1888 | 0,5603 | 0,0087 |
+| Random Forest | 0,38 | 0,7026 | 0,6639 | 0,8077 | 0,5996 | 0,7288 | 0,7866 | Sin calibración adicional | 0,1872 | 0,5568 | 0,0075 |
+| XGBoost | 0,38 | 0,7059 | 0,6688 | 0,8030 | 0,6108 | 0,7298 | 0,7881 | Sin calibración adicional | 0,1864 | 0,5548 | 0,0051 |
+| Gradient Boosting | 0,38 | 0,7034 | 0,6660 | 0,8036 | 0,6054 | 0,7283 | 0,7881 | Sin calibración adicional | 0,1864 | 0,5547 | 0,0076 |
+
+Los resultados muestran que ningún modelo fue superior en todas las métricas. Decision Tree presentó la mayor sensibilidad, mientras que Gradient Boosting obtuvo valores ligeramente superiores en ROC-AUC y Brier Score. Sin embargo, XGBoost presentó el mejor balance global entre Accuracy, Precision, Especificidad y F1-score, manteniendo al mismo tiempo una sensibilidad superior al 80 %, un ROC-AUC prácticamente equivalente al mejor resultado observado y el menor ECE entre los modelos evaluados.
+
+A partir de esta evaluación conjunta se seleccionó **XGBoost** como modelo final de PULSO.
+
+##### Selección del umbral de decisión
+
+Para cada modelo se evaluaron diferentes umbrales de clasificación. La selección del threshold se realizó bajo el criterio de **mantener una sensibilidad o Recall igual o superior al 80 %**, debido a que se buscó reducir la proporción de registros positivos clasificados como negativos.
+
+Dentro de los umbrales que cumplían este criterio, se consideró también el comportamiento de Accuracy, Precision, Especificidad y F1-score, con el fin de evitar un deterioro excesivo del desempeño global del clasificador.
+
+Para XGBoost se seleccionó un umbral de decisión de **0,38**, con el cual se obtuvo una sensibilidad de aproximadamente **80,30 %** durante la etapa de selección. Este valor fue adoptado posteriormente como el threshold oficial de PULSO v1. De esta forma, una probabilidad estimada mayor o igual a 0,38 se clasifica como `cardio = 1`.
+
+##### Evaluación final de XGBoost en el conjunto de prueba
+
+Una vez seleccionado XGBoost, el modelo fue evaluado sobre el conjunto de prueba independiente, compuesto por **10.292 registros**, utilizando el threshold oficial de 0,38.
+
+| Métrica | Resultado |
+|---|---:|
+| Accuracy | 0,707928 |
+| Precision | 0,671492 |
+| Sensibilidad / Recall | 0,801807 |
+| Especificidad | 0,616035 |
+| F1-score | 0,730886 |
+| ROC-AUC | 0,796757 |
+| Brier Score | 0,182506 |
+| Log Loss | 0,545384 |
+| Threshold | 0,38 |
+
+La matriz de confusión obtenida fue:
+
+| | Predicho 0 | Predicho 1 |
+|---|---:|---:|
+| Real 0 | TN = 3.204 | FP = 1.997 |
+| Real 1 | FN = 1.009 | TP = 4.082 |
+
+Los resultados muestran que el modelo mantuvo en el conjunto de prueba el criterio establecido durante la selección del threshold, alcanzando una sensibilidad de aproximadamente **80,18 %**. La especificidad fue de aproximadamente **61,60 %**, lo cual refleja el compromiso introducido por la selección de un umbral orientado a conservar un Recall igual o superior al 80 %.
+
+##### Intervalos de confianza
+
+Para estimar la incertidumbre de las métricas obtenidas sobre el conjunto de prueba se calcularon intervalos de confianza del 95 % mediante **bootstrap percentil con 1.000 remuestreos**.
+
+| Métrica | Estimación | IC 95 % |
+|---|---:|---:|
+| Accuracy | 0,707928 | [0,698795; 0,716479] |
+| Precision | 0,671492 | [0,659351; 0,682883] |
+| Sensibilidad | 0,801807 | [0,790580; 0,812539] |
+| Especificidad | 0,616035 | [0,602269; 0,628803] |
+| F1-score | 0,730886 | [0,721116; 0,740472] |
+| ROC-AUC | 0,796757 | [0,788157; 0,805347] |
+
+Los intervalos obtenidos fueron relativamente estrechos, lo que indica una variabilidad limitada de las métricas frente a los remuestreos realizados sobre el conjunto de prueba.
+
+##### Evaluación de calibración
+
+Además de las métricas de clasificación y discriminación, se evaluó la calidad de las probabilidades estimadas por el modelo. Para XGBoost se obtuvo un **Brier Score de 0,182506** y un **Log Loss de 0,545384** en el conjunto de prueba.
+
+La evaluación se complementó mediante una curva de calibración, utilizada para comparar las probabilidades predichas por el modelo con la frecuencia observada de la clase positiva.
+
+<img width="567" height="455" alt="image" src="https://github.com/user-attachments/assets/6739d80a-2c1f-4142-a241-27b2d650f2ab" />
+
+**Curva de calibración del modelo XGBoost sobre el conjunto de prueba.**
+
+##### Evaluación por subgrupos
+
+Con el propósito de observar posibles diferencias en el comportamiento del modelo entre grupos presentes en el conjunto de datos, se realizó una evaluación por sexo y por grupos de edad.
+
+###### Resultados por sexo
+
+| Subgrupo | n | Prevalencia | Accuracy | Precision | Sensibilidad | Especificidad | F1 | ROC-AUC |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| gender_1 | 6.713 | 48,43 % | 0,7129 | 0,6684 | 0,8084 | 0,6233 | 0,7317 | 0,8029 |
+| gender_2 | 3.579 | 51,41 % | 0,6985 | 0,6772 | 0,7902 | 0,6015 | 0,7294 | 0,7846 |
+
+Los resultados muestran un comportamiento relativamente similar entre ambos grupos. `gender_1` presentó valores ligeramente superiores de Accuracy, Sensibilidad, Especificidad y ROC-AUC, mientras que `gender_2` presentó una precisión ligeramente mayor. Estas diferencias deben interpretarse de manera descriptiva y no constituyen por sí mismas evidencia de equidad o sesgo del modelo.
+
+###### Resultados por grupo de edad
+
+| Grupo etario | n | Prevalencia | Accuracy | Precision | Sensibilidad | Especificidad | F1 | ROC-AUC |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| < 50 años | 3.191 | 35,94 % | 0,7950 | 0,7528 | 0,6399 | 0,8821 | 0,6918 | 0,8201 |
+| 50–59 años | 5.245 | 51,65 % | 0,6656 | 0,6447 | 0,7852 | 0,5379 | 0,7081 | 0,7564 |
+| ≥ 60 años | 1.856 | 66,54 % | 0,6778 | 0,6765 | 0,9887 | 0,0596 | 0,8033 | 0,7243 |
+
+El comportamiento por edad presentó diferencias más marcadas. En el grupo menor de 50 años, el modelo alcanzó la mayor Accuracy, Especificidad y ROC-AUC, aunque con una sensibilidad inferior al 80 %. En el grupo de 50 a 59 años aumentó la sensibilidad y disminuyó la especificidad.
+
+El comportamiento más extremo se observó en el grupo de 60 años o más. En este subgrupo la sensibilidad alcanzó **0,9887**, mientras que la especificidad fue únicamente **0,0596** y el ROC-AUC fue **0,7243**. Esto indica que, con el umbral global de 0,38, el modelo clasifica correctamente a casi todos los registros positivos de este grupo, pero también clasifica como positivos a una proporción muy elevada de los registros negativos.
+
+Este resultado debe analizarse considerando que la prevalencia de `cardio = 1` también aumenta con la edad dentro del conjunto de datos, pasando de 35,94 % en menores de 50 años a 66,54 % en el grupo de 60 años o más. Por tanto, las diferencias observadas evidencian que el rendimiento del modelo no es uniforme entre grupos etarios y constituyen una limitación relevante para la interpretación de sus resultados.
+
+El análisis por subgrupos es de carácter exploratorio y no constituye una evaluación formal de equidad algorítmica ni una validación clínica del modelo.
+
+#### 13.1.X Evaluación funcional del componente RAG
+
+Con el fin de evaluar el comportamiento del componente de generación aumentada por recuperación (RAG) de PULSO, se realizó una evaluación funcional y exploratoria mediante un conjunto controlado de 20 casos de prueba. Esta evaluación no corresponde a una validación clínica del sistema, sino a una verificación técnica orientada a determinar la pertinencia de la información recuperada, la trazabilidad documental de las recomendaciones, la cobertura de los factores identificados mediante SHAP y el cumplimiento del alcance educativo y preventivo definido para la plataforma.
+
+Cada caso de prueba incluyó el perfil del usuario, la probabilidad generada por el modelo de clasificación, el umbral de decisión, los principales factores obtenidos mediante SHAP y un comportamiento esperado. Para cada caso, el componente RAG recuperó los cinco fragmentos con mayor similitud desde la base vectorial y posteriormente generó un máximo de tres recomendaciones utilizando únicamente el contexto documental recuperado.
+
+La evaluación se dividió en dos etapas. En primer lugar, se analizó el proceso de recuperación de información mediante las métricas Precision@5, Hit Rate@5 y cobertura de factores SHAP. En segundo lugar, se evaluó la respuesta generada considerando la trazabilidad técnica de las fuentes, la trazabilidad semántica de las recomendaciones, la presencia de información fuera del alcance esperado y el manejo de situaciones con información insuficiente.
+
+Para apoyar la revisión de los fragmentos recuperados y las recomendaciones generadas se utilizó NotebookLM con el mismo corpus documental empleado por PULSO. Los 20 casos fueron divididos en cuatro grupos de cinco casos y cada grupo fue evaluado dos veces de forma independiente utilizando la misma rúbrica. Las discrepancias entre ambas evaluaciones fueron posteriormente revisadas contra los fragmentos recuperados, la respuesta original del RAG y las reglas funcionales establecidas para PULSO. Por esta razón, NotebookLM se utilizó como herramienta de apoyo para la revisión y no como evaluador único del sistema.
+
+Las métricas utilizadas fueron las siguientes:
+
+- **Precision@5:** proporción de fragmentos directamente pertinentes entre los cinco resultados recuperados.
+- **Hit Rate@5:** proporción de casos en los que al menos uno de los cinco fragmentos recuperados fue directamente pertinente.
+- **Cobertura SHAP:** proporción de factores con dirección de aumento para los cuales se recuperó evidencia documental pertinente.
+- **Cobertura SHAP accionable:** cobertura de los factores modificables con dirección de aumento, excluyendo variables no modificables como edad, sexo o estatura.
+- **Trazabilidad técnica:** proporción de recomendaciones que utilizaron identificadores de fuentes realmente presentes entre los fragmentos recuperados.
+- **Trazabilidad semántica:** grado en el que el contenido de cada recomendación estuvo respaldado por la información de los fragmentos citados.
+- **Tasa de respuestas fuera de alcance:** proporción de casos en los que se identificaron recomendaciones o afirmaciones que no correspondían a los factores prioritarios del perfil o excedían el propósito educativo y preventivo del sistema.
+- **Uso correcto de `insufficient_information`:** proporción de casos en los que el sistema manejó adecuadamente escenarios donde la evidencia disponible no justificaba recomendaciones específicas.
+
+Los resultados consolidados se presentan en la Tabla.
+
+| Métrica | Resultado |
+|---|---:|
+| Casos evaluados | 20 |
+| Precision@5 promedio | 35,0 % |
+| Hit Rate@5 | 85,0 % |
+| Cobertura SHAP total | 75,5 % |
+| Cobertura SHAP accionable | 100 % en casos aplicables |
+| Trazabilidad técnica | 100 % |
+| Trazabilidad semántica estricta | 98,3 % |
+| Trazabilidad semántica amplia | 100 % |
+| Respuestas fuera de alcance | 65,0 % |
+| Uso correcto de `insufficient_information` | 90,0 % |
+
+**Resultados consolidados de la evaluación funcional del componente RAG.**
+
+Para interpretar las desviaciones de alcance identificadas durante la evaluación del componente RAG, se definieron cuatro niveles de severidad. La **severidad 0** corresponde a los casos en los que la respuesta se mantiene completamente alineada con los factores prioritarios y con el alcance educativo y preventivo de PULSO. La **severidad 1 o desviación menor** se asigna cuando aparece información secundaria o una recomendación adicional no prioritaria, pero esta no modifica sustancialmente el sentido de la respuesta ni introduce implicaciones clínicas relevantes. La **severidad 2 o desviación relevante** se utiliza cuando la respuesta incorpora recomendaciones claramente ajenas a los factores identificados, interpreta incorrectamente un factor protector o introduce contenido clínico que excede el propósito del sistema, aunque sin llegar a constituir una situación crítica. Finalmente, la **severidad 3 o desviación crítica** corresponde a respuestas que podrían inducir a interpretaciones clínicas inapropiadas, como emitir diagnósticos, afirmar presencia o ausencia de enfermedad, recomendar tratamientos o medicamentos, o presentar la probabilidad o el umbral del modelo como una medida clínica de riesgo.
+
+| Severidad | Casos | Porcentaje |
+|---|---:|---:|
+| 0 – Sin desviación | 7 | 35 % |
+| 1 – Desviación menor | 8 | 40 % |
+| 2 – Desviación relevante | 5 | 25 % |
+| 3 – Desviación crítica | 0 | 0 % |
+
+**Distribución de severidad de las desviaciones de alcance detectadas.**
+
+Los resultados muestran que el sistema logró recuperar al menos un fragmento pertinente en el 85 % de los casos y alcanzó una cobertura completa de los factores SHAP modificables en aquellos escenarios donde existían factores accionables. Asimismo, todas las recomendaciones utilizaron fuentes pertenecientes al contexto recuperado y el 98,3 % presentó respaldo semántico completo.
+
+No obstante, la Precision@5 promedio fue del 35 %, lo que indica que, aunque habitualmente se recupera al menos un fragmento útil, una parte importante de los cinco primeros resultados contiene información secundaria o poco relacionada con los factores prioritarios del caso. Esta situación también se reflejó en la tasa de respuestas fuera de alcance, debido a que el modelo generador puede utilizar información documentalmente válida presente en los fragmentos recuperados para formular recomendaciones que no necesariamente corresponden a los factores identificados mediante SHAP.
+
+No se identificaron desviaciones de severidad crítica durante los 20 casos evaluados.
 
 ### 13.2 Pruebas de integración
 
@@ -709,17 +1125,154 @@ Presenta las pruebas o validaciones realizadas hasta el momento para verificar e
 
 Presenta los principales hallazgos obtenidos hasta el momento, interpreta su significado y analiza el nivel de avance del proyecto frente a los objetivos planteados.
 
+### 14.1 Resultados y discusión del componente predictivo
+
+La comparación entre los cinco algoritmos evaluados mostró un desempeño relativamente cercano entre los modelos de ensamble, especialmente Random Forest, XGBoost y Gradient Boosting. No se identificó un modelo superior en todas las métricas, por lo que la selección final se realizó considerando de forma conjunta discriminación, sensibilidad, especificidad, F1-score y comportamiento de las probabilidades estimadas.
+
+Decision Tree presentó la mayor sensibilidad durante la comparación, con un valor de 0,8440, pero este resultado estuvo acompañado por una menor especificidad de 0,5221. Gradient Boosting alcanzó marginalmente el mayor ROC-AUC y el menor Brier Score, mientras que XGBoost presentó el mejor Accuracy, Precision, Especificidad y F1-score, junto con un ROC-AUC prácticamente equivalente y el menor ECE. Este balance motivó su selección como modelo final de PULSO.
+
+La selección del umbral de decisión se realizó bajo el criterio de mantener un **Recall igual o superior al 80 %**. La prioridad otorgada a esta métrica también estuvo influenciada por la orientación de un asesor del proyecto, quien señaló la importancia de favorecer la identificación de los casos positivos que realmente se encuentran presentes en los datos. Bajo esta perspectiva, se consideró preferible reducir, dentro de límites razonables, la proporción de registros con `cardio = 1` que fueran clasificados como negativos.
+
+Esta decisión es coherente con el enfoque de **promoción y prevención (P&P)** definido para PULSO, en el que el modelo busca funcionar como una herramienta educativa y de orientación preventiva. Sin embargo, priorizar la sensibilidad implica necesariamente un compromiso con otras métricas. Al disminuir el umbral de clasificación para detectar una mayor proporción de positivos, puede aumentar también la cantidad de falsos positivos y reducirse la especificidad. Por esta razón, el Recall no se utilizó como único criterio de selección: entre los umbrales que cumplían la condición de alcanzar al menos un 80 % de sensibilidad se consideró también el comportamiento de Accuracy, Precision, Especificidad y F1-score.
+
+Para XGBoost se seleccionó un threshold de **0,38**, con el cual se obtuvo una sensibilidad superior al 80 % durante la etapa de validación. Este umbral representa, por tanto, un compromiso entre la prioridad otorgada a la identificación de registros positivos y la necesidad de mantener un desempeño global aceptable.
+
+En la evaluación independiente sobre el conjunto de prueba, XGBoost mantuvo este comportamiento, alcanzando una sensibilidad de **0,8018** y una especificidad de **0,6160** utilizando el umbral oficial de 0,38. Esto confirma que el criterio establecido para la selección del threshold se conservó también sobre datos no utilizados durante el proceso de selección.
+
+La matriz de confusión permite observar directamente el compromiso asociado con esta decisión. De los 5.091 registros positivos presentes en el conjunto de prueba, 4.082 fueron clasificados correctamente y 1.009 fueron clasificados como negativos. Entre los 5.201 registros negativos, 3.204 fueron clasificados correctamente y 1.997 fueron clasificados como positivos. En consecuencia, la priorización del Recall contribuye a identificar una mayor proporción de los casos positivos presentes en el conjunto de datos, pero también produce un número considerable de falsos positivos.
+
+Esta característica debe considerarse especialmente al comunicar los resultados de PULSO. Una clasificación positiva no debe interpretarse como confirmación de enfermedad cardiovascular, de la misma forma que una clasificación negativa no permite descartar clínicamente su presencia. El modelo identifica patrones aprendidos a partir del conjunto de datos utilizado y su salida corresponde exclusivamente a una estimación del clasificador.
+
+Los intervalos de confianza obtenidos mediante bootstrap mostraron una variabilidad relativamente reducida en las métricas globales del conjunto de prueba. Sin embargo, el análisis por subgrupos evidenció que este desempeño agregado no representa de manera uniforme todos los grupos presentes en los datos.
+
+Las diferencias más relevantes se observaron por edad. Mientras que el grupo menor de 50 años presentó una especificidad de 0,8821, una sensibilidad de 0,6399 y un ROC-AUC de 0,8201, en el grupo de 60 años o más la sensibilidad aumentó hasta 0,9887, la especificidad disminuyó hasta 0,0596 y el ROC-AUC fue de 0,7243.
+
+Este comportamiento evidencia que el umbral global de 0,38 produce efectos diferentes entre grupos etarios. En el grupo de mayor edad, el clasificador presenta una fuerte tendencia a asignar la clase positiva, lo que permite identificar casi todos los registros positivos, pero reduce considerablemente la capacidad para reconocer correctamente los registros negativos. Este hallazgo ejemplifica una de las principales limitaciones de priorizar globalmente la sensibilidad: el compromiso entre falsos negativos y falsos positivos puede manifestarse de manera distinta entre subgrupos.
+
+Esta diferencia debe interpretarse junto con el aumento de la prevalencia de la clase positiva entre los grupos etarios. La prevalencia pasó de 35,94 % en menores de 50 años a 66,54 % en personas de 60 años o más. En consecuencia, el buen valor global de sensibilidad no debe interpretarse como evidencia de un desempeño homogéneo en toda la población representada por el conjunto de datos.
+
+Los resultados por sexo fueron comparativamente más homogéneos, aunque se observaron diferencias menores en Accuracy, Sensibilidad, Especificidad y ROC-AUC. Estos análisis son exploratorios y no permiten concluir por sí solos la existencia o ausencia de sesgos. Sin embargo, evidencian la importancia de complementar las métricas globales con análisis desagregados por subgrupos.
+
+En conjunto, los resultados respaldan la selección de XGBoost como modelo del MVP desde una perspectiva experimental, al ofrecer un balance favorable entre las métricas evaluadas y cumplir con el criterio de Recall mínimo establecido. La decisión de priorizar la sensibilidad responde al enfoque preventivo del proyecto y a la intención de identificar una proporción elevada de los casos positivos presentes en los datos, pero debe entenderse siempre junto con el incremento asociado de falsos positivos y las diferencias observadas entre subgrupos.
+
+PULSO se mantiene en todo momento dentro de un alcance de **promoción y prevención (P&P)**. No constituye una herramienta diagnóstica, no reemplaza la valoración de un profesional de la salud y no ha sido clínicamente validado como calculadora de riesgo cardiovascular. Sus resultados deben interpretarse como estimaciones educativas derivadas del comportamiento del modelo sobre las variables disponibles en el conjunto de datos. Por esta razón, tanto la priorización del Recall como el umbral seleccionado deben entenderse como decisiones experimentales propias del diseño del MVP y no como criterios clínicos generalizables.
+
+### 14.2 Resultados y discusión del componente RAG
+
+Los resultados obtenidos permiten identificar una diferencia importante entre la capacidad del componente RAG para producir respuestas documentalmente respaldadas y su capacidad para recuperar únicamente información pertinente para cada perfil.
+
+En términos de trazabilidad, el comportamiento observado fue favorable. El 100 % de las recomendaciones utilizó referencias correspondientes a fragmentos realmente recuperados y la trazabilidad semántica estricta alcanzó el 98,3 %. Esto indica que el principal problema detectado no corresponde a una generación de información sin respaldo documental, sino a la selección y priorización de la información utilizada para construir la respuesta.
+
+El proceso de recuperación presentó un Hit Rate@5 del 85 %, lo que evidencia que en la mayoría de los casos se logró recuperar al menos un fragmento directamente relacionado con los factores prioritarios. Sin embargo, la Precision@5 promedio fue del 35 %. Esto significa que varios de los fragmentos restantes del Top-5 correspondían a contenidos generales o a temas secundarios que no necesariamente estaban relacionados con los principales factores SHAP del caso.
+
+Durante la evaluación se observó especialmente una alta presencia de fragmentos provenientes de documentación relacionada con hipertensión arterial, medición de presión, seguimiento clínico y protocolos de tratamiento. Este comportamiento apareció incluso en casos donde los principales factores estaban relacionados con tabaquismo, actividad física, consumo de alcohol o peso corporal. Como consecuencia, el modelo generador podía encontrar recomendaciones válidas dentro de estos fragmentos y utilizarlas en la respuesta, aunque no fueran prioritarias para el perfil analizado.
+
+Este comportamiento explica la tasa de respuestas fuera de alcance del 65 %. Sin embargo, dicha métrica debe interpretarse junto con la distribución de severidad: el 40 % de todos los casos presentó únicamente desviaciones menores y no se identificaron desviaciones críticas. En estos casos, las recomendaciones adicionales generalmente estaban respaldadas por el corpus, pero correspondían a factores secundarios o no prioritarios.
+
+Un ejemplo de este comportamiento se presentó en casos donde el tabaquismo o la inactividad física constituían los principales factores de aumento según SHAP. El sistema generaba correctamente recomendaciones relacionadas con estos factores, pero posteriormente podía añadir una recomendación sobre medición de presión arterial debido a que este contenido también se encontraba entre los fragmentos recuperados.
+
+Otro hallazgo relevante fue el comportamiento frente a factores no modificables. En escenarios donde los factores principales correspondían únicamente a variables como edad, sexo o estatura, el sistema mostró tendencia a generar recomendaciones preventivas relacionadas con otros factores en lugar de limitar la respuesta o utilizar el indicador `insufficient_information`. Estos casos evidenciaron la necesidad de incorporar reglas explícitas para diferenciar factores accionables y no accionables antes de realizar la generación.
+
+En contraste, la cobertura SHAP accionable alcanzó el 100 % en los casos aplicables. Esto indica que cuando existía un factor modificable con dirección de aumento —como presión arterial, tabaquismo, actividad física, consumo de alcohol o peso/IMC— el proceso de recuperación logró encontrar al menos un fragmento pertinente relacionado con dicho factor. Por lo tanto, la principal oportunidad de mejora no consiste únicamente en recuperar más información, sino en aumentar la precisión y diversidad de los fragmentos seleccionados.
+
+A partir de estos resultados se identificaron tres líneas principales de mejora para una siguiente iteración del componente RAG: restringir la generación a factores SHAP accionables, mejorar la construcción de las consultas enviadas al almacén vectorial y añadir mecanismos de validación posteriores a la generación que impidan que recomendaciones relacionadas con factores no prioritarios sean entregadas al usuario.
+
+Estos ajustes serán evaluados utilizando el mismo conjunto de 20 casos de prueba, permitiendo comparar directamente el comportamiento de la versión actual con una versión posterior del componente RAG.
+
 ## 15. Plan de cierre hacia la entrega final
 
 Describe las actividades restantes, prioridades, riesgos y estrategia de cierre para completar el proyecto en las semanas finales.
 
+###  Plan de cierre del RAG
+
+Como parte del cierre del proyecto, el componente RAG requiere una nueva iteración orientada principalmente a aumentar la precisión de la recuperación y reducir las respuestas fuera del alcance esperado. La primera prioridad será modificar la construcción de las consultas de recuperación para que los factores SHAP accionables tengan mayor peso en la selección de los fragmentos documentales.
+
+La segunda prioridad será incorporar reglas que permitan diferenciar explícitamente factores modificables y no modificables antes de generar recomendaciones. Cuando el perfil no proporcione factores accionables respaldados adecuadamente por el corpus, el sistema deberá utilizar el mecanismo de información insuficiente en lugar de introducir recomendaciones relacionadas con variables secundarias.
+
+Finalmente, se incorporará una validación posterior a la generación destinada a comprobar que las recomendaciones correspondan con los factores prioritarios y que las fuentes declaradas respalden semánticamente el contenido generado. Una vez aplicados estos cambios, se repetirá la evaluación sobre los mismos 20 casos para determinar si disminuye la tasa de respuestas fuera de alcance y aumenta la Precision@5 sin comprometer la trazabilidad y cobertura ya alcanzadas.
+
 ## 16. Referencias
 
-American College of Cardiology. (s. f.). *CVD Risk Estimator Plus*. https://www.acc.org/CVDPlus
+American College of Cardiology. (2026). *CVD Risk Estimator Plus*. https://www.acc.org/CVDPlus
 
-American Heart Association. (s. f.). *PREVENT calculator*. https://professional.heart.org/en/guidelines-and-statements/about-prevent-calculator
+American Heart Association. (2026). *Predicting Risk of cardiovascular disease EVENTs (PREVENT) calculator*. https://professional.heart.org/en/guidelines-and-statements/about-prevent-calculator
 
-Canadian Cancer Society. (s. f.). *FRS*. https://ccs.ca/frs/
+Ansari, Z. A., Khan, W., Ansari, M. S. H., Fatima, S., & Siddiqui, S. (2026). Dual explainability framework for heart disease prediction using LIME and permutation feature importance. *Discover Applied Sciences, 8*, 19. https://doi.org/10.1007/s42452-025-08108-5
 
-QRISK. (s. f.). *QRISK3-lifetime cardiovascular risk calculator*. https://qrisk.org/lifetime/
+Canadian Cardiovascular Society. (2024). *Framingham Risk Score (FRS) calculator*. https://ccs.ca/frs/
 
+Chen, B., Ruan, L., Yang, L., Zhang, Y., Lu, Y., Sang, Y., Jin, X., Bai, Y., Zhang, C., & Li, T. (2022). Machine learning improves risk stratification of coronary heart disease and stroke. *Annals of Translational Medicine, 10*(21), 1156. https://doi.org/10.21037/atm-22-1916
+
+D’Agostino, R. B., Sr., Vasan, R. S., Pencina, M. J., Wolf, P. A., Cobain, M., Massaro, J. M., & Kannel, W. B. (2008). General cardiovascular risk profile for use in primary care: The Framingham Heart Study. *Circulation, 117*(6), 743–753. https://doi.org/10.1161/CIRCULATIONAHA.107.699579
+
+Endeavour Predict CIC. (2026). *QRISK3-lifetime cardiovascular risk calculator*. https://qrisk.org/lifetime/
+
+European Society of Cardiology. (2026). *HeartScore*. https://www.heartscore.org/en_GB
+
+Goff, D. C., Jr., Lloyd-Jones, D. M., Bennett, G., Coady, S., D’Agostino, R. B., Sr., Gibbons, R., Greenland, P., Lackland, D. T., Levy, D., O’Donnell, C. J., Robinson, J. G., Schwartz, J. S., Shero, S. T., Smith, S. C., Jr., Sorlie, P., Stone, N. J., & Wilson, P. W. F. (2014). 2013 ACC/AHA guideline on the assessment of cardiovascular risk: A report of the American College of Cardiology/American Heart Association Task Force on Practice Guidelines. *Journal of the American College of Cardiology, 63*(25 Pt B), 2935–2959. https://doi.org/10.1016/j.jacc.2013.11.005
+
+Hippisley-Cox, J., Coupland, C., & Brindle, P. (2017). Development and validation of QRISK3 risk prediction algorithms to estimate future risk of cardiovascular disease: Prospective cohort study. *BMJ, 357*, j2099. https://doi.org/10.1136/bmj.j2099
+
+Khan, S. S., Matsushita, K., Sang, Y., Ballew, S. H., Grams, M. E., Surapaneni, A., Blaha, M. J., Carson, A. P., Chang, A. R., Ciemins, E., Go, A. S., Gutierrez, O. M., Hwang, S.-J., Jassal, S. K., Kovesdy, C. P., Lloyd-Jones, D. M., Shlipak, M. G., Palaniappan, L. P., Sperling, L., … Coresh, J. (2024). Development and validation of the American Heart Association’s PREVENT equations. *Circulation, 149*(6), 430–449. https://doi.org/10.1161/CIRCULATIONAHA.123.067626
+
+Mienye, I. D., Obaido, G., Jere, N., Mienye, E., Aruleba, K., Emmanuel, I. D., & Ogbuokiri, B. (2024). A survey of explainable artificial intelligence in healthcare: Concepts, applications, and challenges. *Informatics in Medicine Unlocked, 51*, 101587. https://doi.org/10.1016/j.imu.2024.101587
+
+Rosenbacke, R., Melhus, Å., McKee, M., & Stuckler, D. (2024). How explainable artificial intelligence can increase or decrease clinicians’ trust in AI applications in health care: Systematic review. *JMIR AI, 3*, e53207. https://doi.org/10.2196/53207
+
+Salah, H., & Srinivas, S. (2022). Explainable machine learning framework for predicting long-term cardiovascular disease risk among adolescents. *Scientific Reports, 12*(1), 21812. https://doi.org/10.1038/s41598-022-25933-5
+
+SCORE2 Working Group & ESC Cardiovascular Risk Collaboration. (2021). SCORE2 risk prediction algorithms: New models to estimate 10-year risk of cardiovascular disease in Europe. *European Heart Journal, 42*(25), 2439–2454. https://doi.org/10.1093/eurheartj/ehab309
+
+Zhu, X.-Y., Li, W., Pan, X.-Y., Li, T., & Yuan, G.-L. (2026). Explainable machine learning for long-term cardiovascular disease risk prediction in Chinese middle-aged and older adults: A 9-year longitudinal cohort study with web-based risk calculator. *Scientific Reports, 16*, 14998. https://doi.org/10.1038/s41598-026-45297-4
+
+Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel, T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. Advances in Neural Information Processing Systems, 33. [https://arxiv.org/abs/2005.11401](https://arxiv.org/abs/2005.11401)
+
+Reimers, N., & Gurevych, I. (2019). Sentence-BERT: Sentence embeddings using Siamese BERT-networks. Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing. [https://doi.org/10.18653/v1/D19-1410](https://doi.org/10.18653/v1/D19-1410)
+
+Sentence Transformers. (s. f.). Semantic search. [https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html](https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html)
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo alimentarse mejor*. https://www.heart.org/eatsmart 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el azúcar en la sangre*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el colesterol*. https://www.heart.org/cholesterol 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar la presión arterial*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dejar el tabaco y los productos de nicotina*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dormir lo suficiente*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo mantener un peso saludable*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo ser más activo*. https://www.heart.org/lifes8 
+
+American Heart Association. (s.f.). *Respuestas del corazón: Estilo de vida + Reducción de factores de riesgos - ¿Cómo puedo perder peso?*. https://www.heart.org/RespuestasDelCorazon 
+
+American Heart Association. (s.f.). *Respuestas del corazón: Estilo de vida + Reducción de riesgos Presión arterial alta - ¿Qué es la presión arterial alta?*. https://www.heart.org/AnswersByHeart 
+
+American Heart Association. (s.f.). *Respuestas del corazón: Estilo de vida + Riesgo reducción Dieta + Nutrición - ¿Cómo puedo seguir un patrón de alimentación saludable?*. https://www.heart.org/RespuestasDelCorazon 
+
+American Heart Association. (s.f.). *Respuestas del corazón: Estilo de vida + Riesgo reducción Fumar - ¿Cómo dejo de fumar?*. https://www.heart.org/RespuestasDelCorazon 
+
+Organización Panamericana de la Salud. (2024). *HEARTS en las Américas: Compendio de herramientas clínicas esenciales 2023* (Código: OPS/NMH/NV/24-0002). OPS. 
+
+Brier, G. W. (1950). Verification of forecasts expressed in terms of probability. *Monthly Weather Review, 78*(1), 1–3. https://doi.org/10.1175/1520-0493(1950)078%3C0001:VOFEIT%3E2.0.CO;2
+
+Chen, T., & Guestrin, C. (2016). XGBoost: A scalable tree boosting system. *Proceedings of the 22nd ACM SIGKDD International Conference on Knowledge Discovery and Data Mining*, 785–794. https://doi.org/10.1145/2939672.2939785
+
+Docker. (s. f.). *What is a container?* Docker Docs. https://docs.docker.com/get-started/docker-concepts/the-basics/what-is-a-container/
+
+Fawcett, T. (2006). An introduction to ROC analysis. *Pattern Recognition Letters, 27*(8), 861–874. https://doi.org/10.1016/j.patrec.2005.10.010
+
+Fielding, R. T. (2000). *Architectural styles and the design of network-based software architectures* [Doctoral dissertation, University of California, Irvine]. https://ics.uci.edu/~fielding/pubs/dissertation/top.htm
+
+Google Cloud. (2024). *MLOps: Continuous delivery and automation pipelines in machine learning*. https://cloud.google.com/architecture/mlops-continuous-delivery-and-automation-pipelines-in-machine-learning
+
+Lundberg, S. M., & Lee, S.-I. (2017). A unified approach to interpreting model predictions. *Advances in Neural Information Processing Systems, 30*. https://arxiv.org/abs/1705.07874
+
+MLflow. (s. f.). *MLflow Tracking*. MLflow Documentation. https://mlflow.org/docs/latest/ml/tracking/
+
+Organización Mundial de la Salud. (2025). *Cardiovascular diseases (CVDs)*. https://www.who.int/news-room/fact-sheets/detail/cardiovascular-diseases-(cvds)
+
+Ulianova, S. (s. f.). *Cardiovascular Disease Dataset*. Kaggle. https://www.kaggle.com/datasets/sulianova/cardiovascular-disease-dataset
