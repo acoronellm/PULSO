@@ -1,0 +1,26 @@
+USER_PROFILES = [
+    {
+        "gender": 1,
+        "height": 172,
+        "weight": 72,
+        "ap_hi": 120,
+        "ap_lo": 80,
+        "smoke": 0,
+        "alco": 0,
+        "active": 1,
+        "age_years": 50,
+        "bmi": 24.34,
+    },
+    {
+        "gender": 2,
+        "height": 165,
+        "weight": 62,
+        "ap_hi": 115,
+        "ap_lo": 75,
+        "smoke": 0,
+        "alco": 0,
+        "active": 1,
+        "age_years": 45,
+        "bmi": 22.77,
+    },
+]

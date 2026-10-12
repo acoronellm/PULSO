@@ -28,3 +28,6 @@ artifacts/
 __pycache__/
 .pytest_cache/
 .venv/
+
+tests/performance/results/*.csv
+tests/performance/results/**/*.csv
