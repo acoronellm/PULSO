@@ -551,48 +551,125 @@ Por estas razones, la arquitectura modular orientada a servicios contenerizados 
 
 ## 10. Diseño y arquitectura
 
-Explica cómo se estructura la solución a nivel conceptual y técnico.
+PULSO se estructura como una solución de tipo cliente-servidor, con una organización modular orientada a servicios y una clara separación de responsabilidades entre la capa de interacción, la lógica de negocio y las funcionalidades de análisis predictivo, explicabilidad y recomendación. Esta elección responde a la necesidad de mantener una base tecnológica manejable para el MVP, pero al mismo tiempo preparar una evolución gradual del sistema hacia un modelo más escalable y tolerante a fallos.
+
+La arquitectura propuesta no responde a un monolito rígido ni a una infraestructura compleja de microservicios, sino a una solución intermedia: un conjunto de componentes funcionales bien definidos, desplegables de manera independiente y conectados mediante interfaces claras. Esta opción es coherente con la alternativa seleccionada previamente, en la que se prioriza un equilibrio entre desempeño, desacoplamiento, facilidad de mantenimiento y complejidad operativa.
 
 ### 10.1 Descripción general de la arquitectura
 
-**Objetivo:** que el lector entienda cómo está pensado el sistema antes de ver cualquier representación visual.
+La solución se organiza en capas con un flujo de información claro y repetible. El usuario interactúa con una interfaz web para ingresar sus datos y consultar el resultado del análisis, mientras el backend actúa como punto central de coordinación. El backend no solo procesa las solicitudes del frontend, sino que también valida los datos entrantes, normaliza la información, orquesta llamadas a servicios especializados y entrega una respuesta consolidada al cliente.
 
-Debe incluir:
+En esta lógica, el componente de Machine Learning queda encapsulado en un servicio independiente que asume la inferencia del riesgo cardiovascular. De manera complementaria, la explicabilidad mediante SHAP se gestiona como un servicio especializado que interpreta la predicción y resalta los factores más influyentes. El componente de RAG y recomendaciones se conecta con bases de conocimiento médico para contextualizar la salida del modelo y presentar información orientada a la prevención y la comprensión del usuario.
 
-- Tipo de arquitectura (cliente-servidor, basada en Backend as a Service, etc.).
-- Enfoque general de la solución.
-- Relación con la alternativa seleccionada previamente.
+La persistencia se apoya en Supabase, que ofrece almacenamiento estructurado mediante PostgreSQL y soporte para vector search con pgvector. Este servicio permite registrar información útil para la aplicación, mantener trazabilidad y apoyar futuras extensiones del sistema sin duplicar lógica en la capa de frontend o de negocio.
+
+En este sentido, la arquitectura no solo satisface el objetivo funcional inmediato del MVP, sino que también deja abierta la posibilidad de crecer de forma progresiva. Si el sistema aumenta su demanda o se incorporan nuevas funcionalidades, cada servicio puede modificarse, escalarse o reemplazarse sin afectar necesariamente el conjunto completo de la plataforma.
 
 ### 10.2 Componentes del sistema
 
-Deben identificarse y explicarse:
+Los componentes principales del sistema son los siguientes:
 
-- **Componentes principales** del sistema (frontend, backend, base de datos, servicios externos).
-- **Responsabilidad** de cada uno.
-- **Relación con los requerimientos** del sistema.
+- Frontend web: es la capa de interacción con el usuario. Permite ingresar datos clínicos, visualizar resultados, consultar explicaciones y ejecutar simulaciones de escenarios. Su función principal es ofrecer una experiencia clara, accesible y comprensible para personas no especializadas.
+- NGINX / reverse proxy: actúa como punto de entrada público y centraliza el acceso externo. Facilita el enrutamiento de solicitudes hacia el backend y ayuda a limitar la exposición directa de los servicios internos.
+- Backend / API: se encarga de la lógica de negocio del sistema. Recibe las solicitudes del cliente, valida el payload, coordina la comunicación con los servicios de análisis y entrega una respuesta unificada.
+- ML Service: encapsula la inferencia del modelo predictivo. Recibe los datos del usuario, aplica el modelo entrenado y devuelve la probabilidad de riesgo y la clasificación asociada.
+- SHAP / explicabilidad: ofrece una explicación local de la predicción. Su función es mostrar qué variables influyen en la decisión del modelo y en qué dirección lo hacen.
+- Simulación: permite variar parámetros modificables como el peso, la presión arterial o la actividad física para observar cómo cambia el riesgo estimado en distintos escenarios.
+- RAG / recomendaciones: trabaja con una base de conocimiento médica para generar respuestas y recomendaciones en lenguaje comprensible, reforzando la interpretación del resultado obtenido.
+- Supabase: brinda almacenamiento persistente en PostgreSQL y soporte para consultas vectoriales con pgvector. Sirve como capa de datos para registros, resultados y posibles auditorías del sistema.
+- MLOps y versionado: MLflow, GitHub Actions y el versionado del modelo permiten mantener trazabilidad, reproducibilidad y control del pipeline de Machine Learning.
 
-Esta parte debe terminar con el **diagrama de arquitectura del sistema**.
+Estos componentes se relacionan directamente con los requerimientos del proyecto. El frontend cubre la interacción con el usuario; el backend garantiza la coordinación y validación; el servicio de ML ofrece la predicción; SHAP soporta la explicación interpretativa; el RAG aporta recomendaciones y contexto; y Supabase asegura la persistencia de la información.
+
+```mermaid
+flowchart LR
+    U[Usuario] --> F[Frontend React + Vite]
+    F --> N[NGINX]
+    N --> B[Backend FastAPI]
+    B --> M[ML Service]
+    B --> RAG[RAG / recomendaciones]
+    B --> S[Supabase]
+    M --> MOD[Modelo entrenado]
+    M --> SHAP[SHAP / explicabilidad]
+    M --> SIM[Simulación]
+    RAG --> KB[Base de conocimiento médica]
+    MOD --> MLF[MLflow / versionado]
+```
 
 ### 10.3 Interacción entre módulos
 
-Debe explicarse:
+La interacción entre módulos se diseña con un nivel de acoplamiento moderado-bajo. El frontend no comunica directamente con el servicio de inferencia ni con la base de conocimiento. En cambio, accede al backend a través de una API y recibe respuestas ya estructuradas y procesadas. Esta decisión centraliza la validación, el control del flujo y la lógica de integración, reduciendo la dependencia directa entre las interfaces de usuario y los componentes computacionalmente más pesados.
 
-- Cómo se comunican los componentes.
-- Flujos de datos.
-- Dependencias.
-- Nivel de acoplamiento.
+El flujo general de datos puede resumirse de la siguiente manera:
 
-Esta parte debe terminar con el **diagrama de interacción entre módulos**.
+1. El usuario introduce datos clínicos mediante el frontend.
+2. La solicitud se envía al backend a través de la API.
+3. El backend valida y normaliza la información recibida.
+4. Se invoca el servicio de Machine Learning para estimar el riesgo cardiovascular.
+5. Si el usuario solicita una explicación, se activa SHAP para describir los factores más relevantes.
+6. Si el contexto médico resulta necesario, el backend consulta el servicio RAG para obtener recomendaciones y orientaciones en lenguaje sencillo.
+7. La respuesta final se consolida en una estructura única y se envía al frontend.
+8. Los resultados relevantes pueden persistirse en Supabase para trazabilidad, registro o análisis posterior.
+
+Este esquema presenta varias ventajas. En primer lugar, permite separar de forma clara la lógica de negocio de la experiencia del usuario. En segundo lugar, reduce el acoplamiento entre componentes al depender de contratos de entrada y salida definidos, en lugar de de implementaciones internas concretas. En tercer lugar, facilita el trabajo paralelo del equipo, ya que cada servicio puede desarrollarse y validarse de manera independiente, siempre que se respeten los formatos de intercambio acordados.
+
+El acoplamiento más fuerte se presenta entre el backend y los servicios especializados, dado que el orquestador debe coordinar llamadas, manejar errores parciales y consolidar resultados. Sin embargo, este nivel de dependencia es controlado y no implica una integración rígida entre elementos del front o del ML, por lo que la arquitectura mantiene un grado adecuado de flexibilidad para un proyecto en evolución.
+
+```mermaid
+flowchart TD
+    A[Frontend] -->|HTTP /predict| B[Backend API]
+    B -->|valida + normaliza| C[Datos de entrada]
+    B -->|invoca| D[ML Service]
+    D -->|probabilidad + riesgo| B
+    B -->|si aplica| E[SHAP]
+    E -->|factores relevantes| B
+    B -->|si aplica| F[RAG]
+    F -->|recomendaciones| B
+    B -->|persistencia| G[Supabase]
+    B -->|JSON respuesta| A
+```
 
 ### 10.4 Comportamiento
 
-Debe explicarse cómo se comportan los componentes, describiendo las principales secuencias de la arquitectura y respondiendo preguntas como:
+El comportamiento general de la arquitectura refleja una secuencia lógica y eficiente para la evaluación del riesgo cardiovascular. El flujo principal evita pasos redundantes: el sistema calcula la predicción una sola vez, ejecuta la explicación solo cuando es requerida y recurre al servicio RAG únicamente para complementar el resultado con conocimiento médico y recomendaciones. Esto permite limitar la latencia innecesaria y preservar la claridad del proceso para el usuario final.
 
-- ¿El flujo es eficiente? (latencia, pasos innecesarios).
-- ¿Existen cuellos de botella?
-- ¿La interacción refleja buen desacoplamiento?
+No obstante, existen dos puntos importantes a considerar. El primero corresponde al costo computacional de la predicción y la explicabilidad, especialmente cuando SHAP requiere evaluar la contribución de variables en un modelo complej. El segundo es la posible latencia asociada a la recuperación de información y generación de recomendaciones en el componente RAG, si la base de conocimiento es extensa o si se aplican consultas complejas. Aun así, estos efectos no representan un problema crítico para el MVP, ya que la carga esperada es moderada y la arquitectura contempla la separación funcional de cada servicio para mitigar ese impacto.
 
-En esta parte se utilizan **diagramas de secuencia**.
+La arquitectura refleja además un buen nivel de desacoplamiento y mantenimiento. Cada componente tiene una responsabilidad claramente definida: NGINX atiende el acceso externo, el frontend ofrece la experiencia visual, el backend coordina las operaciones, el servicio ML calcula el riesgo, SHAP interpreta la salida, RAG contextualiza la recomendación y Supabase gestiona la persistencia. Esta estructura permite realizar mejoras o sustituciones parciales sin recurrir a una reestructuración completa del sistema.
+
+La secuencia de ejecución del sistema puede resumirse de la siguiente manera:
+
+```mermaid
+sequenceDiagram
+    participant U as Usuario
+    participant F as Frontend
+    participant N as NGINX
+    participant B as Backend API
+    participant M as ML Service
+    participant SH as SHAP
+    participant R as RAG
+    participant DB as Supabase
+
+    U->>F: Ingresa variables clínicas
+    F->>N: Solicitud HTTP
+    N->>B: Redirige al backend
+    B->>B: Valida y normaliza datos
+    B->>M: Ejecuta predicción
+    M-->>B: Probabilidad y clasificación
+    alt requiere explicación
+        B->>SH: Calcula factores relevantes
+        SH-->>B: Top features con SHAP
+    end
+    alt requiere recomendación
+        B->>R: Consulta base de conocimiento
+        R-->>B: Recomendaciones clínicas simplificadas
+    end
+    B->>DB: Guarda resultado o historial
+    B-->>F: Respuesta final JSON
+    F-->>U: Muestra riesgo, explicación y recomendaciones
+```
+
+En conjunto, la arquitectura propuesta resulta adecuada para el alcance del proyecto. Mantiene la solución comprensible y viable para un MVP académico, favorece la evolución incremental del sistema y permite incorporar nuevos servicios o mejoras funcionales sin comprometer la estabilidad general del producto. Para PULSO, esta organización representa un equilibrio razonable entre funcionalidad, escalabilidad, mantenibilidad y complejidad operativa.
 
 ## 11. Implementación y avance actual
 
