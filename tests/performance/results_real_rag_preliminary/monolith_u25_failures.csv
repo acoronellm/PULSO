@@ -1,0 +1,2 @@
+Method,Name,Error,Occurrences,First Seen,Last Seen
+POST,/api/analyze,"CatchResponseError('HTTP 502: {""detail"":""El servicio RAG devolvió una respuesta que no es JSON válido.""}')",4077,2026-10-12T23:10:51Z,2026-10-12T23:17:47Z
