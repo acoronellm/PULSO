@@ -551,13 +551,31 @@ La principal diferencia entre las alternativas corresponde al grado de separaci�
 
 ### 9.1. Desempeño bajo la carga esperada
 
-La evaluación del desempeño considera la latencia de las solicitudes, la capacidad de procesamiento y el comportamiento de la plataforma ante solicitudes concurrentes.
+La evaluación se realizó con Locust durante 420 segundos por escenario, utilizando 1, 5, 10, 25 y 50 usuarios concurrentes. Las tres alternativas utilizaron los mismos endpoints (`POST /api/analyze` y `POST /api/simulate`) y el mismo RAG mock, con el fin de controlar la variabilidad del proveedor externo. La fila `Aggregated` de los archivos `*_stats.csv` combina ambos endpoints y se utiliza para la comparación global. Por tanto, `/api/analyze` representa el flujo consolidado de predicción, SHAP y RAG mock; no se midieron por separado los tiempos internos de cada etapa.
+
+| Arquitectura | Usuarios | Solicitudes | Error | Req/s | p50 (ms) | p95 (ms) | p99 (ms) | Máx. (ms) |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Monolítica | 1 | 254 | 0 % | 0,61 | 130 | 190 | 250 | 762 |
+| Monolítica | 5 | 1.266 | 0 % | 3,02 | 130 | 260 | 360 | 673 |
+| Monolítica | 10 | 2.494 | 0 % | 5,96 | 140 | 340 | 520 | 678 |
+| Monolítica | 25 | 5.715 | 0 % | 13,65 | 270 | 740 | 1.100 | 1.487 |
+| Monolítica | 50 | 8.166 | 0 % | 19,51 | 1.100 | 1.800 | 2.100 | 2.470 |
+| Orientada a servicios | 1 | 253 | 0 % | 0,61 | 140 | 220 | 270 | 278 |
+| Orientada a servicios | 5 | 1.291 | 0 % | 3,09 | 120 | 200 | 240 | 283 |
+| Orientada a servicios | 10 | 2.531 | 0 % | 6,05 | 120 | 250 | 330 | 508 |
+| Orientada a servicios | 25 | 6.027 | 0 % | 14,37 | 190 | 510 | 720 | 1.108 |
+| Orientada a servicios | 50 | 9.507 | 0 % | 22,68 | 720 | 1.200 | 1.500 | 2.055 |
+| Microservicios | 1 | 242 | 0 % | 0,58 | 230 | 340 | 500 | 3.957 |
+| Microservicios | 5 | 1.232 | 0 % | 2,94 | 170 | 320 | 410 | 512 |
+| Microservicios | 10 | 2.457 | 0 % | 5,87 | 170 | 360 | 450 | 610 |
+| Microservicios | 25 | 5.773 | 0 % | 13,78 | 280 | 620 | 940 | 2.118 |
+| Microservicios | 50 | 7.620 | 0 % | 18,18 | 1.400 | 2.100 | 2.500 | 3.082 |
+
+No se registraron fallos en las solicitudes de los 15 escenarios: los archivos de fallos y excepciones no contienen ocurrencias y el error observado fue de 0 % en todos los casos. Esto no equivale a una garantía de disponibilidad en producción, sino únicamente al resultado de estas corridas controladas.
 
 #### Arquitectura monolítica modular contenerizada
 
-La arquitectura monolítica modular concentra el backend, Machine Learning, SHAP, simulaciones y RAG en una única aplicación. Esto permite que los diferentes módulos se comuniquen directamente dentro del mismo proceso, reduciendo la sobrecarga asociada a la comunicación entre servicios.
-
-Esta característica puede favorecer una menor latencia en las comunicaciones internas. Sin embargo, los diferentes módulos comparten los mismos recursos computacionales, por lo que una funcionalidad que requiera mayor capacidad de procesamiento puede afectar el rendimiento de las demás funcionalidades.
+La arquitectura monolítica obtuvo la menor latencia con 1 usuario (p95 de 190 ms), pero su degradación fue más pronunciada al aumentar la carga: el p95 pasó a 740 ms con 25 usuarios y a 1.800 ms con 50. En este último escenario alcanzó 19,51 solicitudes/s y utilizó aproximadamente 210,4 MiB de RAM promedio, con un máximo de 212,8 MiB. Su CPU promedio llegó a 74,53 % y el máximo registrado fue 116,24 %. Estos resultados muestran un menor costo de memoria, pero también una mayor concentración de la carga en un solo proceso.
 
 #### Arquitectura modular orientada a servicios contenerizados
 
