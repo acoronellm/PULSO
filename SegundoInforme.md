@@ -708,18 +708,38 @@ Los componentes principales del sistema son los siguientes:
 Estos componentes se relacionan directamente con los requerimientos del proyecto. El frontend cubre la interacción con el usuario; el backend garantiza la coordinación y validación; el servicio de ML ofrece la predicción; SHAP soporta la explicación interpretativa; el RAG aporta recomendaciones y contexto; y Supabase asegura la persistencia de la información.
 
 ```mermaid
-flowchart LR
-    U[Usuario] --> F[Frontend React + Vite]
-    F --> N[NGINX]
-    N --> B[Backend FastAPI]
-    B --> M[ML Service]
-    B --> RAG[RAG / recomendaciones]
-    B --> S[Supabase]
-    M --> MOD[Modelo entrenado]
-    M --> SHAP[SHAP / explicabilidad]
-    M --> SIM[Simulación]
-    RAG --> KB[Base de conocimiento médica]
-    MOD --> MLF[MLflow / versionado]
+flowchart TB
+    U[Usuario / navegador]
+    N[NGINX<br/>Reverse proxy]
+    F[Frontend<br/>React + Vite]
+    B[Backend / API<br/>FastAPI]
+    M[ML Service<br/>FastAPI]
+    MOD[Modelo PULSO v1<br/>XGBoost]
+    SHAP[Explicabilidad<br/>SHAP]
+    SIM[Simulación<br/>escenarios hipotéticos]
+    RAG[RAG Service<br/>workflow n8n]
+    DB[(Supabase<br/>PostgreSQL + pgvector)]
+    EMB[Embeddings y fragmentos<br/>del corpus documental]
+    GEM[Modelo generativo<br/>Google Gemini]
+    OPS[MLflow + GitHub Actions<br/>versionado y CI]
+
+    U --> N
+    N --> F
+    N --> B
+    F -->|solicitudes y resultados| B
+    B -->|datos del usuario| M
+    M --> MOD
+    MOD --> SHAP
+    M --> SIM
+    M -->|predicción + SHAP| B
+    B -->|prediction + user_data + shap| RAG
+    RAG -->|búsqueda semántica| DB
+    DB -->|top-k fragmentos + metadatos| RAG
+    RAG -->|contexto documental| GEM
+    GEM -->|resumen + recomendaciones| RAG
+    RAG -->|respuesta RAG + fuentes| B
+    EMB -->|fragmentos vectorizados| DB
+    MOD -.-> OPS
 ```
 
 ### Componente RAG
@@ -806,17 +826,28 @@ Este esquema presenta varias ventajas. En primer lugar, permite separar de forma
 El acoplamiento más fuerte se presenta entre el backend y los servicios especializados, dado que el orquestador debe coordinar llamadas, manejar errores parciales y consolidar resultados. Sin embargo, este nivel de dependencia es controlado y no implica una integración rígida entre elementos del front o del ML, por lo que la arquitectura mantiene un grado adecuado de flexibilidad para un proyecto en evolución.
 
 ```mermaid
-flowchart TD
-    A[Frontend] -->|HTTP /predict| B[Backend API]
-    B -->|valida + normaliza| C[Datos de entrada]
-    B -->|invoca| D[ML Service]
-    D -->|probabilidad + riesgo| B
-    B -->|si aplica| E[SHAP]
-    E -->|factores relevantes| B
-    B -->|si aplica| F[RAG]
-    F -->|recomendaciones| B
-    B -->|persistencia| G[Supabase]
-    B -->|JSON respuesta| A
+flowchart LR
+    U[Usuario] --> F[Frontend React]
+    F -->|interacción web| N[NGINX<br/>Reverse proxy]
+    N -->|Ruta /| F
+    N -->|Ruta /api| B[Backend FastAPI]
+    F -->|solicitud de análisis| N
+    B -->|valida y normaliza| D[Datos del usuario]
+    D -->|POST /predict| M[ML Service]
+    M -->|PULSO v1<br/>XGBoost| P[Predicción]
+    M -->|explicación local| S[SHAP]
+    M -->|escenario modificado| SI[Simulación]
+    P -->|probability + classification<br/>+ threshold 0.38| B
+    S -->|top_factors| B
+    SI -->|comparación original/simulado| B
+    B -->|prediction + user_data + shap| R[RAG workflow n8n]
+    R -->|búsqueda semántica| DB[(Supabase<br/>PostgreSQL + pgvector)]
+    DB -->|top-k fragmentos + metadatos| R
+    R -->|contexto recuperado| G[Google Gemini]
+    G -->|resumen y recomendaciones| R
+    R -->|respuesta RAG + fuentes| B
+    B -->|respuesta consolidada JSON| N
+    N --> F
 ```
 
 ### 10.4 Comportamiento
@@ -836,25 +867,25 @@ sequenceDiagram
     participant N as NGINX
     participant B as Backend API
     participant M as ML Service
-    participant SH as SHAP
-    participant R as RAG
-    participant DB as Supabase
+    participant R as RAG n8n
+    participant DB as Supabase / pgvector
+    participant G as Gemini
 
     U->>F: Ingresa variables clínicas
-    F->>N: Solicitud HTTP
+    F->>N: Solicitud POST /api/analyze
     N->>B: Redirige al backend
     B->>B: Valida y normaliza datos
-    B->>M: Ejecuta predicción
-    M-->>B: Probabilidad y clasificación
-    alt requiere explicación
-        B->>SH: Calcula factores relevantes
-        SH-->>B: Top features con SHAP
-    end
-    alt requiere recomendación
-        B->>R: Consulta base de conocimiento
-        R-->>B: Recomendaciones clínicas simplificadas
-    end
-    B->>DB: Guarda resultado o historial
+    B->>M: Envía user_data
+    M->>M: Ejecuta PULSO v1 y aplica threshold 0.38
+    M->>M: Calcula SHAP y simulación cuando corresponde
+    M-->>B: prediction + shap + simulation
+    B->>R: Envía prediction + user_data + shap
+    R->>DB: Búsqueda semántica del corpus
+    DB-->>R: top-k fragmentos y metadatos
+    R->>G: Envía contexto documental
+    G-->>R: Resumen y recomendaciones
+    R-->>B: Respuesta RAG + fuentes
+    B->>DB: Registra resultado si aplica
     B-->>F: Respuesta final JSON
     F-->>U: Muestra riesgo, explicación y recomendaciones
 ```
