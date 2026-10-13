@@ -1566,8 +1566,78 @@ En conjunto, las siete pruebas de integración fueron aprobadas. Los resultados 
 
 <img width="983" height="292" alt="image" src="https://github.com/user-attachments/assets/0f0fd90a-c1b2-44dc-a209-7978ce8aac5b" />
 
+## 13.3 Pruebas de usabilidad
 
-### 13.3 Pruebas de usabilidad
+Con el propósito de evaluar la facilidad de uso y la comprensión de la interfaz de PULSO, se realizó una prueba de usabilidad con cinco participantes. La evaluación se llevó a cabo sobre la versión funcional del frontend, en la cual los usuarios podían completar el formulario de entrada, consultar el resultado generado por el modelo, revisar los factores de mayor influencia, leer las recomendaciones preventivas y utilizar el módulo de simulación.
+
+Después de interactuar con la plataforma, los participantes respondieron seis afirmaciones mediante una escala Likert de cinco niveles. Las categorías fueron definidas de la siguiente manera:
+
+1 = Totalmente en desacuerdo  
+2 = En desacuerdo  
+3 = Ni de acuerdo ni en desacuerdo  
+4 = De acuerdo  
+5 = Totalmente de acuerdo
+
+Adicionalmente, se incluyeron dos preguntas abiertas orientadas a identificar los elementos que generaron mayor confusión y los cambios que los usuarios considerarían útiles para mejorar la experiencia.
+
+### 13.3.1 Resultados cuantitativos
+
+En la afirmación “Fue fácil completar el formulario”, el 60 % de los participantes seleccionó la categoría 5, correspondiente a “Totalmente de acuerdo”, mientras que el 40 % seleccionó la categoría 4, “De acuerdo”. El promedio obtenido fue de 4,6 sobre 5.
+
+<img width="462" height="295" alt="image" src="https://github.com/user-attachments/assets/541e0a5b-a102-477f-8ae5-7236d4ba7ccd" />
+
+
+En la afirmación “Entendí el resultado mostrado por PULSO”, el 60 % de los participantes seleccionó la categoría 4, “De acuerdo”, mientras que el 40 % seleccionó la categoría 2, “En desacuerdo”. El promedio obtenido fue de 3,2 sobre 5.
+
+<img width="470" height="297" alt="image" src="https://github.com/user-attachments/assets/ffbd9801-3f54-4bd1-ae80-82a82dbd0fbd" />
+
+
+En la afirmación “Entendí qué factores influyeron más en el resultado”, el 60 % de los participantes seleccionó la categoría 4 y el 40 % seleccionó la categoría 2. El promedio obtenido fue de 3,2 sobre 5.
+
+<img width="479" height="278" alt="image" src="https://github.com/user-attachments/assets/c5328665-b914-4b15-a90e-145c1547e1be" />
+
+
+En la afirmación “Las recomendaciones fueron claras y fáciles de entender”, el 60 % de los participantes seleccionó la categoría 4, el 20 % seleccionó la categoría 5 y el 20 % seleccionó la categoría 3. El promedio obtenido fue de 4,0 sobre 5.
+
+<img width="474" height="297" alt="image" src="https://github.com/user-attachments/assets/cd922a03-6ecb-449e-93b5-3b162f7095f3" />
+
+
+En la afirmación “La simulación fue fácil de utilizar y comparar”, el 60 % de los participantes seleccionó la categoría 3, “Ni de acuerdo ni en desacuerdo”, mientras que el 40 % seleccionó la categoría 4. El promedio obtenido fue de 3,4 sobre 5.
+
+<img width="461" height="292" alt="image" src="https://github.com/user-attachments/assets/25b6e101-3325-4161-87d2-5d7bcbf0c89e" />
+
+
+Finalmente, en la afirmación “Entendí que PULSO es una herramienta educativa y no reemplaza una consulta médica”, el 100 % de los participantes seleccionó la categoría 5, correspondiente a “Totalmente de acuerdo”. El promedio obtenido fue de 5,0 sobre 5.
+
+<img width="466" height="302" alt="image" src="https://github.com/user-attachments/assets/c9b271b2-bd3c-4894-9f30-5919ad20560f" />
+
+Considerando las seis afirmaciones evaluadas, el promedio general fue de aproximadamente 3,9 sobre 5.
+
+### 13.3.2 Resultados cualitativos
+
+En la pregunta “¿Qué parte de PULSO te resultó más confusa?”, los participantes mencionaron principalmente la simulación, la interpretación del porcentaje mostrado, el concepto de umbral, el uso de terminología relacionada con el modelo y la falta de explicación sobre algunas variables, como la presión sistólica y diastólica.
+
+También se indicó que una persona sin conocimientos previos podría beneficiarse de mayor información contextual, explicaciones adicionales o recursos visuales que faciliten la interpretación de los resultados.
+
+<img width="623" height="392" alt="image" src="https://github.com/user-attachments/assets/66d45351-51f0-4053-9397-7260954dd911" />
+
+
+Ante la pregunta “¿Qué cambiarías para que fuera más fácil de usar?”, los participantes sugirieron mejorar la velocidad de respuesta, mostrar de manera más directa las fuentes utilizadas, mejorar la presentación visual, utilizar colores que permitan diferenciar mejor la información, realizar comparaciones más directas en la simulación, reducir la terminología técnica, explicar las variables de entrada y disminuir la cantidad de desplazamiento vertical necesario para consultar los resultados.
+
+<img width="623" height="356" alt="image" src="https://github.com/user-attachments/assets/818a6bcc-ef47-4d13-9cf7-dd75e6557048" />
+
+A partir de estas respuestas se identificaron como principales oportunidades de mejora:
+
+- explicar de manera más clara qué representa el porcentaje generado por el modelo;
+- incluir una explicación breve del umbral utilizado por PULSO;
+- reducir o complementar la terminología técnica utilizada;
+- agregar ayudas contextuales para variables como presión sistólica y presión diastólica;
+- mejorar la comparación visual entre el resultado original y el escenario simulado;
+- hacer más visibles y accesibles las fuentes utilizadas por el componente RAG;
+- mejorar la jerarquía visual de la interfaz;
+- reducir la cantidad de desplazamiento vertical necesario;
+- evaluar alternativas para disminuir el tiempo de respuesta percibido del análisis.
+
 
 ## 14. Resultados parciales y discusión
 
@@ -1605,7 +1675,33 @@ En conjunto, los resultados respaldan la selección de XGBoost como modelo del M
 
 PULSO se mantiene en todo momento dentro de un alcance de **promoción y prevención (P&P)**. No constituye una herramienta diagnóstica, no reemplaza la valoración de un profesional de la salud y no ha sido clínicamente validado como calculadora de riesgo cardiovascular. Sus resultados deben interpretarse como estimaciones educativas derivadas del comportamiento del modelo sobre las variables disponibles en el conjunto de datos. Por esta razón, tanto la priorización del Recall como el umbral seleccionado deben entenderse como decisiones experimentales propias del diseño del MVP y no como criterios clínicos generalizables.
 
-### 14.2 Resultados y discusión del componente RAG
+### 14.X Discusión de las pruebas de usabilidad
+
+Los resultados de las pruebas de usabilidad muestran que la versión actual de PULSO permite completar las funciones principales del sistema y que los participantes pudieron interactuar con el formulario, consultar los resultados, revisar las recomendaciones y utilizar la simulación. Sin embargo, la evaluación también evidenció diferencias importantes entre la facilidad de uso de la interfaz y la comprensión de algunos conceptos asociados con el modelo.
+
+Uno de los resultados más favorables corresponde al formulario de entrada, que obtuvo un promedio de 4,6 sobre 5. Esto indica que la estructura utilizada para solicitar los datos fue, en términos generales, comprensible y sencilla para los participantes. Este resultado sugiere que el principal problema de usabilidad no se encuentra en el ingreso de información, sino en las etapas posteriores relacionadas con la interpretación de los resultados.
+
+Otro aspecto positivo corresponde a la comprensión del alcance de PULSO. La afirmación relacionada con el carácter educativo de la plataforma obtuvo una valoración de 5,0 sobre 5, con el 100 % de los participantes seleccionando la categoría “Totalmente de acuerdo”. Este resultado es especialmente relevante debido a que PULSO no pretende funcionar como una herramienta de diagnóstico clínico. Por tanto, las advertencias incluidas en la interfaz parecen cumplir adecuadamente la función de comunicar esta limitación.
+
+Las recomendaciones generadas por el componente RAG también obtuvieron una valoración favorable, con un promedio de 4,0 sobre 5. Esto indica que, en términos generales, el contenido preventivo fue comprensible para los usuarios. Sin embargo, las respuestas abiertas muestran que todavía puede mejorarse la presentación de las fuentes y la relación entre las recomendaciones y la evidencia documental utilizada. La solicitud de mostrar enlaces más directos a los documentos recuperados evidencia que la trazabilidad técnica ya implementada podría aprovecharse mejor desde el punto de vista de la experiencia de usuario.
+
+Los resultados más bajos correspondieron a la comprensión del resultado mostrado por PULSO y de los factores que influyeron en él, ambos con un promedio de 3,2 sobre 5. Este hallazgo es importante porque uno de los propósitos centrales de PULSO consiste en mejorar la comprensión de una predicción generada mediante Machine Learning. Las respuestas abiertas permitieron identificar que conceptos como porcentaje, umbral e influencia de los factores todavía utilizan una lógica cercana al funcionamiento interno del modelo y no necesariamente a la forma en que un usuario no especializado interpreta el resultado.
+
+Este resultado muestra que incorporar explicabilidad mediante SHAP no garantiza por sí solo que la explicación sea comprensible. Aunque técnicamente se identifican los factores que más influyeron en la salida del modelo, la interfaz debe transformar esa información en un lenguaje más accesible, evitando presentar conceptos que puedan requerir conocimientos previos de Machine Learning.
+
+La simulación obtuvo un promedio de 3,4 sobre 5. Aunque ningún participante expresó desacuerdo con su facilidad de uso, el 60 % seleccionó una respuesta neutral. Esto sugiere que la funcionalidad puede utilizarse, pero que la comparación entre el escenario original y el escenario simulado todavía no resulta suficientemente evidente. Las observaciones de los participantes coinciden con este resultado, ya que se solicitó una comparación más directa y una representación visual más clara.
+
+Este punto es especialmente relevante porque la simulación constituye una de las funcionalidades diferenciadoras de PULSO. Por tanto, su valor no depende únicamente de que el sistema calcule correctamente una nueva predicción, sino de que el usuario pueda comprender qué cambió, qué variables fueron modificadas y cuál es la diferencia entre ambos escenarios, sin interpretar el resultado como una relación causal o como una garantía clínica.
+
+Las respuestas cualitativas también evidenciaron la necesidad de agregar información contextual. La solicitud de explicar términos como presión sistólica y presión diastólica muestra que incluso variables habituales en contextos cardiovasculares pueden no ser comprensibles para todos los usuarios. Este hallazgo refuerza la necesidad de diseñar PULSO para personas no especializadas y no asumir conocimientos médicos previos.
+
+También se identificaron aspectos de experiencia de usuario que no están directamente relacionados con el modelo, como la cantidad de desplazamiento vertical y el tiempo de respuesta percibido. Estos elementos pueden afectar la percepción general de la plataforma incluso cuando el funcionamiento técnico es correcto. En particular, la latencia asociada al componente RAG puede contribuir a una experiencia menos fluida durante el análisis completo.
+
+En conjunto, las pruebas muestran que PULSO presenta un nivel de usabilidad adecuado para un MVP, pero todavía requiere ajustes orientados principalmente a la comunicación de resultados y a la simplificación de conceptos técnicos. Los resultados sugieren que las próximas iteraciones deberían priorizar la explicación del porcentaje y el umbral, mejorar la presentación de los factores SHAP, reforzar visualmente la comparación de la simulación y proporcionar ayudas contextuales en el formulario.
+
+Finalmente, debido a que la evaluación fue realizada con cinco participantes, los resultados deben considerarse exploratorios y no generalizables a toda la población objetivo. No obstante, fueron suficientes para identificar patrones de dificultad comunes y establecer mejoras concretas para futuras versiones de la interfaz.
+
+### 14.3 Resultados y discusión del componente RAG
 
 Los resultados obtenidos permiten identificar una diferencia importante entre la capacidad del componente RAG para producir respuestas documentalmente respaldadas y su capacidad para recuperar únicamente información pertinente para cada perfil.
 
