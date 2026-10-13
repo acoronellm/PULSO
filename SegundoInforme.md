@@ -1509,6 +1509,64 @@ El análisis individual de cobertura mostró que App.jsx, HealthForm.jsx, Predic
 
 ### 13.2 Pruebas de integración
 
+Las pruebas de integración se realizaron con el propósito de verificar la comunicación correcta entre los principales componentes de PULSO y comprobar que los flujos de información definidos en la arquitectura pudieran ejecutarse de extremo a extremo. A diferencia de las pruebas de componente, en esta etapa se utilizaron los servicios reales del sistema, evitando sustituir las dependencias principales mediante mocks.
+
+La validación se realizó sobre la arquitectura orientada a servicios seleccionada para PULSO, conformada por el frontend, el backend, el servicio de Machine Learning y el componente RAG implementado mediante n8n. Durante las pruebas se mantuvieron activos los servicios necesarios para comprobar tanto la comunicación interna entre componentes como la interacción iniciada desde la interfaz de usuario.
+
+Se definieron siete casos de prueba de integración, descritos en la tabla.
+
+| ID | Integración evaluada | Objetivo | Resultado obtenido | Estado |
+|---|---|---|---|---|
+| PI-01 | Backend ↔ ML Service | Verificar la disponibilidad simultánea del backend y del servicio de Machine Learning, incluyendo la carga del modelo utilizado por PULSO. | Ambos servicios respondieron correctamente y el ML Service reportó el modelo disponible para realizar inferencias. | Aprobada |
+| PI-02 | Backend ↔ Predicción ↔ SHAP ↔ RAG | Verificar el flujo completo ejecutado mediante `/api/analyze`, desde la recepción del perfil del usuario hasta la construcción de una respuesta integrada. | El endpoint devolvió correctamente los objetos `prediction`, `shap` y `rag`, confirmando la interacción entre los componentes de predicción, explicabilidad y generación de recomendaciones. | Aprobada |
+| PI-03 | Backend ↔ Simulación | Verificar que el backend pudiera enviar un escenario hipotético al servicio de Machine Learning y recibir el resultado correspondiente. | La respuesta incluyó el escenario original, el escenario simulado, la diferencia entre probabilidades, los cambios aplicados, la versión del modelo y el umbral utilizado. | Aprobada |
+| PI-04 | Backend ↔ RAG ↔ fuentes documentales | Comprobar que la integración con el componente RAG conservara la trazabilidad de las recomendaciones generadas. | Las recomendaciones incluyeron identificadores de fuente, nombre del documento, puntaje de similitud y líneas correspondientes al fragmento utilizado como evidencia. | Aprobada |
+| PI-05 | Frontend ↔ Backend ↔ análisis completo | Verificar que un usuario pudiera introducir un perfil desde la interfaz y obtener correctamente el resultado integral del análisis. | El formulario envió la información al endpoint `/api/analyze` y la interfaz recibió correctamente la predicción, los factores SHAP y la respuesta RAG. | Aprobada |
+| PI-06 | Frontend ↔ Backend ↔ simulación | Verificar que la interfaz pudiera enviar modificaciones sobre factores seleccionados y representar el escenario simulado retornado por el backend. | El frontend realizó correctamente la solicitud a `/api/simulate` y presentó el resultado original, el resultado simulado, la diferencia y la clasificación obtenida. | Aprobada |
+| PI-07 | Frontend ↔ validación de entrada | Verificar que una inconsistencia detectada en los datos del usuario fuera controlada antes de realizar una solicitud al backend. | Ante una presión sistólica menor o igual que la diastólica, la interfaz mostró el mensaje de validación correspondiente y no realizó la solicitud a `/api/analyze`. | Aprobada |
+
+Para las pruebas PI-01 a PI-04 se utilizó `pytest` junto con `httpx`, realizando solicitudes HTTP reales contra los servicios desplegados. La ejecución automatizada produjo el siguiente resultado:
+
+```text
+test_pi01_backend_and_ml_service_are_available PASSED
+test_pi02_complete_analysis_flow PASSED
+test_pi03_complete_simulation_flow PASSED
+test_pi04_rag_preserves_source_traceability PASSED
+
+4 passed in 40.90s
+```
+
+Estos resultados permitieron comprobar que el backend puede comunicarse correctamente con el ML Service y con el componente RAG, y que los contratos de datos utilizados entre los servicios son compatibles. Particularmente, la prueba PI-02 verificó el flujo principal de análisis de PULSO, en el cual el backend recibe el perfil del usuario, obtiene la predicción del modelo, solicita la explicación SHAP, construye la solicitud para el componente RAG y finalmente consolida los tres resultados en una única respuesta.
+
+La prueba PI-03 validó de manera independiente el flujo de simulación. A partir de un perfil original y un conjunto de modificaciones sobre variables permitidas, el backend transmitió correctamente la solicitud al servicio de Machine Learning y recibió una respuesta con las probabilidades original y simulada, sus respectivas clasificaciones y la diferencia obtenida.
+
+Por su parte, la prueba PI-04 permitió verificar un aspecto especialmente importante del componente RAG: la conservación de la trazabilidad documental. Las respuestas generadas incluyeron los metadatos necesarios para identificar el documento y el fragmento recuperado utilizado como soporte de cada recomendación.
+
+Para comprobar la integración desde la interfaz de usuario se implementaron las pruebas PI-05, PI-06 y PI-07 mediante Playwright. Estas pruebas utilizaron un navegador automatizado y ejecutaron la aplicación de manera similar a como lo haría un usuario real, manteniendo activos el frontend, el backend, el ML Service y el componente RAG.
+
+La ejecución produjo el siguiente resultado:
+
+```text
+PI-05 - realiza un análisis completo desde el frontend      PASSED
+PI-06 - realiza una simulación desde el frontend            PASSED
+PI-07 - bloquea una presión arterial inconsistente antes de enviarla   PASSED
+
+3 passed
+```
+
+La prueba PI-05 completó el formulario de perfil cardiovascular, ejecutó la solicitud a `/api/analyze` y verificó que la respuesta contuviera la predicción, los factores SHAP y la información generada por el RAG. Asimismo, se comprobó que la interfaz avanzara hasta la visualización de los resultados y habilitara posteriormente la sección de simulación.
+
+En PI-06 se ejecutó primero un análisis válido y posteriormente se modificaron factores del perfil desde la sección de simulación. La interfaz envió los cambios al endpoint `/api/simulate` y presentó correctamente la comparación entre el resultado original y el resultado simulado.
+
+Finalmente, PI-07 verificó el control de una entrada inconsistente desde la interfaz. Al introducir una presión sistólica menor que la presión diastólica, el frontend mostró el mensaje de validación correspondiente y evitó enviar una solicitud inválida al backend.
+
+En conjunto, las siete pruebas de integración fueron aprobadas. Los resultados obtenidos evidencian que los componentes principales de PULSO pueden intercambiar información correctamente y ejecutar los flujos definidos para análisis, explicabilidad, generación de recomendaciones, simulación y validación de entradas. De esta manera, se comprobó no solamente la integración interna entre servicios, sino también la interacción completa iniciada desde la interfaz utilizada por el usuario.
+
+<img width="782" height="196" alt="image" src="https://github.com/user-attachments/assets/f06cd20c-ec11-4237-b0b5-a892f362256b" />
+
+<img width="983" height="292" alt="image" src="https://github.com/user-attachments/assets/0f0fd90a-c1b2-44dc-a209-7978ce8aac5b" />
+
+
 ### 13.3 Pruebas de usabilidad
 
 ## 14. Resultados parciales y discusión
