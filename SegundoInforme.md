@@ -1305,15 +1305,157 @@ Estos ajustes serán evaluados utilizando el mismo conjunto de 20 casos de prueb
 
 ## 15. Plan de cierre hacia la entrega final
 
-Describe las actividades restantes, prioridades, riesgos y estrategia de cierre para completar el proyecto en las semanas finales.
+El desarrollo funcional principal de PULSO se encuentra actualmente integrado. El modelo final XGBoost, la generación de explicaciones mediante SHAP, la simulación de escenarios, el backend, el componente RAG y un frontend funcional ya pueden operar dentro del flujo general del MVP. Por esta razón, las actividades restantes se concentran principalmente en consolidar la arquitectura definida, estabilizar la ejecución del sistema, mejorar la presentación de los resultados y realizar los ajustes finales derivados de las evaluaciones realizadas.
 
-###  Plan de cierre del RAG
+La estrategia de cierre prioriza las actividades que afectan directamente la reproducibilidad, estabilidad, comprensión y calidad del MVP, evitando incorporar nuevas funcionalidades que no sean necesarias para cumplir con los objetivos definidos.
 
-Como parte del cierre del proyecto, el componente RAG requiere una nueva iteración orientada principalmente a aumentar la precisión de la recuperación y reducir las respuestas fuera del alcance esperado. La primera prioridad será modificar la construcción de las consultas de recuperación para que los factores SHAP accionables tengan mayor peso en la selección de los fragmentos documentales.
+### 15.1 Consolidación del despliegue
 
-La segunda prioridad será incorporar reglas que permitan diferenciar explícitamente factores modificables y no modificables antes de generar recomendaciones. Cuando el perfil no proporcione factores accionables respaldados adecuadamente por el corpus, el sistema deberá utilizar el mecanismo de información insuficiente en lugar de introducir recomendaciones relacionadas con variables secundarias.
+La primera prioridad corresponde a completar la infraestructura necesaria para aproximar la implementación actual a la arquitectura objetivo.
 
-Finalmente, se incorporará una validación posterior a la generación destinada a comprobar que las recomendaciones correspondan con los factores prioritarios y que las fuentes declaradas respalden semánticamente el contenido generado. Una vez aplicados estos cambios, se repetirá la evaluación sobre los mismos 20 casos para determinar si disminuye la tasa de respuestas fuera de alcance y aumenta la Precision@5 sin comprometer la trazabilidad y cobertura ya alcanzadas.
+Actualmente, el backend y el ML Service se ejecutan mediante Docker Compose, mientras que el frontend debe iniciarse manualmente mediante Vite y el workflow RAG se ejecuta en un contenedor independiente de n8n. Adicionalmente, NGINX todavía no se encuentra implementado.
+
+Por tanto, las actividades principales de esta etapa serán:
+
+- crear el Dockerfile correspondiente al frontend;
+- incorporar el frontend al `docker-compose.yml`;
+- implementar NGINX como reverse proxy;
+- configurar el enrutamiento de `/` hacia el frontend y `/api/` hacia el backend;
+- reemplazar las llamadas directas del frontend al backend por rutas relativas;
+- revisar variables de entorno y configuración de red entre los servicios;
+- verificar que los componentes internos no queden expuestos directamente al navegador.
+
+El objetivo de esta etapa es que la mayor parte posible del MVP pueda iniciarse de forma reproducible mediante Docker Compose y que NGINX funcione como punto único de entrada de la aplicación.
+
+La integración del workflow de n8n dentro del mismo Docker Compose se considera deseable, pero no constituye una condición indispensable para la entrega si el flujo actual permanece estable, correctamente configurado y reproducible. En caso de mantenerse separado, deberá conservarse claramente definido el procedimiento necesario para que el backend se comunique con el componente RAG.
+
+### 15.2 Estabilización e integración funcional
+
+Una vez consolidada la infraestructura, se realizarán pruebas del flujo completo para verificar la comunicación entre los distintos componentes.
+
+Los escenarios mínimos a comprobar serán:
+
+- análisis completo con datos válidos;
+- generación de predicción;
+- aplicación del threshold de 0,38;
+- generación y visualización de factores SHAP;
+- recuperación y generación de información mediante RAG;
+- visualización de fuentes documentales;
+- simulación válida de factores modificables;
+- manejo de entradas inválidas;
+- indisponibilidad del ML Service;
+- indisponibilidad del componente RAG;
+- errores de validación o comunicación entre servicios.
+
+Estas pruebas permitirán identificar fallos que no aparecen cuando cada componente se prueba de manera independiente y comprobar que el backend maneje adecuadamente resultados incompletos o servicios temporalmente no disponibles.
+
+### 15.3 Cierre del componente predictivo
+
+El modelo final ya se encuentra seleccionado y evaluado. Por tanto, no se contempla una nueva etapa de entrenamiento o comparación de algoritmos durante el cierre, salvo que se identifique un error crítico en el pipeline actual.
+
+Las actividades restantes para este componente estarán orientadas principalmente a consolidar los resultados obtenidos:
+
+- mantener XGBoost como modelo oficial de PULSO v1;
+- conservar el threshold de 0,38 definido bajo el criterio de Recall igual o superior al 80 %;
+- incorporar las métricas finales obtenidas en el conjunto de prueba;
+- incluir los intervalos de confianza del 95 %;
+- presentar la evaluación de calibración;
+- incorporar los resultados observados por subgrupos;
+- mantener explícitas las limitaciones del modelo y las diferencias de desempeño encontradas entre grupos.
+
+Durante esta etapa también se verificará que el artefacto final del modelo, su versión, las variables utilizadas y el threshold correspondan con los componentes desplegados en el ML Service.
+
+### 15.4 Cierre de SHAP y simulación
+
+SHAP y la simulación ya se encuentran integrados en el flujo principal, por lo que el trabajo restante se centrará en su validación funcional y en mejorar la manera en que sus resultados son comunicados al usuario.
+
+Para SHAP se verificará que las explicaciones utilicen exactamente la misma versión del modelo que produjo la predicción, que los factores principales se presenten correctamente y que la interfaz mantenga la aclaración de que las contribuciones obtenidas explican el comportamiento del modelo y no representan relaciones causales.
+
+También se mejorará la presentación de los factores SHAP en la interfaz para facilitar su interpretación por usuarios no especializados. La información deberá permitir identificar de forma clara:
+
+- qué factor influyó en la predicción;
+- cuál fue el valor del usuario;
+- si su contribución aumentó o disminuyó la salida del modelo;
+- cuáles fueron los factores con mayor influencia;
+- que la magnitud SHAP representa contribución al modelo y no una medida directa de riesgo clínico.
+
+Se buscará reducir el uso de términos técnicos innecesarios en la vista principal y priorizar etiquetas, explicaciones breves y elementos visuales que permitan comprender rápidamente por qué determinados factores aparecen destacados.
+
+En el componente de simulación se comprobará que únicamente puedan modificarse las variables habilitadas, que el sistema conserve la estimación original y que las nuevas probabilidades sean calculadas utilizando el mismo modelo PULSO v1.
+
+Además, se mejorará la comparación visual entre la estimación inicial y la estimación simulada. La interfaz deberá permitir identificar claramente:
+
+- el porcentaje original generado por el modelo;
+- el porcentaje obtenido después de la simulación;
+- la diferencia en puntos porcentuales;
+- los factores modificados entre ambos escenarios;
+- si la salida simulada se encuentra por encima o por debajo del threshold de 0,38.
+
+La comparación deberá evitar que el usuario interprete la variación como una reducción real o garantizada de riesgo cardiovascular. La simulación continuará presentándose como un escenario hipotético que muestra cómo cambia la salida matemática del modelo cuando se modifican determinadas variables.
+
+### 15.5 Ajustes finales del componente RAG
+
+El componente RAG se encuentra integrado y ya fue sometido a una evaluación funcional mediante 20 casos controlados. Por esta razón, el cierre de este componente no requiere rediseñar completamente el workflow, sino realizar una iteración enfocada en las principales limitaciones identificadas.
+
+La prioridad será mejorar la pertinencia de la recuperación documental, especialmente para reducir la presencia de fragmentos relacionados con factores secundarios cuando existen factores SHAP prioritarios claramente identificados.
+
+Para ello se plantean los siguientes ajustes:
+
+- dar mayor peso a los factores SHAP accionables durante la construcción de las consultas;
+- diferenciar explícitamente factores modificables y no modificables;
+- evitar generar recomendaciones sobre factores secundarios cuando el corpus no proporcione evidencia suficientemente pertinente para los factores prioritarios;
+- utilizar `insufficient_information` cuando no exista respaldo documental adecuado;
+- incorporar una validación posterior a la generación que compruebe la correspondencia entre factores, recomendaciones y fuentes utilizadas.
+
+Después de estos ajustes, se repetirá la evaluación utilizando los mismos 20 casos controlados. La comparación se realizará principalmente mediante Precision@5, Hit Rate@5, cobertura de factores SHAP, trazabilidad y tasa de respuestas fuera de alcance.
+
+El objetivo no será maximizar una única métrica, sino reducir las desviaciones de alcance sin comprometer la trazabilidad documental y la cobertura ya alcanzadas.
+
+### 15.6 Mejoras finales de interfaz y comunicación
+
+Como parte del cierre se realizará una revisión general de la presentación visual del frontend. Aunque la interfaz actual ya permite ejecutar el flujo completo del MVP, se buscará mejorar la jerarquía visual de la información y facilitar la interpretación de los resultados.
+
+Las mejoras estarán enfocadas principalmente en:
+
+- diferenciar visualmente la predicción, la explicación SHAP, las recomendaciones del RAG y la simulación;
+- resaltar la probabilidad generada y el threshold utilizado sin presentarlos como diagnóstico;
+- mejorar la legibilidad de los factores SHAP;
+- facilitar la comparación entre el porcentaje original y el porcentaje simulado;
+- mostrar de manera clara las fuentes utilizadas por el RAG;
+- reducir bloques de texto extensos cuando puedan sustituirse por etiquetas o resúmenes breves;
+- mantener visibles las advertencias relacionadas con el alcance educativo y preventivo de PULSO;
+- asegurar consistencia entre nombres de variables, unidades y etiquetas mostradas al usuario.
+
+Estas modificaciones tendrán como objetivo mejorar la comprensión del sistema sin alterar la lógica de los componentes ya integrados ni introducir funcionalidades adicionales durante la etapa final.
+
+### 15.7 Riesgos durante el cierre
+
+Los principales riesgos identificados para la etapa final son:
+
+- introducir cambios arquitectónicos demasiado grandes cerca de la fecha de entrega;
+- generar regresiones al modificar componentes que actualmente son funcionales;
+- problemas de red o configuración entre Docker, n8n y los servicios externos;
+- dependencia de servicios externos utilizados por el componente RAG;
+- aumento de latencia o fallos durante la ejecución del workflow;
+- falta de tiempo para repetir pruebas después de modificaciones importantes;
+- introducir cambios visuales que alteren accidentalmente contratos o flujos que ya funcionan;
+- comunicar de manera ambigua la predicción, SHAP o la simulación y favorecer interpretaciones clínicas que no corresponden al alcance de PULSO.
+
+Para reducir estos riesgos se priorizarán cambios incrementales, pruebas después de cada integración y congelamiento progresivo de los componentes que hayan alcanzado un estado estable.
+
+### 15.8 Estrategia de cierre
+
+La estrategia general consistirá en evitar nuevas funcionalidades y concentrar el esfuerzo restante en estabilizar, verificar y mejorar la presentación de lo ya desarrollado.
+
+El orden previsto será:
+
+`Infraestructura → integración → pruebas end-to-end → ajustes RAG → mejoras visuales y de comunicación → correcciones finales → congelamiento de la versión`
+
+Una vez completadas las pruebas críticas, se establecerá una versión candidata a entrega. A partir de ese momento únicamente deberán incorporarse correcciones de errores, ajustes necesarios de interfaz o modificaciones requeridas para solucionar problemas identificados durante las pruebas.
+
+El resultado esperado es una versión del MVP que permita ejecutar de manera reproducible el flujo principal de PULSO, presente de forma comprensible la predicción, los factores SHAP, la simulación y la información generada mediante RAG, y conserve explícitamente las limitaciones establecidas para cada componente.
+
+La entrega final deberá mantener en todo momento el alcance de **promoción y prevención (P&P)** definido para PULSO y evitar presentar las probabilidades, explicaciones o simulaciones como diagnóstico, pronóstico clínico, efecto garantizado de una intervención o sustituto de una valoración profesional.
 
 ## 16. Referencias
 
