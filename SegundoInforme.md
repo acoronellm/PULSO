@@ -579,29 +579,23 @@ La arquitectura monolítica obtuvo la menor latencia con 1 usuario (p95 de 190 m
 
 #### Arquitectura modular orientada a servicios contenerizados
 
-Esta alternativa separa PULSO en servicios independientes para el frontend, backend, Machine Learning y RAG, ejecutados en contenedores Docker. Esta separación permite asignar recursos de manera independiente a los componentes que presenten mayores necesidades de procesamiento.
-
-Aunque la comunicación entre servicios introduce una sobrecarga adicional frente a la comunicación interna de un monolito, esta arquitectura proporciona un equilibrio entre rendimiento y capacidad de crecimiento. Los servicios pueden optimizarse y escalarse de acuerdo con las necesidades específicas de cada componente.
-
-Para PULSO, esta característica resulta especialmente relevante debido a que las operaciones de Machine Learning, SHAP, simulación y RAG pueden presentar diferentes requerimientos computacionales.
+La arquitectura orientada a servicios presentó el mejor comportamiento global en los escenarios de mayor carga. Con 50 usuarios alcanzó 22,68 solicitudes/s, el mayor throughput observado, con p50 de 720 ms, p95 de 1.200 ms y p99 de 1.500 ms. A 25 usuarios registró p95 de 510 ms, inferior al monolito (740 ms) y a microservicios (620 ms). El costo de esta separación fue mayor al del monolito: a 50 usuarios utilizó aproximadamente 302,0 MiB de RAM promedio y 314,9 MiB como máximo, con CPU agregada promedio de 130,43 % y máximo de 199,72 %.
 
 #### Arquitectura de microservicios contenerizados
 
-La arquitectura de microservicios presenta el mayor nivel de separación, dividiendo funcionalidades como predicción cardiovascular, explicabilidad SHAP, simulación y RAG en servicios especializados.
+Microservicios presentó la mayor sobrecarga en los escenarios comparados. Con 50 usuarios obtuvo 18,18 solicitudes/s, p50 de 1.400 ms y p95 de 2.100 ms, además del mayor consumo: aproximadamente 899,3 MiB de RAM promedio y 959,9 MiB como máximo. A 1 usuario también registró un máximo atípico de 3.957 ms, aunque su p95 fue de 340 ms. La separación ofrece independencia potencial entre funciones, pero en esta prueba no compensó el costo de las múltiples comunicaciones y procesos.
 
-Esta distribución permite escalar individualmente cada funcionalidad. Sin embargo, una solicitud puede requerir la comunicación entre múltiples microservicios, aumentando la cantidad de interacciones y la complejidad necesaria para controlar los tiempos de respuesta y los posibles errores de comunicación.
-
-Para la carga esperada de PULSO, las tres alternativas pueden proporcionar un desempeño adecuado. La principal diferencia se encuentra en la capacidad de crecimiento y en el nivel de complejidad necesario para obtener dicho desempeño.
+Las mediciones internas disponibles no permiten afirmar un tiempo máximo individual para predicción, SHAP o RAG. El único tiempo medido directamente para el flujo completo es el de `/api/analyze`, incluido en la fila agregada; por ello, descomponerlo en tiempos por componente requeriría instrumentación adicional.
 
 ### 9.2. Grado de acoplamiento
 
-El acoplamiento se analiza considerando la dependencia entre los componentes internos, la dependencia de servicios externos y la facilidad para modificar o sustituir componentes de la plataforma.
+El acoplamiento se analiza considerando la dependencia entre componentes, el número de procesos que deben coordinarse y la posibilidad de modificar o sustituir una parte sin reconstruir el sistema completo. Las métricas de carga no miden directamente el acoplamiento, pero la topología de cada alternativa permite describir su costo operativo verificable.
 
 #### Arquitectura monolítica modular contenerizada
 
 Aunque los componentes se encuentran organizados mediante módulos independientes a nivel de código, todos forman parte de una misma aplicación. Por esta razón, comparten recursos y un mismo ciclo de despliegue.
 
-Una modificación en un componente puede requerir reconstruir y desplegar la aplicación completa. Esto genera un mayor nivel de dependencia entre los módulos, aunque la organización modular permite mantener separadas las responsabilidades dentro del código.
+Una modificación en un componente requiere reconstruir y desplegar la aplicación completa. En la prueba de 50 usuarios fue el menor consumidor de RAM (212,8 MiB máximo), pero esa eficiencia se obtiene concentrando la ejecución en un proceso y compartiendo sus recursos.
 
 #### Arquitectura modular orientada a servicios contenerizados
 
@@ -609,23 +603,23 @@ La separación del frontend, backend, Machine Learning y RAG en servicios indepe
 
 Cada servicio puede evolucionar y desplegarse de manera independiente siempre que mantenga las interfaces de comunicación definidas. Esto facilita, por ejemplo, modificar el servicio de Machine Learning sin tener que modificar o desplegar nuevamente el frontend.
 
-A diferencia de los microservicios, esta alternativa mantiene una cantidad limitada de servicios, lo que permite obtener independencia entre componentes sin introducir una fragmentación excesiva del sistema.
+A diferencia de los microservicios, esta alternativa mantiene una cantidad limitada de servicios. En la prueba de 50 usuarios requirió aproximadamente 314,9 MiB de RAM máxima, frente a 212,8 MiB del monolito y 959,9 MiB de microservicios, por lo que el desacoplamiento adicional tuvo un costo intermedio medible.
 
 #### Arquitectura de microservicios contenerizados
 
 Los microservicios presentan el menor acoplamiento entre componentes, ya que funcionalidades específicas como predicción, SHAP, simulación y RAG se encuentran separadas en servicios independientes.
 
-Esta separación facilita reemplazar o actualizar componentes individualmente. Sin embargo, también aumenta la cantidad de interfaces y dependencias de comunicación que deben administrarse.
+Esta separación facilita reemplazar o actualizar componentes individualmente. Sin embargo, también aumenta la cantidad de interfaces y dependencias de comunicación que deben administrarse, lo que se refleja en el mayor consumo de memoria y en una latencia p95 de 2.100 ms con 50 usuarios.
 
 ### 9.3. Disponibilidad y tolerancia a fallos
 
-La disponibilidad y tolerancia a fallos se evalúan considerando el impacto que tendría la falla de un componente sobre el funcionamiento general de PULSO y los mecanismos disponibles para recuperar los servicios.
+La disponibilidad y tolerancia a fallos no puede determinarse únicamente a partir de los CSV de carga. En los archivos disponibles no se registran tiempos de recuperación, pruebas de caída de contenedores ni respuestas HTTP durante una falla. Por tanto, esta sección distingue la consecuencia arquitectónica esperada de una caída de la evidencia que sí fue medida.
 
 #### Arquitectura monolítica modular contenerizada
 
 En la arquitectura monolítica, los principales componentes del backend forman parte de una misma aplicación. Por esta razón, una falla crítica que provoque la caída del proceso puede afectar simultáneamente las funcionalidades de predicción, SHAP, simulación y RAG.
 
-Docker permite reiniciar el contenedor afectado y facilita la recuperación del servicio, pero el aislamiento de fallos entre funcionalidades es limitado.
+Docker permite reiniciar el contenedor afectado, pero el aislamiento de fallos entre funcionalidades es limitado: una caída del proceso deja sin servicio las funciones que contiene. El tiempo de recuperación no fue medido en los resultados disponibles.
 
 #### Arquitectura modular orientada a servicios contenerizados
 
@@ -633,37 +627,35 @@ La separación en servicios independientes permite aislar parcialmente los fallo
 
 Además, cada servicio puede reiniciarse y desplegarse de manera independiente. Esto permite reducir el impacto de determinados fallos y facilita las tareas de mantenimiento y recuperación.
 
-Esta característica resulta importante para el crecimiento futuro de PULSO, ya que permite incorporar mecanismos adicionales de disponibilidad sin tener que transformar completamente la arquitectura de la aplicación.
+La separación permite que el backend permanezca disponible ante una caída de un servicio independiente, siempre que existan manejo de errores y reinicio configurados. Esta observación es una propiedad del diseño, no un resultado cuantificado de las corridas de Locust; el recovery time y los códigos HTTP durante la falla deben medirse en una prueba de resiliencia específica.
 
 #### Arquitectura de microservicios contenerizados
 
 La arquitectura de microservicios proporciona un alto nivel de aislamiento entre componentes. Una falla en un microservicio específico puede limitar una funcionalidad determinada sin afectar necesariamente al resto de la plataforma.
 
-Sin embargo, este nivel de aislamiento requiere mecanismos adicionales para gestionar errores, disponibilidad, comunicación entre servicios y recuperación. Por lo tanto, aunque ofrece mayores posibilidades de tolerancia a fallos, también implica una mayor complejidad operativa.
+Sin embargo, este nivel de aislamiento requiere más mecanismos para gestionar errores, disponibilidad, comunicación y recuperación. En los datos de carga, esta alternativa fue la de mayor consumo de RAM y menor throughput a 50 usuarios, por lo que sus beneficios de aislamiento deben contrastarse con ese costo. No se dispone de una medición de recovery time para confirmar su ventaja en recuperación.
 
 ### 9.4. Comparación de las alternativas
 
-A partir de los criterios definidos, se obtiene la siguiente comparación:
+A partir de las métricas observadas y de la estructura desplegada, se obtiene la siguiente comparación:
 
 | Criterio | Monolítica modular | Orientada a servicios | Microservicios |
 |---|---|---|---|
-| Desempeño con la carga esperada | Adecuado | Adecuado | Adecuado |
-| Comunicación interna | Directa dentro de la aplicación | Entre servicios | Entre múltiples microservicios |
-| Escalabilidad individual | Baja | Media-Alta | Alta |
-| Acoplamiento entre componentes | Medio-Alto | Medio-Bajo | Bajo |
-| Facilidad de desarrollo inicial | Alta | Media-Alta | Baja |
-| Complejidad de despliegue | Baja | Media | Alta |
-| Aislamiento ante fallos | Bajo | Medio-Alto | Alto |
-| Complejidad operativa | Baja | Media | Alta |
-| Facilidad de mantenimiento | Alta | Alta | Media-Baja |
-| Necesidad de infraestructura y configuración | Baja | Media | Alta |
-| Posibilidad de crecimiento progresivo | Baja | Alta | Alta |
+| p95 agregado con 50 usuarios | 1.800 ms | 1.200 ms | 2.100 ms |
+| Throughput con 50 usuarios | 19,51 req/s | 22,68 req/s | 18,18 req/s |
+| Tasa de error observada | 0 % | 0 % | 0 % |
+| RAM máxima aproximada con 50 usuarios | 212,8 MiB | 314,9 MiB | 959,9 MiB |
+| Procesos/servicios principales en la prueba | 1 | 2 | 4 |
+| Comunicación interna | Llamadas dentro del proceso | HTTP entre servicios | HTTP entre múltiples servicios |
+| Despliegue independiente | No | Sí, por servicio | Sí, por microservicio |
+| Aislamiento arquitectónico ante fallos | Bajo | Intermedio | Alto |
+| Complejidad operativa observable | Menor número de componentes | Intermedia | Mayor número de componentes |
 
-La comparación evidencia que las tres alternativas pueden responder a las necesidades de desempeño del MVP, pero presentan diferencias importantes en cuanto a escalabilidad, acoplamiento, mantenimiento y complejidad operativa.
+La comparación evidencia que las tres alternativas completaron solicitudes sin errores en las condiciones probadas, pero no tuvieron el mismo desempeño. La arquitectura orientada a servicios obtuvo el mayor throughput y el menor p95 a 25 y 50 usuarios. El monolito fue el más eficiente en RAM, mientras que microservicios presentó el mayor costo de recursos y la mayor latencia a 50 usuarios.
 
-La arquitectura monolítica presenta una menor complejidad inicial, pero concentra los componentes en una misma aplicación y limita la capacidad de escalar funcionalidades de manera independiente. Por otro lado, la arquitectura de microservicios proporciona un mayor nivel de independencia y escalabilidad, pero requiere una infraestructura y una gestión considerablemente más complejas.
+La arquitectura monolítica presenta la menor complejidad y consumo de recursos, pero concentra los componentes en una misma aplicación. Microservicios proporciona el mayor aislamiento potencial, aunque en estas pruebas alcanzó 959,9 MiB de RAM máxima y un p95 de 2.100 ms con 50 usuarios. La arquitectura orientada a servicios queda entre ambas en número de componentes y costo de recursos, y presentó el mejor resultado de capacidad bajo carga.
 
-La arquitectura modular orientada a servicios se encuentra entre ambas alternativas, permitiendo separar los componentes principales y asignar recursos de manera independiente sin introducir desde el inicio la fragmentación y complejidad propia de una arquitectura de microservicios.
+La arquitectura modular orientada a servicios permite separar los componentes principales y asignar recursos de manera independiente sin introducir desde el inicio la fragmentación de microservicios. Esta conclusión se sustenta en el rendimiento observado, pero no debe interpretarse como una medición completa de disponibilidad o recuperación.
 
 ### 9.5. Consideraciones comunes de seguridad y acceso
 
@@ -679,19 +671,19 @@ También será necesario considerar mecanismos de protección frente a solicitud
 
 Después de comparar las tres propuestas, se selecciona la **arquitectura modular orientada a servicios contenerizados** como alternativa para PULSO.
 
-La elección se fundamenta principalmente en el equilibrio que ofrece entre la complejidad de implementación del MVP y las necesidades de crecimiento futuro del proyecto. A diferencia de la arquitectura monolítica, esta alternativa permite separar los componentes principales de PULSO en servicios independientes, facilitando su mantenimiento, actualización y asignación de recursos.
+La elección se fundamenta en el equilibrio entre rendimiento, consumo de recursos y separación de componentes. En la prueba de 50 usuarios, la arquitectura orientada a servicios alcanzó el mayor throughput (22,68 req/s), el menor p95 (1.200 ms) y un p99 de 1.500 ms, frente a 19,51 req/s y 1.800 ms del monolito, y 18,18 req/s y 2.100 ms de microservicios. No fue la alternativa de menor consumo, pero sus 314,9 MiB de RAM máxima quedaron por debajo de los 959,9 MiB de microservicios.
 
-Esta separación resulta especialmente conveniente debido a que PULSO integra funcionalidades con diferentes características y necesidades computacionales, como Machine Learning, explicabilidad mediante SHAP, simulaciones y consultas mediante RAG. Al encontrarse organizadas como servicios independientes, estas funcionalidades pueden evolucionar y optimizarse de manera individual.
+Esta separación resulta conveniente porque PULSO integra funcionalidades con diferentes necesidades computacionales. El costo medido frente al monolito fue una mayor utilización de recursos, pero permite evolucionar y optimizar los componentes de forma independiente.
 
 Además, la arquitectura permite escalar los componentes que presenten una mayor demanda sin necesidad de escalar toda la aplicación. Por ejemplo, si en una etapa posterior el servicio de Machine Learning requiere mayores recursos computacionales debido al incremento de solicitudes, estos recursos pueden asignarse específicamente a dicho servicio.
 
 Otro aspecto considerado es la tolerancia a fallos. Al estar los componentes separados, una falla en un servicio específico puede limitar una funcionalidad sin afectar necesariamente el funcionamiento completo de la plataforma. Esto proporciona un mayor aislamiento respecto a la arquitectura monolítica.
 
-Aunque la arquitectura de microservicios ofrece un nivel superior de separación y escalabilidad, su implementación introduce una complejidad operativa mayor debido a la cantidad de servicios, comunicaciones y mecanismos de recuperación que deben administrarse. Para las necesidades actuales y el crecimiento esperado de PULSO, se considera más apropiado mantener una cantidad controlada de servicios con responsabilidades claramente definidas.
+Aunque microservicios ofrece un nivel superior de separación potencial, en la prueba fue la alternativa con peor p95 y mayor consumo de RAM. Además, no se cuenta con pruebas de resiliencia que permitan cuantificar su recuperación. Para el MVP, se considera más apropiado mantener una cantidad controlada de servicios con responsabilidades claramente definidas.
 
 Finalmente, la arquitectura modular orientada a servicios permite que PULSO pueda evolucionar progresivamente. Si en el futuro alguna funcionalidad requiere un nivel de independencia, escalabilidad o disponibilidad mayor, el servicio correspondiente puede seguir evolucionando o, si resulta necesario, dividirse en componentes más especializados.
 
-Por estas razones, la arquitectura modular orientada a servicios contenerizados constituye la alternativa seleccionada para PULSO, al proporcionar un equilibrio entre **desempeño, escalabilidad, desacoplamiento, tolerancia a fallos y complejidad de implementación**, manteniendo la posibilidad de adaptar la arquitectura a las necesidades futuras del proyecto.
+Por estas razones, la arquitectura modular orientada a servicios contenerizados se mantiene como la alternativa seleccionada para PULSO. Los resultados respaldan su ventaja de desempeño bajo cargas de 25 y 50 usuarios y su posición intermedia en consumo y complejidad. La conclusión sobre tolerancia a fallos es arquitectónica y deberá validarse con pruebas de caída y recuperación antes de presentarla como una métrica. En consecuencia, la selección representa el mejor compromiso observado para el MVP, no una afirmación de superioridad absoluta ni una evaluación del rendimiento clínico del modelo.
 
 ## 10. Diseño y arquitectura
 
