@@ -903,41 +903,253 @@ PULSO integra tecnologías orientadas al desarrollo web, aprendizaje automático
 
 ### 11.2 Componentes implementados
 
-Describe qué módulos o componentes ya fueron construidos, qué funcionalidades cubren y cuál es su estado actual.
+En el estado actual de PULSO se encuentran implementados e integrados los principales componentes funcionales definidos para el MVP: el modelo predictivo, el servicio de Machine Learning, la explicación mediante SHAP, la simulación de escenarios, el backend, el componente RAG y una primera versión funcional del frontend.
 
-####  Componente RAG implementado
+#### Modelo predictivo
+
+El modelo final seleccionado corresponde a **PULSO v1**, basado en XGBoost y configurado con un umbral de decisión de **0,38**. El artefacto final se encuentra serializado y es utilizado exclusivamente para inferencia dentro del ML Service.
+
+El modelo recibe las variables definidas durante la preparación y selección final de características y genera como salida una probabilidad estimada, una clasificación binaria, el threshold utilizado y la versión del modelo.
+
+La clasificación se determina mediante la regla:
+
+`probability >= 0.38 → classification = 1`
+
+El modelo no se vuelve a entrenar durante las solicitudes realizadas por la aplicación y se carga una única vez al iniciar el servicio.
+
+#### ML Service
+
+El componente de Machine Learning se encuentra implementado como un servicio independiente mediante FastAPI. Su función es concentrar las operaciones relacionadas con inferencia y mantener separada esta lógica del backend encargado de la orquestación.
+
+Actualmente el servicio contiene los módulos necesarios para:
+
+- cargar el modelo final;
+- validar las variables de entrada;
+- generar la probabilidad y clasificación;
+- aplicar el threshold de 0,38;
+- calcular explicaciones mediante SHAP;
+- ejecutar simulaciones de escenarios;
+- exponer mecanismos de verificación del estado del servicio.
+
+El modelo permanece cargado en memoria y es reutilizado por las solicitudes posteriores, evitando operaciones de carga repetitivas.
+
+#### Explicabilidad mediante SHAP
+
+La generación de explicaciones mediante SHAP se encuentra integrada dentro del ML Service y utiliza la misma instancia del modelo, el mismo preprocesamiento, el mismo orden de variables y la misma versión empleada para realizar la predicción.
+
+La salida generada incluye, para los principales factores identificados:
+
+- nombre de la variable;
+- valor correspondiente al usuario;
+- valor SHAP;
+- dirección de la contribución sobre la salida del modelo.
+
+La interfaz transforma posteriormente esta información a una presentación más comprensible para usuarios no especializados. Las contribuciones se muestran como explicaciones del comportamiento del clasificador y no como relaciones causales entre las variables y la enfermedad cardiovascular.
+
+#### Simulación de escenarios
+
+El componente de simulación se encuentra integrado en el ML Service, el backend y el frontend. Permite modificar determinadas variables habilitadas y ejecutar nuevamente el mismo modelo PULSO v1 sobre un escenario hipotético.
+
+Actualmente pueden modificarse variables como peso, presión arterial sistólica y diastólica, tabaquismo, consumo de alcohol y actividad física. Cuando se modifica el peso, el sistema recalcula el BMI manteniendo la altura original del usuario.
+
+El resultado de la simulación conserva la estimación inicial y presenta:
+
+- probabilidad original;
+- probabilidad simulada;
+- diferencia entre ambas;
+- clasificación correspondiente al escenario simulado.
+
+La simulación representa únicamente el comportamiento matemático del modelo ante cambios en las variables de entrada y no se presenta como el efecto clínico garantizado de una intervención.
+
+#### Backend
+
+El backend se encuentra implementado mediante FastAPI y actúa como componente central de orquestación de PULSO.
+
+Actualmente expone como rutas principales:
+
+- `POST /api/analyze`
+- `POST /api/simulate`
+
+El endpoint de análisis recibe la información procedente del frontend, solicita al ML Service la predicción y la explicación SHAP, construye posteriormente el contexto necesario para el RAG, invoca el workflow correspondiente y consolida finalmente los resultados en una respuesta única para la interfaz.
+
+El endpoint de simulación recibe los cambios definidos por el usuario, los envía al ML Service y devuelve la comparación entre el escenario original y el simulado.
+
+El backend también mantiene los contratos de datos entre componentes y concentra el manejo de errores derivados de las comunicaciones internas.
+
+#### Componente RAG
 
 El componente RAG se encuentra implementado mediante un workflow en n8n conectado con un almacén vectorial en Supabase y un modelo generativo. El workflow recibe información procedente del componente predictivo, recupera los fragmentos documentales con mayor similitud semántica, prepara el contexto y genera una respuesta estructurada con información preventiva relacionada con los factores considerados prioritarios.
 
-El flujo incorpora etapas de normalización y preparación de los datos recuperados, con el propósito de conservar el contenido documental y los metadatos necesarios para identificar posteriormente la procedencia de la información. La respuesta final incluye un resumen y recomendaciones asociadas con identificadores de fuentes, permitiendo comprobar qué documentos y fragmentos fueron utilizados como evidencia.
+El flujo incorpora etapas de normalización y preparación de los datos recuperados, con el propósito de conservar tanto el contenido documental como los metadatos necesarios para identificar posteriormente la procedencia de la información.
 
-Como parte de la implementación del componente RAG, se construyó un corpus documental inicial compuesto por **13 fuentes** relacionadas con prevención y factores cardiovasculares. Los documentos fueron incorporados al flujo de vectorización y almacenados en la base vectorial junto con metadatos destinados a conservar la identificación de la fuente y la localización de los fragmentos. Este corpus constituye la base documental utilizada actualmente durante las pruebas funcionales del sistema y podrá ampliarse o ajustarse en iteraciones posteriores de acuerdo con los resultados de la evaluación de recuperación.
+La respuesta puede incluir:
 
-El componente fue sometido a una evaluación funcional mediante 20 casos controlados, cuyos resultados se presentan en la sección 13.1. La evaluación permitió verificar tanto el proceso de recuperación como la generación final y evidenció un comportamiento favorable en trazabilidad, aunque también identificó oportunidades de mejora relacionadas con la precisión de la recuperación y la selección de información prioritaria.
+- resumen;
+- recomendaciones;
+- consideraciones;
+- notas;
+- indicador de información insuficiente;
+- identificadores y datos de las fuentes utilizadas.
+
+Como parte de la implementación se construyó un corpus documental inicial compuesto por **13 fuentes** relacionadas con prevención y factores cardiovasculares. Los documentos fueron incorporados al flujo de vectorización y almacenados en la base vectorial junto con metadatos destinados a conservar la identificación de la fuente y la localización de los fragmentos.
+
+El componente fue sometido a una evaluación funcional mediante 20 casos controlados. Esta evaluación permitió verificar el proceso de recuperación, la trazabilidad de las recomendaciones y el comportamiento del sistema frente al alcance definido, además de identificar oportunidades de mejora relacionadas con la pertinencia de la recuperación.
+
+#### Frontend
+
+El frontend actual se encuentra implementado mediante **React, Vite y JavaScript/JSX** y ya permite ejecutar el flujo funcional principal del MVP.
+
+La interfaz incluye actualmente:
+
+- formulario de ingreso de datos;
+- visualización de la probabilidad estimada;
+- presentación del threshold y clasificación;
+- visualización de los factores SHAP;
+- presentación del resumen y recomendaciones generadas mediante RAG;
+- visualización de las fuentes documentales;
+- panel de simulación;
+- comparación entre estimación original y simulada;
+- advertencias relacionadas con el alcance y las limitaciones de PULSO.
+
+El frontend también informa que la plataforma tiene una finalidad educativa y preventiva, que no constituye un diagnóstico, que SHAP no demuestra causalidad y que las simulaciones no representan efectos clínicos garantizados.
+
+Aunque el frontend ya es funcional, actualmente utiliza JavaScript/JSX y todavía no ha sido migrado a TypeScript, como se planteó inicialmente en la arquitectura objetivo.
+
+#### Contenerización actual
+
+El backend y el ML Service cuentan actualmente con Dockerfile y se ejecutan mediante Docker Compose.
+
+El modelo final se monta dentro del contenedor del ML Service y la comunicación interna entre backend y ML Service se realiza mediante el nombre del servicio Docker, utilizando una dirección del tipo:
+
+`http://ml-service:8001`
+
+El frontend y n8n todavía no forman parte del Docker Compose principal. El frontend se ejecuta mediante Vite y n8n se mantiene en un contenedor separado.
+
+---
 
 ### 11.3 Integraciones realizadas
 
-Explica las integraciones ya desarrolladas con servicios externos, bases de datos, autenticación u otros componentes.
+La implementación actual ya permite ejecutar el flujo funcional principal de PULSO mediante la integración de frontend, backend, ML Service, SHAP, simulación y RAG.
 
-#### Integración RAG
+#### Integración frontend–backend
 
-La integración entre el backend de PULSO y el componente RAG se realiza mediante comunicación HTTP. El backend prepara una estructura que contiene la información necesaria para contextualizar la generación, incluyendo la predicción, datos relevantes del perfil y los principales factores identificados mediante SHAP. Esta estructura es enviada al servicio RAG, que ejecuta el workflow de recuperación y generación y retorna una respuesta estructurada.
+El frontend se encuentra conectado al backend mediante solicitudes HTTP.
 
-Para mantener un contrato definido entre los componentes, la respuesta RAG contempla información general de la respuesta, recomendaciones y datos de las fuentes utilizadas. El backend valida y procesa esta estructura antes de entregarla a la capa de presentación. De esta manera, el componente generativo permanece desacoplado del servicio de Machine Learning y puede modificarse sin cambiar la lógica interna del clasificador.
+Actualmente utiliza los endpoints:
 
-La integración también contempla el manejo de errores de comunicación y respuestas que no cumplen la estructura esperada. Estos mecanismos resultan relevantes debido a que el componente RAG depende de servicios externos y presenta tiempos de respuesta y modos de fallo diferentes de los correspondientes al servicio predictivo.
+- `/api/analyze`, para ejecutar el análisis principal;
+- `/api/simulate`, para realizar escenarios hipotéticos.
+
+Durante el entorno de desarrollo, el frontend se comunica directamente con la dirección local del backend. Esta comunicación permite enviar los datos introducidos por el usuario y recibir posteriormente la respuesta consolidada con predicción, SHAP y resultados del RAG.
+
+#### Integración backend–ML Service
+
+El backend consume el ML Service mediante comunicación HTTP y no importa directamente la lógica interna del componente de Machine Learning.
+
+Dentro del entorno Docker, el backend utiliza el nombre del servicio para establecer esta comunicación, evitando el uso de `localhost` entre contenedores.
+
+El backend envía el perfil del usuario al ML Service y recibe los resultados correspondientes a la predicción y la explicación SHAP. Para la simulación, también utiliza el ML Service para generar una nueva estimación utilizando el mismo modelo PULSO v1.
+
+Esta separación permite modificar internamente el componente predictivo sin alterar la lógica principal del backend, siempre que los contratos de entrada y salida permanezcan estables.
+
+#### Integración Modelo–SHAP
+
+El predictor y el módulo de explicación se encuentran separados internamente, pero comparten la misma instancia del modelo final.
+
+SHAP utiliza el mismo modelo, versión, orden de variables y preprocesamiento que produjo la predicción. De esta manera se evita generar explicaciones a partir de una configuración diferente de aquella utilizada para obtener el resultado mostrado al usuario.
+
+#### Integración backend–RAG
+
+La integración entre el backend de PULSO y el componente RAG se realiza mediante comunicación HTTP.
+
+El backend construye una estructura que contiene:
+
+- resultado de la predicción;
+- datos relevantes del perfil;
+- factores principales identificados mediante SHAP.
+
+Esta información es enviada al workflow de n8n, donde se ejecutan las etapas de recuperación y generación.
+
+El RAG no ejecuta nuevamente el modelo, no calcula SHAP, no modifica la clasificación ni cambia el threshold. Su función se limita a utilizar la información recibida como contexto para recuperar evidencia documental y generar información preventiva.
+
+La respuesta RAG contiene información estructurada sobre el resumen, recomendaciones, consideraciones y fuentes utilizadas. El backend procesa esta estructura antes de incorporarla a la respuesta final enviada al frontend.
+
+La integración también contempla mecanismos para manejar errores de comunicación y respuestas que no cumplen el formato esperado.
+
+#### Integración RAG–Supabase
+
+El componente RAG utiliza Supabase como almacén vectorial para los fragmentos documentales.
+
+Los documentos del corpus son vectorizados y almacenados junto con metadatos asociados a las fuentes. Durante una solicitud, el workflow realiza una búsqueda semántica y recupera los fragmentos considerados más pertinentes para construir el contexto suministrado al modelo generativo.
+
+La conservación de los metadatos permite vincular las recomendaciones generadas con los documentos y fragmentos utilizados durante la recuperación.
+
+#### Integración del flujo completo
+
+En su estado actual, PULSO puede ejecutar el siguiente flujo:
+
+`Frontend → Backend → ML Service → Predicción + SHAP → Backend → RAG → Backend → Frontend`
+
+De manera adicional, la simulación utiliza:
+
+`Frontend → Backend → ML Service → nueva estimación → Backend → Frontend`
+
+Este flujo permite que los componentes se mantengan desacoplados mediante contratos HTTP, mientras el backend actúa como punto central de coordinación.
+
+---
 
 ### 11.4 Pendientes para la entrega final
 
-Indica qué elementos faltan por implementar, integrar, corregir o validar antes del cierre del proyecto.
+Aunque el desarrollo funcional principal del MVP ya se encuentra integrado, todavía existen elementos pendientes relacionados principalmente con consolidación arquitectónica, despliegue, estabilización y mejora de la presentación de los resultados.
 
-#### Pendientes RAG
+#### Consolidación del frontend
 
-A partir de la evaluación funcional realizada, el principal pendiente del componente RAG corresponde a mejorar la pertinencia de los fragmentos recuperados y reducir la generación de información relacionada con factores secundarios o no prioritarios. Aunque la trazabilidad documental presentó resultados altos, la Precision@5 obtenida evidencia que parte del contexto recuperado puede contener información poco relacionada con los factores prioritarios del perfil.
+El frontend actual es funcional, pero todavía se ejecuta mediante Vite desde una terminal y no se encuentra contenerizado.
 
-Para la siguiente iteración se plantea mejorar la construcción de las consultas utilizadas en la recuperación semántica, priorizar explícitamente los factores SHAP modificables y evitar que factores no accionables generen recomendaciones artificiales. También se incorporarán mecanismos posteriores a la generación para comprobar que las recomendaciones finales correspondan con los factores prioritarios y con las fuentes documentales utilizadas.
+Entre los pendientes se encuentran:
 
-La nueva versión será evaluada utilizando el mismo conjunto de casos empleado en la evaluación inicial. Esto permitirá comparar directamente Precision@5, Hit Rate@5, cobertura de factores SHAP, trazabilidad, uso de `insufficient_information` y tasa de respuestas fuera de alcance antes y después de los ajustes.
+- crear el Dockerfile del frontend;
+- incorporarlo al `docker-compose.yml`;
+- revisar su configuración para el entorno contenerizado;
+- mejorar la presentación visual general;
+- mejorar la comunicación de los resultados SHAP;
+- mejorar la comparación visual entre la predicción original y la simulada.
+
+La arquitectura objetivo también plantea el uso de TypeScript. Sin embargo, esta migración puede realizarse después de estabilizar completamente el flujo principal si el tiempo disponible para la entrega no permite completarla sin afectar componentes actualmente funcionales.
+
+#### Implementación de NGINX
+
+NGINX todavía no se encuentra implementado.
+
+Su incorporación permitirá utilizar un único punto de entrada público y enrutar:
+
+- `/` hacia el frontend;
+- `/api/` hacia el backend.
+
+Una vez implementado, el navegador no necesitará conocer directamente la dirección interna del backend y los servicios de ML y RAG permanecerán como componentes internos de la arquitectura.
+
+#### Actualización del entorno Docker
+
+El Docker Compose actual incluye principalmente el backend y el ML Service.
+
+Antes del cierre se debe evaluar la incorporación del frontend y NGINX al entorno integrado, con el objetivo de que una mayor parte del MVP pueda iniciarse mediante un único comando.
+
+El workflow RAG puede mantenerse temporalmente en un contenedor n8n separado si su ejecución permanece estable y documentada. Su incorporación dentro del mismo entorno Docker se considera una mejora de reproducibilidad, pero no debe comprometer la estabilidad alcanzada.
+
+#### Pendientes del componente RAG
+
+A partir de la evaluación funcional realizada, el principal pendiente del componente RAG corresponde a mejorar la pertinencia de los fragmentos recuperados y reducir la generación de información relacionada con factores secundarios o no prioritarios.
+
+Para la siguiente iteración se plantea:
+
+- mejorar la construcción de las consultas utilizadas en la recuperación semántica;
+- priorizar explícitamente los factores SHAP modificables;
+- diferenciar factores accionables y no accionables;
+- utilizar `insufficient_information` cuando no exista evidencia documental pertinente;
+- incorporar una validación posterior a la generación;
+- comprobar que las recomendaciones finales correspondan con los factores prioritarios y con las fuentes utilizadas.
+
+La nueva versión será evaluada utilizando los mismos 20 casos empleados en la evaluación inicial, permitiendo comparar directamente Precision@5, Hit Rate@5, cobertura de factores SHAP, trazabilidad, uso de `insufficient_information` y tasa de respuestas fuera de alcance.
 
 ## 12. Despliegue y operación preliminar
 
