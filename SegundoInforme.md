@@ -1288,7 +1288,11 @@ Presenta las pruebas o validaciones realizadas hasta el momento para verificar e
 
 ### 13.1 Pruebas por componentes
 
-#### 13.1.X Evaluación del componente predictivo
+Las pruebas por componentes se realizaron con el propósito de evaluar de manera independiente el comportamiento de los principales elementos que conforman PULSO antes de analizar su funcionamiento integrado. Esta etapa incluyó la evaluación experimental del componente predictivo, la evaluación funcional del componente RAG y las pruebas automatizadas de los principales componentes de la interfaz web.
+
+Cada evaluación utilizó criterios acordes con la naturaleza del componente analizado. En el componente predictivo se examinaron métricas de clasificación, discriminación, calibración e incertidumbre; en el componente RAG se evaluaron la pertinencia de la recuperación documental, la cobertura de factores, la trazabilidad y el cumplimiento del alcance; y en el frontend se verificaron mediante pruebas automatizadas las principales reglas de presentación, interacción, transformación de datos y manejo de errores.
+
+#### 13.1.1 Evaluación del componente predictivo
 
 La evaluación del componente predictivo se realizó utilizando una partición independiente de los datos en conjuntos de entrenamiento, validación y prueba. Después del proceso de depuración del conjunto de datos se conservaron **68.610 registros**.
 
@@ -1408,7 +1412,7 @@ Este resultado debe analizarse considerando que la prevalencia de `cardio = 1` t
 
 El análisis por subgrupos es de carácter exploratorio y no constituye una evaluación formal de equidad algorítmica ni una validación clínica del modelo.
 
-#### 13.1. Evaluación funcional del componente RAG
+#### 13.1.2 Evaluación funcional del componente RAG
 
 Con el fin de evaluar el comportamiento del componente de generación aumentada por recuperación (RAG) de PULSO, se realizó una evaluación funcional y exploratoria mediante un conjunto controlado de 20 casos de prueba. Esta evaluación no corresponde a una validación clínica del sistema, sino a una verificación técnica orientada a determinar la pertinencia de la información recuperada, la trazabilidad documental de las recomendaciones, la cobertura de los factores identificados mediante SHAP y el cumplimiento del alcance educativo y preventivo definido para la plataforma.
 
@@ -1462,6 +1466,10 @@ Los resultados muestran que el sistema logró recuperar al menos un fragmento pe
 No obstante, la Precision@5 promedio fue del 35 %, lo que indica que, aunque habitualmente se recupera al menos un fragmento útil, una parte importante de los cinco primeros resultados contiene información secundaria o poco relacionada con los factores prioritarios del caso. Esta situación también se reflejó en la tasa de respuestas fuera de alcance, debido a que el modelo generador puede utilizar información documentalmente válida presente en los fragmentos recuperados para formular recomendaciones que no necesariamente corresponden a los factores identificados mediante SHAP.
 
 No se identificaron desviaciones de severidad crítica durante los 20 casos evaluados.
+
+### Sección general componentes 
+
+#### 13.1.3. Pruebas automatizadas del frontend
 
 Como parte de la validación funcional de PULSO, se realizaron pruebas automatizadas sobre los principales componentes del frontend con el propósito de verificar que la interfaz ejecutara correctamente las operaciones esperadas, procesara adecuadamente la información ingresada por el usuario, presentara los resultados recibidos desde el backend y manejara de forma controlada escenarios de validación, carga y error.
 
@@ -1649,7 +1657,9 @@ La comparación entre los cinco algoritmos evaluados mostró un desempeño relat
 
 Decision Tree presentó la mayor sensibilidad durante la comparación, con un valor de 0,8440, pero este resultado estuvo acompañado por una menor especificidad de 0,5221. Gradient Boosting alcanzó marginalmente el mayor ROC-AUC y el menor Brier Score, mientras que XGBoost presentó el mejor Accuracy, Precision, Especificidad y F1-score, junto con un ROC-AUC prácticamente equivalente y el menor ECE. Este balance motivó su selección como modelo final de PULSO.
 
-La selección del umbral de decisión se realizó bajo el criterio de mantener un **Recall igual o superior al 80 %**. La prioridad otorgada a esta métrica también estuvo influenciada por la orientación de un asesor del proyecto, quien señaló la importancia de favorecer la identificación de los casos positivos que realmente se encuentran presentes en los datos. Bajo esta perspectiva, se consideró preferible reducir, dentro de límites razonables, la proporción de registros con `cardio = 1` que fueran clasificados como negativos.
+La selección del umbral de decisión se realizó bajo el criterio experimental de mantener un **Recall igual o superior al 80 %**. Este criterio fue definido en coherencia con la orientación preventiva y educativa de PULSO, buscando reducir, dentro de límites razonables, la proporción de registros con `cardio = 1` clasificados como negativos. No obstante, este valor corresponde a una decisión de diseño adoptada para el MVP y no a un punto de corte clínicamente validado.
+
+Priorizar la sensibilidad implica necesariamente un compromiso con otras métricas. Al disminuir el umbral de clasificación para identificar una mayor proporción de positivos también puede aumentar el número de falsos positivos y reducirse la especificidad. Por esta razón, el Recall no se utilizó como criterio aislado: entre los umbrales que cumplían la condición establecida se examinó además el comportamiento de Accuracy, Precision, Especificidad y F1-score.
 
 Esta decisión es coherente con el enfoque de **promoción y prevención (P&P)** definido para PULSO, en el que el modelo busca funcionar como una herramienta educativa y de orientación preventiva. Sin embargo, priorizar la sensibilidad implica necesariamente un compromiso con otras métricas. Al disminuir el umbral de clasificación para detectar una mayor proporción de positivos, puede aumentar también la cantidad de falsos positivos y reducirse la especificidad. Por esta razón, el Recall no se utilizó como único criterio de selección: entre los umbrales que cumplían la condición de alcanzar al menos un 80 % de sensibilidad se consideró también el comportamiento de Accuracy, Precision, Especificidad y F1-score.
 
@@ -1675,7 +1685,7 @@ En conjunto, los resultados respaldan la selección de XGBoost como modelo del M
 
 PULSO se mantiene en todo momento dentro de un alcance de **promoción y prevención (P&P)**. No constituye una herramienta diagnóstica, no reemplaza la valoración de un profesional de la salud y no ha sido clínicamente validado como calculadora de riesgo cardiovascular. Sus resultados deben interpretarse como estimaciones educativas derivadas del comportamiento del modelo sobre las variables disponibles en el conjunto de datos. Por esta razón, tanto la priorización del Recall como el umbral seleccionado deben entenderse como decisiones experimentales propias del diseño del MVP y no como criterios clínicos generalizables.
 
-### 14.X Discusión de las pruebas de usabilidad
+### 14.2 Discusión de las pruebas de usabilidad
 
 Los resultados de las pruebas de usabilidad muestran que la versión actual de PULSO permite completar las funciones principales del sistema y que los participantes pudieron interactuar con el formulario, consultar los resultados, revisar las recomendaciones y utilizar la simulación. Sin embargo, la evaluación también evidenció diferencias importantes entre la facilidad de uso de la interfaz y la comprensión de algunos conceptos asociados con el modelo.
 
@@ -1722,6 +1732,20 @@ En contraste, la cobertura SHAP accionable alcanzó el 100 % en los casos aplica
 A partir de estos resultados se identificaron tres líneas principales de mejora para una siguiente iteración del componente RAG: restringir la generación a factores SHAP accionables, mejorar la construcción de las consultas enviadas al almacén vectorial y añadir mecanismos de validación posteriores a la generación que impidan que recomendaciones relacionadas con factores no prioritarios sean entregadas al usuario.
 
 Estos ajustes serán evaluados utilizando el mismo conjunto de 20 casos de prueba, permitiendo comparar directamente el comportamiento de la versión actual con una versión posterior del componente RAG.
+
+### 14.4 Resultados y discusión de la integración del sistema
+
+Las pruebas de integración permitieron comprobar que los principales componentes funcionales de PULSO pueden operar de manera coordinada dentro del flujo previsto para el MVP. Las siete pruebas definidas fueron ejecutadas satisfactoriamente, incluyendo la comunicación entre el backend y el servicio de Machine Learning, la ejecución conjunta de predicción, SHAP y RAG, el flujo de simulación y las interacciones completas iniciadas desde el frontend.
+
+Este resultado es relevante porque evidencia que los componentes desarrollados no funcionan únicamente de manera aislada. El backend puede actuar como elemento de coordinación entre el servicio predictivo y el componente RAG, mientras que la interfaz puede iniciar los procesos de análisis y simulación y representar posteriormente la información obtenida. Asimismo, las pruebas confirmaron la compatibilidad de los contratos utilizados para intercambiar información entre los servicios y la conservación de la trazabilidad documental durante el flujo integrado.
+
+La aprobación de las pruebas ejecutadas mediante Playwright también permitió verificar el recorrido funcional desde la perspectiva de la interfaz. Un usuario puede introducir un perfil válido, obtener la predicción, consultar los principales factores identificados mediante SHAP, visualizar la información preventiva generada por el componente RAG y posteriormente construir un escenario hipotético mediante la funcionalidad de simulación. De igual manera, se comprobó que determinadas entradas inconsistentes pueden ser detectadas antes de ser enviadas al backend.
+
+Estos resultados indican que el flujo funcional principal definido para el MVP se encuentra integrado. Sin embargo, la integración funcional no implica que la infraestructura de despliegue se encuentre completamente consolidada. En el estado actual, el backend y el ML Service se encuentran contenerizados dentro del entorno principal, mientras que el frontend y el componente RAG todavía requieren ajustes para aproximar la implementación a la arquitectura objetivo y permitir una ejecución más reproducible del sistema completo.
+
+En consecuencia, el avance alcanzado permite desplazar el énfasis del proyecto desde la construcción inicial de los componentes hacia su estabilización y refinamiento. Las principales actividades pendientes ya no corresponden a desarrollar las funcionalidades centrales, sino a consolidar el despliegue, mejorar la pertinencia del componente RAG, optimizar la comunicación de los resultados del modelo y de SHAP, fortalecer la presentación de la simulación y aplicar las mejoras de usabilidad identificadas durante las evaluaciones.
+
+En conjunto, las validaciones realizadas muestran que PULSO dispone actualmente de un MVP funcional en el que las capacidades principales definidas para el proyecto —clasificación mediante Machine Learning, explicabilidad, recuperación y generación de información preventiva y simulación de escenarios— pueden ejecutarse dentro de un mismo flujo. No obstante, los resultados también muestran que alcanzar la integración técnica no equivale a haber completado la validación de la solución: las limitaciones encontradas en la recuperación documental, la comprensión de los resultados y el comportamiento del modelo entre subgrupos continúan siendo aspectos relevantes que deben considerarse durante el cierre del proyecto.
 
 ## 15. Plan de cierre hacia la entrega final
 
