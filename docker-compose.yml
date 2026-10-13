@@ -1,0 +1,48 @@
+services:
+
+  ml-service:
+    build:
+      context: .
+      dockerfile: ml_service/Dockerfile
+
+    container_name: pulso-ml-service
+
+    volumes:
+      - ./artifacts:/app/artifacts:ro
+
+    ports:
+      - "8001:8001"
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8001/health')"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+
+    container_name: pulso-backend
+
+    environment:
+      ML_SERVICE_URL: http://ml-service:8001
+      ML_TIMEOUT_SECONDS: 30
+
+      RAG_SERVICE_URL: ${RAG_SERVICE_URL}
+      RAG_TIMEOUT_SECONDS: 30
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      ml-service:
+        condition: service_healthy

@@ -702,6 +702,24 @@ Los componentes principales del sistema son los siguientes:
 - SHAP / explicabilidad: ofrece una explicación local de la predicción. Su función es mostrar qué variables influyen en la decisión del modelo y en qué dirección lo hacen.
 - Simulación: permite variar parámetros modificables como el peso, la presión arterial o la actividad física para observar cómo cambia el riesgo estimado en distintos escenarios.
 - RAG / recomendaciones: trabaja con una base de conocimiento médica para generar respuestas y recomendaciones en lenguaje comprensible, reforzando la interpretación del resultado obtenido.
+  El componente RAG utiliza un corpus documental controlado compuesto inicialmente por **13 fuentes seleccionadas** relacionadas con prevención y salud cardiovascular. Estas fuentes corresponden a documentos médicos y guías consideradas pertinentes para los factores contemplados por PULSO. El contenido documental es segmentado en fragmentos antes de generar sus representaciones vectoriales y almacenarlas en Supabase para realizar posteriormente la recuperación semántica. La selección del corpus busca limitar la generación a información procedente de fuentes previamente revisadas y facilitar la trazabilidad de las recomendaciones producidas por el sistema.
+
+| ID | Título de la fuente | Institución / Autor | Tipo de documento | Tema principal | Factores o temas cubiertos | Observaciones |
+|---|---|---|---|---|---|---|
+| **SRC-01** | *Respuestas del corazón: Estilo de Vida + Reducción de Factores de Riesgos - ¿Cómo puedo perder peso?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para la pérdida de peso sostenible y reducción del riesgo cardiovascular. | Peso corporal, IMC / obesidad, actividad física, presión arterial, colesterol, prevención cardiovascular general. | Material educativo dirigido a pacientes. |
+| **SRC-02** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Fumar - ¿Cómo dejo de fumar?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para abandonar el consumo de tabaco y productos relacionados. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en cesación de tabaquismo. |
+| **SRC-03** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Dieta + Nutrición - ¿Cómo puedo seguir un patrón de alimentación saludable?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Adopción de patrones de alimentación saludables para el corazón y control de porciones. | Alimentación, peso corporal, presión arterial, prevención cardiovascular general. | Incluye recomendaciones sobre alimentos, sodio, azúcares y grasas. |
+| **SRC-04** | *Respuestas del corazón: Estilo de vida + reducción de riesgos Presión arterial alta - ¿Qué es la presión arterial alta?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Explicación de la hipertensión arterial, categorías de presión y factores asociados. | Presión arterial / hipertensión, tabaquismo, peso corporal / obesidad, consumo de alcohol, actividad física, edad, sexo, colesterol. | Fuente centrada en hipertensión y factores de riesgo relacionados. |
+| **SRC-05** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar la presión arterial* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Clasificación de la presión arterial y estrategias para mantener niveles saludables. | Presión arterial / hipertensión, tabaquismo, actividad física, peso corporal, consumo de alcohol, prevención cardiovascular general. | Documento sintético con alta concentración temática en hipertensión. |
+| **SRC-06** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo alimentarse mejor* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Orientaciones para mantener un patrón alimentario saludable. | Alimentación, consumo de alcohol, presión arterial, prevención cardiovascular general. | Enfatiza reducción de sodio, azúcares añadidos y grasas saturadas. |
+| **SRC-07** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el colesterol* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre colesterol y estrategias relacionadas con su control. | Colesterol HDL / LDL, tabaquismo, actividad física, prevención cardiovascular general. | Fuente concentrada principalmente en perfil lipídico. |
+| **SRC-08** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dormir lo suficiente* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Importancia del sueño adecuado para la salud cardiovascular. | Sueño, prevención cardiovascular general, presión arterial, peso corporal / obesidad. | Fuente especializada en hábitos de sueño. |
+| **SRC-09** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el azúcar en la sangre* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre glucemia y hábitos asociados con su control. | Glucemia / diabetes, peso corporal, tabaquismo, actividad física, prevención cardiovascular general. | Incluye información sobre rangos de glucemia y hábitos preventivos. |
+| **SRC-10** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo mantener un peso saludable* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Control del peso corporal y utilización del índice de masa corporal. | Peso corporal, IMC / obesidad, actividad física, prevención cardiovascular general. | Fuente centrada en peso corporal e IMC. |
+| **SRC-11** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo ser más activo* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Recomendaciones sobre actividad física aeróbica y fortalecimiento muscular. | Actividad física, prevención cardiovascular general. | Fuente especializada en actividad física e inactividad. |
+| **SRC-12** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dejar el tabaco y los productos de nicotina* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Riesgos relacionados con nicotina y estrategias para abandonar su consumo. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en tabaquismo y nicotina. |
+| **SRC-13** | *HEARTS en las Américas: Compendio de herramientas clínicas esenciales 2023* | Organización Panamericana de la Salud (OPS) / OMS; Andrés Rosende, Pedro Orduñez et al. | Guía clínica / Documento técnico institucional | Herramientas clínicas para el manejo de hipertensión arterial y riesgo cardiovascular en atención primaria. | Presión arterial / hipertensión, tabaquismo, actividad física, consumo de alcohol, peso corporal / IMC, edad, sexo, prevención cardiovascular general. | Documento técnico extenso orientado principalmente a profesionales de la salud y con alta densidad de contenido sobre hipertensión. |
+
 - Supabase: brinda almacenamiento persistente en PostgreSQL y soporte para consultas vectoriales con pgvector. Sirve como capa de datos para registros, resultados y posibles auditorías del sistema.
 - MLOps y versionado: MLflow, GitHub Actions y el versionado del modelo permiten mantener trazabilidad, reproducibilidad y control del pipeline de Machine Learning.
 
@@ -741,71 +759,6 @@ flowchart TB
     EMB -->|fragmentos vectorizados| DB
     MOD -.-> OPS
 ```
-
-### Componente RAG
-
-El componente RAG de PULSO constituye un servicio especializado encargado de complementar los resultados del modelo predictivo y las explicaciones SHAP mediante información preventiva recuperada desde un corpus documental controlado. Su función no consiste en modificar la predicción generada por el modelo de Machine Learning, sino en utilizar los factores prioritarios identificados para el perfil como contexto para recuperar documentación pertinente y generar información educativa sustentada en fuentes médicas previamente seleccionadas.
-
-El flujo RAG se implementa mediante un workflow en n8n. Este recibe desde el backend la información necesaria para contextualizar la consulta, incluyendo la predicción generada, los datos del usuario y los principales factores obtenidos mediante SHAP. A partir de esta información se construye una consulta para realizar recuperación semántica sobre los documentos almacenados en Supabase. Los fragmentos recuperados conservan metadatos asociados con su procedencia, permitiendo identificar posteriormente las fuentes utilizadas para respaldar cada recomendación.
-
-Supabase funciona como almacén vectorial del corpus documental. Los documentos son segmentados en fragmentos y representados mediante embeddings, lo que permite recuperar contenidos por similitud semántica. Este mecanismo es coherente con el uso de `pgvector` para almacenar embeddings y ejecutar búsquedas de similitud sobre PostgreSQL.
-
-Una vez recuperados los fragmentos más relevantes, el workflow normaliza su contenido y sus metadatos y construye el contexto documental que será enviado al modelo generativo. El modelo recibe instrucciones para utilizar exclusivamente la información recuperada, conservar el propósito educativo de PULSO, evitar diagnósticos o indicaciones terapéuticas y mantener la relación entre las recomendaciones y las fuentes utilizadas. Finalmente, la respuesta es estructurada antes de ser enviada nuevamente al backend.
-
-El componente RAG utiliza un corpus documental controlado compuesto inicialmente por **13 fuentes seleccionadas** relacionadas con prevención y salud cardiovascular. Estas fuentes corresponden a documentos médicos y guías consideradas pertinentes para los factores contemplados por PULSO. El contenido documental es segmentado en fragmentos antes de generar sus representaciones vectoriales y almacenarlas en Supabase para realizar posteriormente la recuperación semántica. La selección del corpus busca limitar la generación a información procedente de fuentes previamente revisadas y facilitar la trazabilidad de las recomendaciones producidas por el sistema.
-
-| ID | Título de la fuente | Institución / Autor | Tipo de documento | Tema principal | Factores o temas cubiertos | Observaciones |
-|---|---|---|---|---|---|---|
-| **SRC-01** | *Respuestas del corazón: Estilo de Vida + Reducción de Factores de Riesgos - ¿Cómo puedo perder peso?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para la pérdida de peso sostenible y reducción del riesgo cardiovascular. | Peso corporal, IMC / obesidad, actividad física, presión arterial, colesterol, prevención cardiovascular general. | Material educativo dirigido a pacientes. |
-| **SRC-02** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Fumar - ¿Cómo dejo de fumar?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para abandonar el consumo de tabaco y productos relacionados. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en cesación de tabaquismo. |
-| **SRC-03** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Dieta + Nutrición - ¿Cómo puedo seguir un patrón de alimentación saludable?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Adopción de patrones de alimentación saludables para el corazón y control de porciones. | Alimentación, peso corporal, presión arterial, prevención cardiovascular general. | Incluye recomendaciones sobre alimentos, sodio, azúcares y grasas. |
-| **SRC-04** | *Respuestas del corazón: Estilo de vida + reducción de riesgos Presión arterial alta - ¿Qué es la presión arterial alta?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Explicación de la hipertensión arterial, categorías de presión y factores asociados. | Presión arterial / hipertensión, tabaquismo, peso corporal / obesidad, consumo de alcohol, actividad física, edad, sexo, colesterol. | Fuente centrada en hipertensión y factores de riesgo relacionados. |
-| **SRC-05** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar la presión arterial* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Clasificación de la presión arterial y estrategias para mantener niveles saludables. | Presión arterial / hipertensión, tabaquismo, actividad física, peso corporal, consumo de alcohol, prevención cardiovascular general. | Documento sintético con alta concentración temática en hipertensión. |
-| **SRC-06** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo alimentarse mejor* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Orientaciones para mantener un patrón alimentario saludable. | Alimentación, consumo de alcohol, presión arterial, prevención cardiovascular general. | Enfatiza reducción de sodio, azúcares añadidos y grasas saturadas. |
-| **SRC-07** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el colesterol* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre colesterol y estrategias relacionadas con su control. | Colesterol HDL / LDL, tabaquismo, actividad física, prevención cardiovascular general. | Fuente concentrada principalmente en perfil lipídico. |
-| **SRC-08** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dormir lo suficiente* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Importancia del sueño adecuado para la salud cardiovascular. | Sueño, prevención cardiovascular general, presión arterial, peso corporal / obesidad. | Fuente especializada en hábitos de sueño. |
-| **SRC-09** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el azúcar en la sangre* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre glucemia y hábitos asociados con su control. | Glucemia / diabetes, peso corporal, tabaquismo, actividad física, prevención cardiovascular general. | Incluye información sobre rangos de glucemia y hábitos preventivos. |
-| **SRC-10** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo mantener un peso saludable* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Control del peso corporal y utilización del índice de masa corporal. | Peso corporal, IMC / obesidad, actividad física, prevención cardiovascular general. | Fuente centrada en peso corporal e IMC. |
-| **SRC-11** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo ser más activo* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Recomendaciones sobre actividad física aeróbica y fortalecimiento muscular. | Actividad física, prevención cardiovascular general. | Fuente especializada en actividad física e inactividad. |
-| **SRC-12** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dejar el tabaco y los productos de nicotina* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Riesgos relacionados con nicotina y estrategias para abandonar su consumo. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en tabaquismo y nicotina. |
-| **SRC-13** | *HEARTS en las Américas: Compendio de herramientas clínicas esenciales 2023* | Organización Panamericana de la Salud (OPS) / OMS; Andrés Rosende, Pedro Orduñez et al. | Guía clínica / Documento técnico institucional | Herramientas clínicas para el manejo de hipertensión arterial y riesgo cardiovascular en atención primaria. | Presión arterial / hipertensión, tabaquismo, actividad física, consumo de alcohol, peso corporal / IMC, edad, sexo, prevención cardiovascular general. | Documento técnico extenso orientado principalmente a profesionales de la salud y con alta densidad de contenido sobre hipertensión. |
-
-La salida del componente incluye un resumen general y un conjunto limitado de recomendaciones. Para cada recomendación se conserva información que permite identificar la fuente utilizada como respaldo documental. Esta decisión responde directamente a los requerimientos de trazabilidad del sistema y permite verificar posteriormente si una afirmación generada está respaldada por los fragmentos efectivamente recuperados.
-
-La separación del componente RAG respecto al servicio de Machine Learning permite que ambos evolucionen de forma independiente. El modelo predictivo continúa siendo responsable de generar la estimación y los factores SHAP, mientras que RAG se limita a recuperar y presentar información documental. De esta manera, una modificación del corpus, del mecanismo de recuperación o del modelo generativo no requiere reentrenar el clasificador cardiovascular.
-
-### Componente RAG
-
-El componente RAG de PULSO constituye un servicio especializado encargado de complementar los resultados del modelo predictivo y las explicaciones SHAP mediante información preventiva recuperada desde un corpus documental controlado. Su función no consiste en modificar la predicción generada por el modelo de Machine Learning, sino en utilizar los factores prioritarios identificados para el perfil como contexto para recuperar documentación pertinente y generar información educativa sustentada en fuentes médicas previamente seleccionadas.
-
-El flujo RAG se implementa mediante un workflow en n8n. Este recibe desde el backend la información necesaria para contextualizar la consulta, incluyendo la predicción generada, los datos del usuario y los principales factores obtenidos mediante SHAP. A partir de esta información se construye una consulta para realizar recuperación semántica sobre los documentos almacenados en Supabase. Los fragmentos recuperados conservan metadatos asociados con su procedencia, permitiendo identificar posteriormente las fuentes utilizadas para respaldar cada recomendación.
-
-Supabase funciona como almacén vectorial del corpus documental. Los documentos son segmentados en fragmentos y representados mediante embeddings, lo que permite recuperar contenidos por similitud semántica. Este mecanismo es coherente con el uso de `pgvector` para almacenar embeddings y ejecutar búsquedas de similitud sobre PostgreSQL.
-
-Una vez recuperados los fragmentos más relevantes, el workflow normaliza su contenido y sus metadatos y construye el contexto documental que será enviado al modelo generativo. El modelo recibe instrucciones para utilizar exclusivamente la información recuperada, conservar el propósito educativo de PULSO, evitar diagnósticos o indicaciones terapéuticas y mantener la relación entre las recomendaciones y las fuentes utilizadas. Finalmente, la respuesta es estructurada antes de ser enviada nuevamente al backend.
-
-El componente RAG utiliza un corpus documental controlado compuesto inicialmente por **13 fuentes seleccionadas** relacionadas con prevención y salud cardiovascular. Estas fuentes corresponden a documentos médicos y guías consideradas pertinentes para los factores contemplados por PULSO. El contenido documental es segmentado en fragmentos antes de generar sus representaciones vectoriales y almacenarlas en Supabase para realizar posteriormente la recuperación semántica. La selección del corpus busca limitar la generación a información procedente de fuentes previamente revisadas y facilitar la trazabilidad de las recomendaciones producidas por el sistema.
-
-| ID | Título de la fuente | Institución / Autor | Tipo de documento | Tema principal | Factores o temas cubiertos | Observaciones |
-|---|---|---|---|---|---|---|
-| **SRC-01** | *Respuestas del corazón: Estilo de Vida + Reducción de Factores de Riesgos - ¿Cómo puedo perder peso?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para la pérdida de peso sostenible y reducción del riesgo cardiovascular. | Peso corporal, IMC / obesidad, actividad física, presión arterial, colesterol, prevención cardiovascular general. | Material educativo dirigido a pacientes. |
-| **SRC-02** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Fumar - ¿Cómo dejo de fumar?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Estrategias para abandonar el consumo de tabaco y productos relacionados. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en cesación de tabaquismo. |
-| **SRC-03** | *Respuestas del corazón: Estilo de vida + Riesgo reducción Dieta + Nutrición - ¿Cómo puedo seguir un patrón de alimentación saludable?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Adopción de patrones de alimentación saludables para el corazón y control de porciones. | Alimentación, peso corporal, presión arterial, prevención cardiovascular general. | Incluye recomendaciones sobre alimentos, sodio, azúcares y grasas. |
-| **SRC-04** | *Respuestas del corazón: Estilo de vida + reducción de riesgos Presión arterial alta - ¿Qué es la presión arterial alta?* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Explicación de la hipertensión arterial, categorías de presión y factores asociados. | Presión arterial / hipertensión, tabaquismo, peso corporal / obesidad, consumo de alcohol, actividad física, edad, sexo, colesterol. | Fuente centrada en hipertensión y factores de riesgo relacionados. |
-| **SRC-05** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar la presión arterial* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Clasificación de la presión arterial y estrategias para mantener niveles saludables. | Presión arterial / hipertensión, tabaquismo, actividad física, peso corporal, consumo de alcohol, prevención cardiovascular general. | Documento sintético con alta concentración temática en hipertensión. |
-| **SRC-06** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo alimentarse mejor* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Orientaciones para mantener un patrón alimentario saludable. | Alimentación, consumo de alcohol, presión arterial, prevención cardiovascular general. | Enfatiza reducción de sodio, azúcares añadidos y grasas saturadas. |
-| **SRC-07** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el colesterol* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre colesterol y estrategias relacionadas con su control. | Colesterol HDL / LDL, tabaquismo, actividad física, prevención cardiovascular general. | Fuente concentrada principalmente en perfil lipídico. |
-| **SRC-08** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dormir lo suficiente* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Importancia del sueño adecuado para la salud cardiovascular. | Sueño, prevención cardiovascular general, presión arterial, peso corporal / obesidad. | Fuente especializada en hábitos de sueño. |
-| **SRC-09** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo controlar el azúcar en la sangre* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Conceptos sobre glucemia y hábitos asociados con su control. | Glucemia / diabetes, peso corporal, tabaquismo, actividad física, prevención cardiovascular general. | Incluye información sobre rangos de glucemia y hábitos preventivos. |
-| **SRC-10** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo mantener un peso saludable* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Control del peso corporal y utilización del índice de masa corporal. | Peso corporal, IMC / obesidad, actividad física, prevención cardiovascular general. | Fuente centrada en peso corporal e IMC. |
-| **SRC-11** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo ser más activo* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Recomendaciones sobre actividad física aeróbica y fortalecimiento muscular. | Actividad física, prevención cardiovascular general. | Fuente especializada en actividad física e inactividad. |
-| **SRC-12** | *Healthy for Good - Para Mi Salud: Los 8 Pasos Esenciales - Cómo dejar el tabaco y los productos de nicotina* | American Heart Association (AHA) | Hoja informativa / Recomendación oficial | Riesgos relacionados con nicotina y estrategias para abandonar su consumo. | Tabaquismo, presión arterial, prevención cardiovascular general. | Fuente especializada en tabaquismo y nicotina. |
-| **SRC-13** | *HEARTS en las Américas: Compendio de herramientas clínicas esenciales 2023* | Organización Panamericana de la Salud (OPS) / OMS; Andrés Rosende, Pedro Orduñez et al. | Guía clínica / Documento técnico institucional | Herramientas clínicas para el manejo de hipertensión arterial y riesgo cardiovascular en atención primaria. | Presión arterial / hipertensión, tabaquismo, actividad física, consumo de alcohol, peso corporal / IMC, edad, sexo, prevención cardiovascular general. | Documento técnico extenso orientado principalmente a profesionales de la salud y con alta densidad de contenido sobre hipertensión. |
-
-La salida del componente incluye un resumen general y un conjunto limitado de recomendaciones. Para cada recomendación se conserva información que permite identificar la fuente utilizada como respaldo documental. Esta decisión responde directamente a los requerimientos de trazabilidad del sistema y permite verificar posteriormente si una afirmación generada está respaldada por los fragmentos efectivamente recuperados.
-
-La separación del componente RAG respecto al servicio de Machine Learning permite que ambos evolucionen de forma independiente. El modelo predictivo continúa siendo responsable de generar la estimación y los factores SHAP, mientras que RAG se limita a recuperar y presentar información documental. De esta manera, una modificación del corpus, del mecanismo de recuperación o del modelo generativo no requiere reentrenar el clasificador cardiovascular.
-
 ### 10.3 Interacción entre módulos
 
 La interacción entre módulos se diseña con un nivel de acoplamiento moderado-bajo. El frontend no comunica directamente con el servicio de inferencia ni con la base de conocimiento. En cambio, accede al backend a través de una API y recibe respuestas ya estructuradas y procesadas. Esta decisión centraliza la validación, el control del flujo y la lógica de integración, reduciendo la dependencia directa entre las interfaces de usuario y los componentes computacionalmente más pesados.
@@ -988,15 +941,123 @@ La nueva versión será evaluada utilizando el mismo conjunto de casos empleado 
 
 ## 12. Despliegue y operación preliminar
 
-Describe cómo se ejecuta actualmente la solución, en qué entorno funciona, qué dependencias requiere y cuál es su estado de despliegue o configuración.
+PULSO cuenta actualmente con un entorno funcional de ejecución local que permite operar de manera integrada el frontend, el backend, el servicio de Machine Learning y el componente RAG. Sin embargo, el despliegue todavía corresponde a una etapa preliminar, ya que algunos componentes continúan ejecutándose de forma separada y la infraestructura aún no se encuentra completamente alineada con la arquitectura objetivo definida para el MVP.
 
-### Despliegue y operación preliminar del RAG
+### 12.1 Entorno actual de ejecución
 
-El componente RAG opera actualmente como un servicio externo al proceso de predicción principal. El backend de PULSO se comunica con el workflow mediante solicitudes HTTP y recibe como respuesta una estructura con el resumen, las recomendaciones y la información de trazabilidad asociada con las fuentes recuperadas.
+En el estado actual del proyecto, el **backend** y el **ML Service** se ejecutan mediante Docker Compose, mientras que el **frontend React** se inicia manualmente mediante Vite desde una terminal. El componente **RAG**, implementado mediante un workflow de n8n, se ejecuta en un contenedor independiente del Docker Compose principal de PULSO. Por su parte, **NGINX todavía no se encuentra implementado** como reverse proxy.
 
-El workflow depende de la disponibilidad de n8n, del almacén vectorial configurado en Supabase y del servicio generativo utilizado para construir la respuesta. Supabase permite almacenar embeddings y ejecutar búsquedas de similitud sobre los documentos representados vectorialmente, funcionalidad utilizada para seleccionar el contexto documental que se suministra al modelo generativo.
+Por tanto, la ejecución completa de la solución requiere actualmente tres bloques activos:
 
-Debido a estas dependencias, el componente RAG presenta características operacionales diferentes del servicio de Machine Learning. Una falla o un tiempo de respuesta elevado en el servicio generativo, el workflow o la base vectorial puede impedir la generación de información preventiva sin que necesariamente deba impedir la ejecución de la predicción cardiovascular. Esta separación será considerada durante las pruebas de integración, disponibilidad y tolerancia a fallos de la arquitectura.
+1. n8n con el workflow RAG habilitado.
+2. Docker Compose con el backend y el ML Service.
+3. El frontend React ejecutado mediante `npm run dev`.
+
+El flujo operativo actual puede representarse de la siguiente forma:
+
+`Usuario → Frontend React/Vite → Backend FastAPI → ML Service → Backend → RAG/n8n → Backend → Frontend`
+
+El backend actúa como componente orquestador. Recibe las solicitudes provenientes del frontend, invoca al ML Service para obtener la predicción y la explicación mediante SHAP, construye posteriormente el contexto requerido por el componente RAG y finalmente consolida la información antes de devolverla a la interfaz.
+
+### 12.2 Servicios y puertos utilizados
+
+En el entorno de desarrollo local se utilizan actualmente los siguientes servicios:
+
+| Componente | Tecnología / entorno | Puerto o dirección local |
+|---|---|---|
+| Frontend | React + Vite | `http://localhost:5173` |
+| Backend | FastAPI + Docker | `http://localhost:8000` |
+| Backend Swagger | FastAPI | `http://localhost:8000/docs` |
+| ML Service | FastAPI + Docker | `http://localhost:8001` |
+| Health check ML | FastAPI | `http://localhost:8001/health` |
+| RAG / n8n | Contenedor independiente | `http://localhost:5678` |
+
+El frontend se comunica actualmente de forma directa con el backend mediante la dirección configurada en `VITE_API_URL`, debido a que NGINX todavía no funciona como punto único de entrada.
+
+Dentro del entorno Docker, la comunicación entre servicios utiliza los nombres definidos en Docker Compose. Por ejemplo, el backend se comunica con el ML Service mediante:
+
+`http://ml-service:8001`
+
+y no mediante `localhost`, debido a que cada contenedor posee su propio contexto de red.
+
+### 12.3 Dependencias requeridas
+
+Para ejecutar el sistema en su estado actual se requiere disponer localmente de:
+
+- Docker Desktop.
+- Docker Compose.
+- Node.js.
+- npm.
+- Git.
+- El artefacto serializado del modelo final `pulso_xgboost.joblib`.
+- El contenedor de n8n activo.
+- El workflow RAG configurado y habilitado.
+- Las variables de entorno correspondientes al backend, ML Service, frontend y RAG.
+
+El ML Service carga el modelo final de PULSO desde el artefacto serializado y lo mantiene en memoria durante la ejecución del servicio. De esta manera, el modelo no se vuelve a cargar ni se reentrena para cada solicitud.
+
+El componente RAG requiere además la disponibilidad del workflow de n8n y de sus dependencias externas, particularmente el almacén vectorial utilizado para la recuperación documental y el servicio generativo empleado para construir las recomendaciones.
+
+### 12.4 Configuración del componente RAG
+
+El workflow RAG se ejecuta actualmente por fuera del Docker Compose principal. Debido a que el backend sí se encuentra dentro de Docker, no puede utilizar `localhost` para acceder al contenedor de n8n publicado en el equipo host.
+
+Por esta razón, la URL del servicio RAG debe configurarse mediante una dirección accesible desde Docker, por ejemplo:
+
+```env
+RAG_SERVICE_URL=http://host.docker.internal:5678/webhook/pulso-rag
+RAG_TIMEOUT_SECONDS=30
+```
+
+La ruta exacta depende del webhook activo en el workflow de n8n. Para la integración estable debe utilizarse el webhook de producción y no el endpoint de prueba.
+
+Las credenciales, claves y direcciones sensibles se gestionan mediante variables de entorno y no deben almacenarse directamente en el repositorio.
+
+### 12.5 Estado actual de contenerización
+
+El backend y el ML Service ya cuentan con Dockerfile y se encuentran incluidos en el Docker Compose principal. El backend consume al ML Service utilizando la red interna de Docker y el modelo final se monta dentro del contenedor del servicio de Machine Learning.
+
+El frontend, en cambio, todavía no se encuentra contenerizado y debe iniciarse manualmente mediante:
+
+```bash
+npm run dev
+```
+
+El workflow de n8n también se ejecuta actualmente en un contenedor independiente y todavía no forma parte del entorno integrado de PULSO.
+
+Por esta razón, el comando:
+
+```bash
+docker compose up -d --build
+```
+
+todavía no permite iniciar la totalidad de la plataforma de manera automática.
+
+### 12.6 Estado funcional del despliegue preliminar
+
+A pesar de que la infraestructura definitiva todavía no está completa, el flujo funcional principal del MVP ya se encuentra integrado.
+
+Actualmente pueden ejecutarse:
+
+- ingreso de datos desde el frontend;
+- predicción mediante PULSO v1;
+- aplicación del threshold de 0,38;
+- generación de explicaciones mediante SHAP;
+- recuperación y generación de información preventiva mediante RAG;
+- visualización de fuentes documentales;
+- simulación de escenarios hipotéticos;
+- comparación entre la estimación original y la simulada.
+
+El backend expone principalmente los endpoints:
+
+```text
+POST /api/analyze
+POST /api/simulate
+```
+
+El endpoint `/api/analyze` coordina la comunicación con el ML Service y el RAG, mientras que `/api/simulate` permite ejecutar nuevos escenarios utilizando el mismo modelo final.
+
+El sistema también permite realizar verificaciones independientes del frontend utilizando Swagger, lo que facilita identificar si un problema corresponde a la interfaz, al backend, al ML Service, al RAG o a la configuración de red.
 
 
 ## 13. Validación preliminar
