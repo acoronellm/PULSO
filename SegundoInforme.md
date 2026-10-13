@@ -1398,7 +1398,7 @@ Este resultado debe analizarse considerando que la prevalencia de `cardio = 1` t
 
 El análisis por subgrupos es de carácter exploratorio y no constituye una evaluación formal de equidad algorítmica ni una validación clínica del modelo.
 
-#### 13.1.X Evaluación funcional del componente RAG
+#### 13.1. Evaluación funcional del componente RAG
 
 Con el fin de evaluar el comportamiento del componente de generación aumentada por recuperación (RAG) de PULSO, se realizó una evaluación funcional y exploratoria mediante un conjunto controlado de 20 casos de prueba. Esta evaluación no corresponde a una validación clínica del sistema, sino a una verificación técnica orientada a determinar la pertinencia de la información recuperada, la trazabilidad documental de las recomendaciones, la cobertura de los factores identificados mediante SHAP y el cumplimiento del alcance educativo y preventivo definido para la plataforma.
 
@@ -1452,6 +1452,50 @@ Los resultados muestran que el sistema logró recuperar al menos un fragmento pe
 No obstante, la Precision@5 promedio fue del 35 %, lo que indica que, aunque habitualmente se recupera al menos un fragmento útil, una parte importante de los cinco primeros resultados contiene información secundaria o poco relacionada con los factores prioritarios del caso. Esta situación también se reflejó en la tasa de respuestas fuera de alcance, debido a que el modelo generador puede utilizar información documentalmente válida presente en los fragmentos recuperados para formular recomendaciones que no necesariamente corresponden a los factores identificados mediante SHAP.
 
 No se identificaron desviaciones de severidad crítica durante los 20 casos evaluados.
+
+Como parte de la validación funcional de PULSO, se realizaron pruebas automatizadas sobre los principales componentes del frontend con el propósito de verificar que la interfaz ejecutara correctamente las operaciones esperadas, procesara adecuadamente la información ingresada por el usuario, presentara los resultados recibidos desde el backend y manejara de forma controlada escenarios de validación, carga y error.
+
+Las pruebas fueron implementadas utilizando Vitest como framework de ejecución y React Testing Library para verificar el comportamiento de los componentes desde la perspectiva de interacción del usuario. Adicionalmente, se utilizaron @testing-library/jest-dom, @testing-library/user-event y jsdom para disponer de aserciones sobre el DOM, simular interacciones y ejecutar los componentes React en un entorno de navegador simulado.
+
+La evaluación incluyó los componentes HealthForm, PredictionResult, ShapFactors, Recommendations y SimulationPanel, así como el componente principal App y el módulo encargado de las comunicaciones HTTP con el backend. Las pruebas fueron diseñadas para validar no solamente el renderizado de información, sino también las principales reglas de interacción y transformación de datos implementadas en la interfaz.
+En el componente HealthForm se verificó la presencia de los campos requeridos, la validación de la relación entre presión arterial sistólica y diastólica, la conversión de los valores ingresados al tipo de dato esperado, el cálculo automático del índice de masa corporal y la construcción del objeto enviado al proceso de análisis. Asimismo, se comprobó el comportamiento del botón durante el estado de carga, evitando nuevos envíos mientras se encuentra en ejecución una solicitud.
+Para PredictionResult se validó la transformación de la probabilidad generada por el modelo a una representación porcentual, la visualización del umbral de referencia y la interpretación de la clasificación respecto a dicho umbral. También se comprobó la presencia de los mensajes que aclaran el alcance educativo del resultado y que la plataforma no constituye una herramienta de diagnóstico médico.
+
+Las pruebas de ShapFactors comprobaron que los factores de mayor influencia se presentaran utilizando denominaciones comprensibles para el usuario, incluyendo la transformación de variables internas como ap_hi, smoke y active a etiquetas legibles. También se evaluó la representación de unidades, valores categóricos y la dirección de influencia de cada factor, diferenciando aquellos que aumentaron o disminuyeron la salida del modelo.
+En el componente Recommendations se validó la visualización del resumen generado por el componente RAG, las recomendaciones asociadas con los factores analizados, la presentación de las fuentes documentales utilizadas, sus identificadores y los rangos de líneas correspondientes. De igual manera, se verificó la presentación de consideraciones adicionales y de las advertencias asociadas con el carácter informativo de la respuesta.
+
+El componente SimulationPanel fue evaluado mediante pruebas que incluyeron interacción y comportamiento asíncrono. Se comprobó que el sistema requiriera al menos una modificación antes de realizar una simulación, que únicamente enviara al backend las variables realmente modificadas y que representara correctamente los valores correspondientes al escenario original y al escenario simulado. También se verificaron la diferencia entre probabilidades, la clasificación resultante, el estado visual de carga y el manejo de errores producidos por el servicio de simulación.
+
+Adicionalmente, se realizaron pruebas sobre el componente principal App, con el propósito de evaluar de manera conjunta la coordinación entre los diferentes elementos de la interfaz. Estas pruebas verificaron el estado inicial de la aplicación, el envío del perfil del usuario, la visualización de los resultados después de una respuesta exitosa, el manejo de errores durante el análisis y el estado de carga mientras se espera la respuesta del backend. Este nivel de prueba permitió comprobar el flujo funcional principal de la interfaz sin depender de la ejecución real de los servicios externos, mediante el uso de respuestas simuladas controladas.
+Finalmente, se evaluó el módulo api.js, encargado de la comunicación entre el frontend y el backend. Se verificó que las solicitudes de análisis utilizaran el endpoint /api/analyze y que las simulaciones utilizaran /api/simulate, ambos mediante solicitudes HTTP POST y contenido JSON. También se probaron los escenarios en los que el backend devuelve mensajes de error mediante el atributo detail, así como los casos en los que la respuesta de error no puede ser interpretada y debe utilizarse un mensaje genérico definido en el frontend.
+
+En total se ejecutaron 41 pruebas automatizadas distribuidas en siete archivos de prueba, obteniéndose un resultado de 41 pruebas exitosas y ninguna prueba fallida.
+Los resultados de cobertura obtenidos mediante Vitest y el proveedor de cobertura V8 se presentan en la siguiente tabla.
+
+| **Métrica de cobertura** | **Resultado** |
+|--------------------------|--------------:|
+| Statements               | 92,30 %       |
+| Branches                 | 83,65 %       |
+| Functions                | 100 %         |
+| Lines                    | 92,03 %       |
+| Archivos de prueba       | 7             |
+| Pruebas ejecutadas       | 41            |
+| Pruebas exitosas         | 41            |
+| Pruebas fallidas         | 0             |
+
+**Resultados consolidados de las pruebas automatizadas de componentes del frontend.**
+El análisis individual de cobertura mostró que App.jsx, HealthForm.jsx, PredictionResult.jsx, Recommendations.jsx y api.js alcanzaron una cobertura del 100 % en líneas, funciones y ramas evaluadas. Por su parte, ShapFactors.jsx alcanzó una cobertura de líneas del 76 %, mientras que SimulationPanel.jsx obtuvo una cobertura del 91,17 %. Las diferencias se relacionan principalmente con ramas alternativas de presentación y combinaciones de variables que no forman parte del flujo funcional principal evaluado.
+
+| **Componente** | **Cobertura de líneas** | **Observación principal** |
+|----------------|-------------------------:|---------------------------|
+| `App.jsx` | 100 % | Flujo principal, carga y manejo de errores cubiertos |
+| `HealthForm.jsx` | 100 % | Validación, construcción del perfil y cálculo de BMI cubiertos |
+| `PredictionResult.jsx` | 100 % | Presentación de probabilidad, umbral y clasificación cubierta |
+| `Recommendations.jsx` | 100 % | Resumen, recomendaciones, fuentes y advertencias cubiertas |
+| `ShapFactors.jsx` | 76 % | Flujo principal cubierto; permanecen transformaciones alternativas de algunas variables |
+| `SimulationPanel.jsx` | 91,17 % | Simulación, errores y carga cubiertos; permanecen combinaciones adicionales de cambios |
+| `api.js` | 100 % | Solicitudes exitosas y manejo de errores cubiertos |
+
 
 ### 13.2 Pruebas de integración
 
