@@ -910,15 +910,123 @@ La nueva versión será evaluada utilizando el mismo conjunto de casos empleado 
 
 ## 12. Despliegue y operación preliminar
 
-Describe cómo se ejecuta actualmente la solución, en qué entorno funciona, qué dependencias requiere y cuál es su estado de despliegue o configuración.
+PULSO cuenta actualmente con un entorno funcional de ejecución local que permite operar de manera integrada el frontend, el backend, el servicio de Machine Learning y el componente RAG. Sin embargo, el despliegue todavía corresponde a una etapa preliminar, ya que algunos componentes continúan ejecutándose de forma separada y la infraestructura aún no se encuentra completamente alineada con la arquitectura objetivo definida para el MVP.
 
-### Despliegue y operación preliminar del RAG
+### 12.1 Entorno actual de ejecución
 
-El componente RAG opera actualmente como un servicio externo al proceso de predicción principal. El backend de PULSO se comunica con el workflow mediante solicitudes HTTP y recibe como respuesta una estructura con el resumen, las recomendaciones y la información de trazabilidad asociada con las fuentes recuperadas.
+En el estado actual del proyecto, el **backend** y el **ML Service** se ejecutan mediante Docker Compose, mientras que el **frontend React** se inicia manualmente mediante Vite desde una terminal. El componente **RAG**, implementado mediante un workflow de n8n, se ejecuta en un contenedor independiente del Docker Compose principal de PULSO. Por su parte, **NGINX todavía no se encuentra implementado** como reverse proxy.
 
-El workflow depende de la disponibilidad de n8n, del almacén vectorial configurado en Supabase y del servicio generativo utilizado para construir la respuesta. Supabase permite almacenar embeddings y ejecutar búsquedas de similitud sobre los documentos representados vectorialmente, funcionalidad utilizada para seleccionar el contexto documental que se suministra al modelo generativo.
+Por tanto, la ejecución completa de la solución requiere actualmente tres bloques activos:
 
-Debido a estas dependencias, el componente RAG presenta características operacionales diferentes del servicio de Machine Learning. Una falla o un tiempo de respuesta elevado en el servicio generativo, el workflow o la base vectorial puede impedir la generación de información preventiva sin que necesariamente deba impedir la ejecución de la predicción cardiovascular. Esta separación será considerada durante las pruebas de integración, disponibilidad y tolerancia a fallos de la arquitectura.
+1. n8n con el workflow RAG habilitado.
+2. Docker Compose con el backend y el ML Service.
+3. El frontend React ejecutado mediante `npm run dev`.
+
+El flujo operativo actual puede representarse de la siguiente forma:
+
+`Usuario → Frontend React/Vite → Backend FastAPI → ML Service → Backend → RAG/n8n → Backend → Frontend`
+
+El backend actúa como componente orquestador. Recibe las solicitudes provenientes del frontend, invoca al ML Service para obtener la predicción y la explicación mediante SHAP, construye posteriormente el contexto requerido por el componente RAG y finalmente consolida la información antes de devolverla a la interfaz.
+
+### 12.2 Servicios y puertos utilizados
+
+En el entorno de desarrollo local se utilizan actualmente los siguientes servicios:
+
+| Componente | Tecnología / entorno | Puerto o dirección local |
+|---|---|---|
+| Frontend | React + Vite | `http://localhost:5173` |
+| Backend | FastAPI + Docker | `http://localhost:8000` |
+| Backend Swagger | FastAPI | `http://localhost:8000/docs` |
+| ML Service | FastAPI + Docker | `http://localhost:8001` |
+| Health check ML | FastAPI | `http://localhost:8001/health` |
+| RAG / n8n | Contenedor independiente | `http://localhost:5678` |
+
+El frontend se comunica actualmente de forma directa con el backend mediante la dirección configurada en `VITE_API_URL`, debido a que NGINX todavía no funciona como punto único de entrada.
+
+Dentro del entorno Docker, la comunicación entre servicios utiliza los nombres definidos en Docker Compose. Por ejemplo, el backend se comunica con el ML Service mediante:
+
+`http://ml-service:8001`
+
+y no mediante `localhost`, debido a que cada contenedor posee su propio contexto de red.
+
+### 12.3 Dependencias requeridas
+
+Para ejecutar el sistema en su estado actual se requiere disponer localmente de:
+
+- Docker Desktop.
+- Docker Compose.
+- Node.js.
+- npm.
+- Git.
+- El artefacto serializado del modelo final `pulso_xgboost.joblib`.
+- El contenedor de n8n activo.
+- El workflow RAG configurado y habilitado.
+- Las variables de entorno correspondientes al backend, ML Service, frontend y RAG.
+
+El ML Service carga el modelo final de PULSO desde el artefacto serializado y lo mantiene en memoria durante la ejecución del servicio. De esta manera, el modelo no se vuelve a cargar ni se reentrena para cada solicitud.
+
+El componente RAG requiere además la disponibilidad del workflow de n8n y de sus dependencias externas, particularmente el almacén vectorial utilizado para la recuperación documental y el servicio generativo empleado para construir las recomendaciones.
+
+### 12.4 Configuración del componente RAG
+
+El workflow RAG se ejecuta actualmente por fuera del Docker Compose principal. Debido a que el backend sí se encuentra dentro de Docker, no puede utilizar `localhost` para acceder al contenedor de n8n publicado en el equipo host.
+
+Por esta razón, la URL del servicio RAG debe configurarse mediante una dirección accesible desde Docker, por ejemplo:
+
+```env
+RAG_SERVICE_URL=http://host.docker.internal:5678/webhook/pulso-rag
+RAG_TIMEOUT_SECONDS=30
+```
+
+La ruta exacta depende del webhook activo en el workflow de n8n. Para la integración estable debe utilizarse el webhook de producción y no el endpoint de prueba.
+
+Las credenciales, claves y direcciones sensibles se gestionan mediante variables de entorno y no deben almacenarse directamente en el repositorio.
+
+### 12.5 Estado actual de contenerización
+
+El backend y el ML Service ya cuentan con Dockerfile y se encuentran incluidos en el Docker Compose principal. El backend consume al ML Service utilizando la red interna de Docker y el modelo final se monta dentro del contenedor del servicio de Machine Learning.
+
+El frontend, en cambio, todavía no se encuentra contenerizado y debe iniciarse manualmente mediante:
+
+```bash
+npm run dev
+```
+
+El workflow de n8n también se ejecuta actualmente en un contenedor independiente y todavía no forma parte del entorno integrado de PULSO.
+
+Por esta razón, el comando:
+
+```bash
+docker compose up -d --build
+```
+
+todavía no permite iniciar la totalidad de la plataforma de manera automática.
+
+### 12.6 Estado funcional del despliegue preliminar
+
+A pesar de que la infraestructura definitiva todavía no está completa, el flujo funcional principal del MVP ya se encuentra integrado.
+
+Actualmente pueden ejecutarse:
+
+- ingreso de datos desde el frontend;
+- predicción mediante PULSO v1;
+- aplicación del threshold de 0,38;
+- generación de explicaciones mediante SHAP;
+- recuperación y generación de información preventiva mediante RAG;
+- visualización de fuentes documentales;
+- simulación de escenarios hipotéticos;
+- comparación entre la estimación original y la simulada.
+
+El backend expone principalmente los endpoints:
+
+```text
+POST /api/analyze
+POST /api/simulate
+```
+
+El endpoint `/api/analyze` coordina la comunicación con el ML Service y el RAG, mientras que `/api/simulate` permite ejecutar nuevos escenarios utilizando el mismo modelo final.
+
+El sistema también permite realizar verificaciones independientes del frontend utilizando Swagger, lo que facilita identificar si un problema corresponde a la interfaz, al backend, al ML Service, al RAG o a la configuración de red.
 
 
 ## 13. Validación preliminar
