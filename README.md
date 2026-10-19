@@ -16,6 +16,9 @@ El principal valor de PULSO radica en integrar predicción, explicabilidad, iden
 
 - [Primer Informe.md](./PrimerInforme.md): Documento que presenta el planteamiento del problema, los objetivos, la solución propuesta, el estado del arte, la metodología de desarrollo y el plan de trabajo del proyecto.
 
+### Segundo informe
+- [Segundo Informe.md](./SegundoInforme.md): Documento que presenta el estado actual del proyecto, incluyendo los avances logrados, las validaciones realizadas y los aspectos pendientes.
+
 
 ### Informe final
 
