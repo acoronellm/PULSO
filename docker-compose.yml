@@ -11,7 +11,7 @@ services:
       - ./artifacts:/app/artifacts:ro
 
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8001:8001"
 
     healthcheck:
       test:
@@ -41,8 +41,37 @@ services:
       RAG_TIMEOUT_SECONDS: 30
 
     ports:
-      - "8000:8000"
+        - "127.0.0.1:8000:8000"
 
     depends_on:
       ml-service:
         condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: pulso-frontend
+
+    expose:
+      - "80"
+
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:stable-alpine
+
+    container_name: pulso-nginx
+
+    ports:
+      - "80:80"
+
+    volumes:
+      - ./infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+    depends_on:
+      - frontend
+      - backend
+
+    restart: unless-stopped
