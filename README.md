@@ -12,6 +12,17 @@ El principal valor de PULSO radica en integrar predicción, explicabilidad, iden
 
 ## Documentación del repositorio
 
+### Flujo backend de análisis y recomendaciones
+
+El endpoint `POST /api/analyze` valida los datos y devuelve la predicción
+junto con la explicación SHAP sin ejecutar el servicio RAG. Las recomendaciones
+se solicitan posteriormente mediante `POST /api/rag`, enviando el contexto del
+análisis (`prediction`, `user_data` y `shap`). Antes de invocar RAG, el backend
+vuelve a consultar el ML Service y compara la predicción y la explicación
+recibidas; si el contexto no coincide, rechaza la solicitud. Así, una falla o
+demora del RAG no invalida el análisis inicial y el navegador no puede alterar
+silenciosamente el contexto usado para generar recomendaciones.
+
 ### Primer informe
 
 - [Primer Informe.md](./PrimerInforme.md): Documento que presenta el planteamiento del problema, los objetivos, la solución propuesta, el estado del arte, la metodología de desarrollo y el plan de trabajo del proyecto.

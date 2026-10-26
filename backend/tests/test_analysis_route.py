@@ -3,14 +3,10 @@ from fastapi.testclient import TestClient
 from backend.app.main import app
 from backend.app.schemas.analysis import (
     PredictionData,
-    RagResponse,
     ShapData,
 )
 from backend.app.services.ml_client import (
     MLClientError,
-)
-from backend.app.services.rag_client import (
-    RagClientError,
 )
 
 
@@ -31,7 +27,7 @@ VALID_PAYLOAD = {
 }
 
 
-def test_analyze_returns_complete_response(
+def test_analyze_returns_prediction_and_shap_without_rag(
     monkeypatch,
 ):
     async def fake_generate_prediction(
@@ -58,21 +54,6 @@ def test_analyze_returns_complete_response(
             ]
         )
 
-    async def fake_generate_recommendations(
-        payload,
-    ):
-        return RagResponse(
-            summary="Resumen de prueba.",
-            recommendations=[],
-            considerations=(
-                "Consideraciones de prueba."
-            ),
-            note=(
-                "PULSO ofrece información educativa."
-            ),
-            insufficient_information=False,
-        )
-
     monkeypatch.setattr(
         "backend.app.api.routes.analysis."
         "generate_prediction",
@@ -83,12 +64,6 @@ def test_analyze_returns_complete_response(
         "backend.app.api.routes.analysis."
         "generate_explanation",
         fake_generate_explanation,
-    )
-
-    monkeypatch.setattr(
-        "backend.app.api.routes.analysis."
-        "generate_recommendations",
-        fake_generate_recommendations,
     )
 
     response = client.post(
@@ -107,11 +82,7 @@ def test_analyze_returns_complete_response(
         body["shap"]["top_factors"][0]["feature"]
         == "ap_hi"
     )
-
-    assert (
-        body["rag"]["summary"]
-        == "Resumen de prueba."
-    )
+    assert "rag" not in body
 
 
 def test_analyze_returns_502_on_ml_error(
@@ -128,59 +99,6 @@ def test_analyze_returns_502_on_ml_error(
         "backend.app.api.routes.analysis."
         "generate_prediction",
         fake_generate_prediction,
-    )
-
-    response = client.post(
-        "/api/analyze",
-        json=VALID_PAYLOAD,
-    )
-
-    assert response.status_code == 502
-
-
-def test_analyze_returns_502_on_rag_error(
-    monkeypatch,
-):
-    async def fake_generate_prediction(
-        user_data,
-    ):
-        return PredictionData(
-            probability=0.35,
-            classification=0,
-            threshold=0.38,
-            model_version="v1",
-        )
-
-    async def fake_generate_explanation(
-        user_data,
-    ):
-        return ShapData(
-            top_factors=[]
-        )
-
-    async def fake_generate_recommendations(
-        payload,
-    ):
-        raise RagClientError(
-            "RAG no disponible."
-        )
-
-    monkeypatch.setattr(
-        "backend.app.api.routes.analysis."
-        "generate_prediction",
-        fake_generate_prediction,
-    )
-
-    monkeypatch.setattr(
-        "backend.app.api.routes.analysis."
-        "generate_explanation",
-        fake_generate_explanation,
-    )
-
-    monkeypatch.setattr(
-        "backend.app.api.routes.analysis."
-        "generate_recommendations",
-        fake_generate_recommendations,
     )
 
     response = client.post(

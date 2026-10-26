@@ -101,7 +101,6 @@ class RagResponse(BaseModel):
 class AnalysisResponse(BaseModel):
     prediction: PredictionData
     shap: ShapData
-    rag: RagResponse
 
 
 # -------------------------

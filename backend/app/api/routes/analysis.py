@@ -32,9 +32,42 @@ async def rag_analysis(
     payload: RagRequest,
 ):
     try:
-        return await generate_recommendations(
-            payload
+        verified_prediction = await generate_prediction(
+            payload.user_data
         )
+        verified_shap = await generate_explanation(
+            payload.user_data
+        )
+
+        if (
+            payload.prediction.model_dump()
+            != verified_prediction.model_dump()
+            or payload.shap.model_dump()
+            != verified_shap.model_dump()
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "El contexto de recomendaciones no coincide "
+                    "con un análisis válido."
+                ),
+            )
+
+        verified_payload = RagRequest(
+            prediction=verified_prediction,
+            user_data=payload.user_data,
+            shap=verified_shap,
+        )
+
+        return await generate_recommendations(
+            verified_payload
+        )
+
+    except MLClientError as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=str(exc),
+        ) from exc
 
     except RagClientError as exc:
         raise HTTPException(
@@ -59,29 +92,12 @@ async def analyze(
             user_data
         )
 
-        rag_request = RagRequest(
-            prediction=prediction,
-            user_data=user_data,
-            shap=shap,
-        )
-
-        rag = await generate_recommendations(
-            rag_request
-        )
-
         return AnalysisResponse(
             prediction=prediction,
             shap=shap,
-            rag=rag,
         )
 
     except MLClientError as exc:
-        raise HTTPException(
-            status_code=502,
-            detail=str(exc),
-        ) from exc
-
-    except RagClientError as exc:
         raise HTTPException(
             status_code=502,
             detail=str(exc),
