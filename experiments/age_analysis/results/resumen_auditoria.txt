@@ -1,0 +1,13 @@
+AUDITORÍA EXPLORATORIA DE EDADES | PULSO
+Sin entrenamiento ni modificación de PULSO v1.
+Los cortes se evalúan exclusivamente sobre Train+Validation.
+Registros depurados: 68,610
+Train: 48,027 | Validation: 10,291 | Test reservado: 10,292
+Desarrollo: 58,318
+Edad mínima: 29.56 | máxima: 64.92
+Edad mediana: 53.95
+Prevalencia cardio=1 en desarrollo: 0.4947
+Filas con perfil de entrada y etiqueta duplicados en desarrollo: 40
+Un perfil duplicado puede ser una coincidencia genuina: revisar antes de eliminar.
+Los resultados NO establecen cortes clínicos ni validan modelos especializados.
+No usar Test para elegir umbrales/cortes/modelos de los experimentos B y C.

@@ -1,0 +1,14 @@
+PULSO — AUDITORÍA 2 (solo desarrollo)
+Train: 48027; Validation: 10291; Test reservado: 10292
+NO se ha entrenado, ajustado ni evaluado XGBoost.
+Las asociaciones Spearman son descriptivas, no causales.
+Las coincidencias exactas entre perfiles no demuestran duplicados de pacientes.
+Las clases en este análisis corresponden a la etiqueta cardio, no eventos futuros.
+
+Duplicados:
+                      criterio  filas_duplicadas_en_desarrollo  perfiles_distintos_repetidos  filas_train_con_equivalente_en_validation  filas_validation_con_equivalente_en_train
+           mismas 10 variables                              70                            35                                         12                                         12
+mismas 10 variables y etiqueta                              40                            20                                          5                                          5
+
+Archivos: variables_por_grupo_y_clase.csv, asociaciones_exploratorias.csv,
+duplicados_desarrollo.csv y 3 figuras PNG.

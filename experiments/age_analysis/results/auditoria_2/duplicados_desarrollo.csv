@@ -1,0 +1,3 @@
+criterio,filas_duplicadas_en_desarrollo,perfiles_distintos_repetidos,filas_train_con_equivalente_en_validation,filas_validation_con_equivalente_en_train
+mismas 10 variables,70,35,12,12
+mismas 10 variables y etiqueta,40,20,5,5
