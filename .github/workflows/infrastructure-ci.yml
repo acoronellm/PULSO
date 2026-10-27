@@ -58,7 +58,7 @@ jobs:
 
           cat > /tmp/pulso-ci/backend/default.conf <<'EOF'
           server {
-              listen 80;
+              listen 8000;
               location /api/health {
                   default_type text/plain;
                   return 200 "backend-mock-ok";
