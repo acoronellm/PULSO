@@ -161,3 +161,31 @@ Estas operaciones no gestionan automáticamente el contenedor independiente de n
 La infraestructura local de PULSO permite ejecutar el frontend, el backend y ML Service mediante Docker Compose, utilizando NGINX como punto de entrada único para el navegador.
 
 Las pruebas confirmaron la integración del frontend con la API, la predicción, SHAP, la simulación y la comunicación técnica con el RAG MOCK.
+
+## 12. Mejoras de robustez y validación automatizada
+
+### Configuración del frontend
+
+Se incorporó un valor predeterminado para `VITE_API_URL` en `frontend/src/services/api.js`, permitiendo utilizar rutas relativas cuando la variable no se encuentre definida.
+
+### Resolución de nombres en NGINX
+
+Se implementó la resolución dinámica de los servicios `backend` y `frontend` mediante el DNS interno de Docker (`127.0.0.11`).
+
+Este cambio reduce la dependencia de la resolución de nombres durante el arranque de NGINX y facilita la recuperación ante reinicios de los contenedores.
+
+### Automatización mediante GitHub Actions
+
+Se añadió el workflow `.github/workflows/infrastructure-ci.yml`, encargado de:
+
+1. Validar Docker Compose.
+2. Construir las imágenes Docker del frontend, backend y ML Service.
+3. Verificar la configuración de NGINX.
+4. Comprobar el enrutamiento HTTP hacia servicios simulados.
+5. Verificar que el proxy permanece en ejecución.
+
+Las pruebas automatizadas de enrutamiento utilizan mocks y no ejecutan el modelo XGBoost ni el workflow RAG real.
+
+Las pruebas funcionales de los servicios reales deben verificarse mediante las pruebas de integración correspondientes.
+
+La ejecución exitosa del workflow debe confirmarse en GitHub Actions antes de aprobar su integración.
