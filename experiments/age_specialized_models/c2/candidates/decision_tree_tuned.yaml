@@ -1,0 +1,17 @@
+model_type: decision_tree
+
+model_params:
+  criterion: entropy
+  max_depth: 5
+  max_features: null
+  min_samples_leaf: 5
+  min_samples_split: 2
+  random_state: 42
+
+calibration:
+  method: isotonic
+  cv: 5
+  ensemble: false
+
+
+threshold: 0.5

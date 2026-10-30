@@ -1,0 +1,17 @@
+{
+  "purpose": "Experimento B exploratorio; no inferencia clínica ni evaluación independiente final",
+  "dataset": "data\\processed\\cardio_clean_v1.csv",
+  "config": "models\\pulso\\v1\\final_model.yaml",
+  "seed": 42,
+  "train_rows": 48027,
+  "validation_calibration_rows": 5145,
+  "validation_evaluation_rows": 5146,
+  "test_used": false,
+  "threshold_selection": "Máxima precision sujeta a recall >= 0.80 sobre mitad de Validation",
+  "groups": {
+    "menor_50": "age<50",
+    "50_59": "50<=age<60",
+    "60_64": "age>=60 (en dataset hasta ~64.9)"
+  },
+  "caveat": "Edad y grupos ya explorados en Test previamente: resultados solo exploratorios; exigir nueva cohorte externa para conclusión confirmatoria."
+}

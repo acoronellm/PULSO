@@ -1,0 +1,29 @@
+{
+  "algoritmo": "decision_tree",
+  "grupo": "50_59",
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "model_sha256": "b31d5b7a32de64ac7e77d2148abf6e739b4ffd29124ec24af60a9fd34eaa4964",
+  "git_commit": "6bbd28fa09c277ec249c6b7a31aa3a890896cf13",
+  "mlflow_run_id": "ebff3634a4744c73853f0b6f92f0b12d",
+  "features": [
+    "gender",
+    "height",
+    "weight",
+    "ap_hi",
+    "ap_lo",
+    "smoke",
+    "alco",
+    "active",
+    "age_years",
+    "bmi"
+  ],
+  "semilla": 42,
+  "train_indices_sha256": "3a9c368dbdfa4316558366d201ea22bfc119326bf71cc73570be2c7e701f3763",
+  "validation_indices_sha256": "733f11f69ab4873a8d595a1a645f88d67fd61b00206c252af9573dd5f85b60bd",
+  "uso_test": false,
+  "fecha_utc": "2026-10-30T04:52:40.406661+00:00",
+  "protocolo_version": "C2_v2_original_spaces_fivefold",
+  "search_method": "RandomizedSearchCV_equivalente_manual",
+  "search_space_sha256": "d9ee2ca5f7233f5363850f56d683aed49fc75f24c4b1fc58537cbcfd46ad6bf0",
+  "original_candidate_sha256": "30619ad2b80818c8fa5d4b4e87307b83e1732344978c17dace8392cefd6362bf"
+}

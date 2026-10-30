@@ -1,0 +1,23 @@
+model_type: xgboost
+
+model_params:
+  colsample_bytree: 0.8
+  learning_rate: 0.03
+  max_depth: 3
+  min_child_weight: 5
+  n_estimators: 300
+  reg_lambda: 5
+  subsample: 0.8
+
+  objective: binary:logistic
+  eval_metric: logloss
+  tree_method: hist
+  random_state: 42
+  n_jobs: -1
+
+calibration:
+  method: none
+  cv: 5
+  ensemble: false
+
+threshold: 0.5

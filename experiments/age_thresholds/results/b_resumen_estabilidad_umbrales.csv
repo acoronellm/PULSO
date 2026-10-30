@@ -1,0 +1,5 @@
+grupo_edad,mediana_umbral,q05_umbral,q95_umbral,min_umbral,max_umbral,proporcion_cumple_recall_seleccion
+GLOBAL,0.38,0.37,0.38,0.36,0.39,1.0
+menor_50,0.23,0.22,0.24,0.21,0.24,1.0
+50_59,0.38,0.37,0.38,0.37,0.39,1.0
+60_64,0.55,0.55,0.56,0.54,0.57,1.0

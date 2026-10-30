@@ -1,0 +1,27 @@
+{
+  "experiment": "C1 - global vs 3 age-specialized XGBoost",
+  "seed": 42,
+  "dataset": "data\\processed\\cardio_clean_v1.csv",
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "config": "models\\pulso\\v1\\final_model.yaml",
+  "train_rows": 48027,
+  "validation_rows": 10291,
+  "selection_rows": 5145,
+  "evaluation_rows": 5146,
+  "test_used": false,
+  "model_count": {
+    "global": 1,
+    "specialized": 3
+  },
+  "training": "Global fit Train; specialists fit mutually exclusive age subsets of Train",
+  "selection": "Validation 50/50 stratified age group x label; thresholds fit selection half, evaluated on other half",
+  "parameter_policy": "Same PULSO v1 hyperparameters for all models; no per-group tuning",
+  "evaluation": "Shared evaluation rows for all model/policy combinations",
+  "important_cautions": [
+    "The official PULSO v1 production model was refitted on Train + Validation, unlike these experimental models.",
+    "Model comparison and policy choice use reused Validation records; confirmatory claims require new independent data.",
+    "Age boundaries were previously informed partly by Test subgroup analyses.",
+    "A different specialized model can create a discontinuous probability at ages 50/60, even with one common threshold.",
+    "These classifications are educational and not diagnoses or clinically validated future risk estimates."
+  ]
+}

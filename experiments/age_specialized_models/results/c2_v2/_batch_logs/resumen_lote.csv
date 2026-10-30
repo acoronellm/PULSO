@@ -1,0 +1,16 @@
+﻿algoritmo,grupo,estado,duracion_segundos,log
+logistic_regression,menor_50,correcto,18.19,experiments\age_specialized_models\results\c2_v2\_batch_logs\logistic_regression__menor_50.log
+logistic_regression,50_59,correcto,21.84,experiments\age_specialized_models\results\c2_v2\_batch_logs\logistic_regression__50_59.log
+logistic_regression,60_64,correcto,17.31,experiments\age_specialized_models\results\c2_v2\_batch_logs\logistic_regression__60_64.log
+decision_tree,menor_50,correcto,20.61,experiments\age_specialized_models\results\c2_v2\_batch_logs\decision_tree__menor_50.log
+decision_tree,50_59,correcto,26.61,experiments\age_specialized_models\results\c2_v2\_batch_logs\decision_tree__50_59.log
+decision_tree,60_64,correcto,17.19,experiments\age_specialized_models\results\c2_v2\_batch_logs\decision_tree__60_64.log
+random_forest,menor_50,correcto,1747.59,experiments\age_specialized_models\results\c2_v2\_batch_logs\random_forest__menor_50.log
+random_forest,50_59,correcto,2888.94,experiments\age_specialized_models\results\c2_v2\_batch_logs\random_forest__50_59.log
+random_forest,60_64,correcto,1036.25,experiments\age_specialized_models\results\c2_v2\_batch_logs\random_forest__60_64.log
+gradient_boosting,menor_50,correcto,1397.28,experiments\age_specialized_models\results\c2_v2\_batch_logs\gradient_boosting__menor_50.log
+gradient_boosting,50_59,correcto,2146.95,experiments\age_specialized_models\results\c2_v2\_batch_logs\gradient_boosting__50_59.log
+gradient_boosting,60_64,correcto,835.25,experiments\age_specialized_models\results\c2_v2\_batch_logs\gradient_boosting__60_64.log
+xgboost,menor_50,correcto,360.91,experiments\age_specialized_models\results\c2_v2\_batch_logs\xgboost__menor_50.log
+xgboost,50_59,correcto,468.05,experiments\age_specialized_models\results\c2_v2\_batch_logs\xgboost__50_59.log
+xgboost,60_64,correcto,294.36,experiments\age_specialized_models\results\c2_v2\_batch_logs\xgboost__60_64.log

@@ -1,0 +1,43 @@
+{
+  "algoritmo": "logistic_regression",
+  "grupo": "menor_50",
+  "semilla": 42,
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "dataset_path": "C:\\Users\\MIGUEL  MARQUEZ\\OneDrive\\Documentos\\GitHub\\PULSO\\data\\processed\\cardio_clean_v1.csv",
+  "model_sha256": "6b6231229b954c0e52db58cb47bd94bba7d52a1173880969adaed36cd03ed292",
+  "git_commit": "6bbd28fa09c277ec249c6b7a31aa3a890896cf13",
+  "features": [
+    "gender",
+    "height",
+    "weight",
+    "ap_hi",
+    "ap_lo",
+    "smoke",
+    "alco",
+    "active",
+    "age_years",
+    "bmi"
+  ],
+  "train_indices_sha256": "384ce3781a76c014e3983524ed76f5d2b6343a809b1664f7927e14671960552d",
+  "validation_indices_sha256": "ad0f2d408d0e188ba4188caeda05d3c212a6f1f5257d0936272ba8d2db5ecafc",
+  "n_train": 14864,
+  "n_val": 3223,
+  "n_positivos_train": 5388,
+  "n_candidatos": 6,
+  "cv_folds": 3,
+  "cv_roc_auc_mean": 0.8041094933497795,
+  "cv_roc_auc_std": 0.0033213789523551707,
+  "params_seleccionados": {
+    "model__C": 0.1,
+    "model__class_weight": "balanced"
+  },
+  "validation_roc_auc_exploratorio": 0.7910285459868948,
+  "validation_brier_exploratorio": 0.18044745764667994,
+  "validation_log_loss_exploratorio": 0.5458250769063483,
+  "tiempo_segundos": 0.72,
+  "uso_test": false,
+  "nota": "No elegir modelos, calibradores o umbrales utilizando repetidamente estas metricas Validation.",
+  "fecha_utc": "2026-10-29T22:42:22.326979+00:00",
+  "mlflow_run_id": "3ec0fd2ba7df4740a08593fe9c050b0c",
+  "mlflow_tracking_uri": "sqlite:///mlflow.db"
+}

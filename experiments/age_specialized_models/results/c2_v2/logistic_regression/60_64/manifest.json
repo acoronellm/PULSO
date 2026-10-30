@@ -1,0 +1,29 @@
+{
+  "algoritmo": "logistic_regression",
+  "grupo": "60_64",
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "model_sha256": "c36b174bbd0c53df29926e9c6efd18a69b83667fa7c1bd4fbb86ec885005a100",
+  "git_commit": "6bbd28fa09c277ec249c6b7a31aa3a890896cf13",
+  "mlflow_run_id": "4d17988a61044a84bc226876dba7730d",
+  "features": [
+    "gender",
+    "height",
+    "weight",
+    "ap_hi",
+    "ap_lo",
+    "smoke",
+    "alco",
+    "active",
+    "age_years",
+    "bmi"
+  ],
+  "semilla": 42,
+  "train_indices_sha256": "393b4ee9978cb2062b2bd1e8f07a9ef3aed1f8733c02b8ddba484ad38b922e92",
+  "validation_indices_sha256": "7c2c96921f75a9df0a458d3adda5a66af187b8f852ef3cd2f35f729eb57230fc",
+  "uso_test": false,
+  "fecha_utc": "2026-10-30T04:51:53.232382+00:00",
+  "protocolo_version": "C2_v2_original_spaces_fivefold",
+  "search_method": "GridSearchCV_equivalente_manual",
+  "search_space_sha256": "beff6792cd8620e9d8f7e09f55a29062ecb59a7a835082fbdff81a608aa8006b",
+  "original_candidate_sha256": "5f5acef77cb8b8a203650439d50792776d629525bda52050fdf6eb0d63a4a98a"
+}

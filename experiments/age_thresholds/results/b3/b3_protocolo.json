@@ -1,0 +1,32 @@
+{
+  "experiment": "B3",
+  "dataset": "data\\processed\\cardio_clean_v1.csv",
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "config": "models\\pulso\\v1\\final_model.yaml",
+  "random_seed": 42,
+  "train_rows": 48027,
+  "validation_rows": 10291,
+  "selection_rows": 5145,
+  "evaluation_rows": 5146,
+  "test_used": false,
+  "model_retrained_on_train": true,
+  "groups": {
+    "menor_50": "edad < 50",
+    "50_59": "50 <= edad < 60",
+    "60_64": "edad >= 60"
+  },
+  "grid": "0.05 to 0.95 inclusive, step 0.01",
+  "objectives": {
+    "balanced_accuracy": "(recall + specificity)/2",
+    "weighted_60_40": "0.6*recall + 0.4*specificity; exploratory, not medically endorsed",
+    "minimax": "min(recall, specificity)"
+  },
+  "tie_break": "BA descending, distance to 0.38 ascending, threshold ascending",
+  "caveats": [
+    "Only one split of Validation is used; exploratory estimate, not external validation.",
+    "Group boundaries were informed partly by earlier Test analysis.",
+    "Selection scores are not evaluation metrics; no minimum recall guarantee.",
+    "Boundary comparison keeps probability fixed; actual predicted probability depends on age.",
+    "Repeated comparison of approaches on the same evaluation split can bias a post-hoc winner choice."
+  ]
+}

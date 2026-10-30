@@ -1,0 +1,4 @@
+grupo_edad,n_train,positives_train,n_validation
+menor_50,14864,5388,3223
+50_59,24369,12469,5218
+60_64,8794,5902,1850

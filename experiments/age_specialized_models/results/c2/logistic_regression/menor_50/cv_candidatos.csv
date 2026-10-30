@@ -1,0 +1,7 @@
+candidate,params,cv_roc_auc_mean,cv_roc_auc_std
+1,"{""model__C"": 0.1, ""model__class_weight"": ""balanced""}",0.8041094933497795,0.0033213789523551707
+3,"{""model__C"": 1.0, ""model__class_weight"": ""balanced""}",0.8040653108835519,0.003248103263836237
+5,"{""model__C"": 10.0, ""model__class_weight"": ""balanced""}",0.8040543236608823,0.003240241908026303
+0,"{""model__C"": 0.1, ""model__class_weight"": null}",0.8040077582217412,0.003528784775489968
+2,"{""model__C"": 1.0, ""model__class_weight"": null}",0.803966634860341,0.003424297866917266
+4,"{""model__C"": 10.0, ""model__class_weight"": null}",0.8039618758166668,0.0034173703596861228

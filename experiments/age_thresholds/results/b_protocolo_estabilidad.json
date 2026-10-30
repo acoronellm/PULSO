@@ -1,0 +1,20 @@
+{
+  "experiment": "B robustness",
+  "repetitions": 100,
+  "train_rows": 48027,
+  "validation_rows": 10291,
+  "test_used": false,
+  "random_seeds": [
+    42,
+    141
+  ],
+  "method": "Train fija; predicciones Validation fijas; 100 redistribuciones estratificadas 50/50 para selección/evaluación de umbrales",
+  "confidence_intervals": "Wilson 95% binomial para seed=42; únicamente incertidumbre condicional al modelo y partición",
+  "cautions": [
+    "Las 100 particiones reutilizan registros y no constituyen 100 muestras independientes.",
+    "Los cuantiles 5%-95% de repeticiones NO son intervalos de confianza poblacionales.",
+    "Las estimaciones siguen siendo exploratorias; diseño de grupos informado parcialmente por análisis previos de Test.",
+    "La comprobación de cortes de edad mantiene fija la probabilidad predicha; NO es una simulación realista de cambio de edad.",
+    "No se reentrena en cada repetición; se mide estabilidad de política con modelo fijo, no estabilidad del entrenamiento."
+  ]
+}

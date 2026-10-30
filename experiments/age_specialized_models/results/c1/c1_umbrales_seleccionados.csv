@@ -1,0 +1,17 @@
+modelo,grupo_edad,objetivo,n_seleccion,threshold,selection_score
+global,GLOBAL,balanced_accuracy,5145,0.49,0.7259724950884087
+global,GLOBAL,minimax,5145,0.45,0.725
+global,menor_50,balanced_accuracy,1612,0.39,0.7268328339055254
+global,menor_50,minimax,1612,0.27,0.706286836935167
+global,50_59,balanced_accuracy,2608,0.49,0.719163869752105
+global,50_59,minimax,2608,0.44,0.7148148148148148
+global,60_64,balanced_accuracy,925,0.63,0.6974718062488445
+global,60_64,minimax,925,0.63,0.6944444444444444
+especializado,GLOBAL,balanced_accuracy,5145,0.46,0.7286500680066496
+especializado,GLOBAL,minimax,5145,0.46,0.7269155206286837
+especializado,menor_50,balanced_accuracy,1612,0.32,0.7305438140408671
+especializado,menor_50,minimax,1612,0.27,0.7072691552062869
+especializado,50_59,balanced_accuracy,2608,0.46,0.7198421951363128
+especializado,50_59,minimax,2608,0.45,0.7140740740740741
+especializado,60_64,balanced_accuracy,925,0.67,0.6950709722478996
+especializado,60_64,minimax,925,0.65,0.6805324459234608

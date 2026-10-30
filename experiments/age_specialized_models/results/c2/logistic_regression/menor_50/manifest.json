@@ -1,0 +1,25 @@
+{
+  "algoritmo": "logistic_regression",
+  "grupo": "menor_50",
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "model_sha256": "6b6231229b954c0e52db58cb47bd94bba7d52a1173880969adaed36cd03ed292",
+  "git_commit": "6bbd28fa09c277ec249c6b7a31aa3a890896cf13",
+  "mlflow_run_id": "3ec0fd2ba7df4740a08593fe9c050b0c",
+  "features": [
+    "gender",
+    "height",
+    "weight",
+    "ap_hi",
+    "ap_lo",
+    "smoke",
+    "alco",
+    "active",
+    "age_years",
+    "bmi"
+  ],
+  "semilla": 42,
+  "train_indices_sha256": "384ce3781a76c014e3983524ed76f5d2b6343a809b1664f7927e14671960552d",
+  "validation_indices_sha256": "ad0f2d408d0e188ba4188caeda05d3c212a6f1f5257d0936272ba8d2db5ecafc",
+  "uso_test": false,
+  "fecha_utc": "2026-10-29T22:42:22.326979+00:00"
+}

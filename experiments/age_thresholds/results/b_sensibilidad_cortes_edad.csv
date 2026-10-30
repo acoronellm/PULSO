@@ -1,0 +1,5 @@
+limite_edad,ventana_anos,umbral_inferior,umbral_superior,n_ventana,n_podria_cambiar_clase_con_probabilidad_fija,proporcion_podria_cambiar
+50,0.5,0.23,0.38,819,334,0.4078144078144078
+50,1.0,0.23,0.38,1030,416,0.40388349514563104
+60,0.5,0.38,0.55,789,295,0.37389100126742714
+60,1.0,0.38,0.55,972,362,0.3724279835390947

@@ -1,0 +1,32 @@
+{
+  "experimento": "B3 estabilidad",
+  "repeticiones": 100,
+  "semillas": [
+    42,
+    141
+  ],
+  "train_rows": 48027,
+  "validation_rows": 10291,
+  "test_utilizado": false,
+  "sha256_dataset": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "config": "models\\pulso\\v1\\final_model.yaml",
+  "esquema": "Train fija, modelo único; 100 divisiones estratificadas 50/50 de Validation por grupo×etiqueta; selección/evaluación separadas en cada repetición",
+  "politicas": [
+    "referencia_0_38",
+    "B_previo_recall80",
+    "B3_balanced_accuracy_global",
+    "B3_balanced_accuracy_edad",
+    "B3_weighted_60_40_global",
+    "B3_weighted_60_40_edad",
+    "B3_minimax_global",
+    "B3_minimax_edad"
+  ],
+  "comprobacion_semilla_42": "coincide",
+  "advertencias": [
+    "Las 100 redistribuciones no son independientes; los percentiles NO son intervalos de confianza poblacionales.",
+    "Se reutiliza el mismo modelo, por lo que no se estima variabilidad por reentrenamiento.",
+    "No elegir una política ganadora después de comparar reiteradamente sobre los mismos registros sin nueva validación independiente.",
+    "Los límites de edad fueron informados parcialmente por un análisis anterior de Test.",
+    "El objetivo 60/40 es experimental y no está validado clínicamente."
+  ]
+}
