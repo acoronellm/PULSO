@@ -28,3 +28,9 @@ artifacts/
 __pycache__/
 .pytest_cache/
 .venv/
+
+# Modelos experimentales de C2
+experiments/age_specialized_models/results/**/*.joblib
+
+# ZIP de resultados experimentales
+experiments/age_specialized_models/results/c2_v2.zip
