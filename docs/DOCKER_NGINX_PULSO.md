@@ -110,6 +110,8 @@ Se verificó:
 - Acceso al frontend desde `http://localhost`.
 - Respuesta HTTP 200 del endpoint `/api/health`.
 - Enrutamiento correcto de `/api/analyze` y `/api/simulate`.
+- Solicitud opcional de recomendaciones mediante `/api/rag`, posterior al
+  análisis inicial.
 - Predicción con XGBoost v1.
 - Explicación SHAP.
 - Simulación de escenarios.
@@ -186,6 +188,8 @@ Se añadió el workflow `.github/workflows/infrastructure-ci.yml`, encargado de:
 
 Las pruebas automatizadas de enrutamiento utilizan mocks y no ejecutan el modelo XGBoost ni el workflow RAG real.
 
-Las pruebas funcionales de los servicios reales deben verificarse mediante las pruebas de integración correspondientes.
+Las pruebas funcionales de los servicios reales deben verificarse mediante las pruebas de integración correspondientes. El análisis inicial no
+depende de la disponibilidad del RAG; las recomendaciones se solicitan
+después desde el frontend.
 
 La ejecución exitosa del workflow debe confirmarse en GitHub Actions antes de aprobar su integración.

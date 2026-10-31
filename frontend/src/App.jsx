@@ -3,7 +3,10 @@ import "./App.css";
 
 import HealthForm from "./components/HealthForm";
 import PredictionResult from "./components/PredictionResult";
-import { analyzeProfile } from "./services/api";
+import {
+  analyzeProfile,
+  requestRecommendations,
+} from "./services/api";
 import ShapFactors from "./components/ShapFactors";
 import Recommendations from "./components/Recommendations";
 import SimulationPanel from "./components/SimulationPanel";
@@ -12,12 +15,18 @@ function App() {
   const [originalProfile, setOriginalProfile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [recommendations, setRecommendations] = useState(null);
+  const [recommendationsLoading, setRecommendationsLoading] =
+    useState(false);
+  const [recommendationsError, setRecommendationsError] = useState("");
 
   async function handleAnalyze(userData) {
     try {
       setLoading(true);
       setError("");
       setAnalysis(null);
+      setRecommendations(null);
+      setRecommendationsError("");
 
       const result = await analyzeProfile(userData);
 
@@ -27,6 +36,29 @@ function App() {
       setError(error.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleRecommendations() {
+    if (!analysis || !originalProfile) {
+      return;
+    }
+
+    try {
+      setRecommendationsLoading(true);
+      setRecommendationsError("");
+
+      const result = await requestRecommendations({
+        prediction: analysis.prediction,
+        user_data: originalProfile,
+        shap: analysis.shap,
+      });
+
+      setRecommendations(result);
+    } catch (error) {
+      setRecommendationsError(error.message);
+    } finally {
+      setRecommendationsLoading(false);
     }
   }
 
@@ -70,7 +102,12 @@ function App() {
 
             <ShapFactors shap={analysis.shap} />
 
-            <Recommendations rag={analysis.rag} />
+            <Recommendations
+              rag={recommendations}
+              loading={recommendationsLoading}
+              error={recommendationsError}
+              onRequest={handleRecommendations}
+            />
             <SimulationPanel
               originalProfile={originalProfile}
               originalPrediction={analysis.prediction}
