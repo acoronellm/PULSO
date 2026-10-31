@@ -1,0 +1,127 @@
+
+name: Infrastructure CI
+
+on:
+  pull_request:
+    paths:
+      - "docker-compose.yml"
+      - ".dockerignore"
+      - "frontend/**"
+      - "backend/Dockerfile"
+      - "backend/requirements.txt"
+      - "ml_service/Dockerfile"
+      - "ml_service/requirements.txt"
+      - "infrastructure/**"
+      - ".github/workflows/infrastructure-ci.yml"
+
+  push:
+    branches:
+      - main
+    paths:
+      - "docker-compose.yml"
+      - ".dockerignore"
+      - "frontend/**"
+      - "backend/Dockerfile"
+      - "backend/requirements.txt"
+      - "ml_service/Dockerfile"
+      - "ml_service/requirements.txt"
+      - "infrastructure/**"
+      - ".github/workflows/infrastructure-ci.yml"
+
+  workflow_dispatch:
+
+jobs:
+  infrastructure:
+    name: Docker and NGINX validation
+    runs-on: ubuntu-latest
+
+    env:
+      RAG_SERVICE_URL: http://localhost:5678/webhook/pulso-rag
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate Docker Compose
+        run: docker compose config --quiet
+
+      - name: Build Docker images
+        run: docker compose build frontend backend ml-service
+
+      - name: Create test network
+        run: docker network create pulso-ci-network
+
+      - name: Prepare mock upstreams
+        run: |
+          mkdir -p /tmp/pulso-ci/backend
+          mkdir -p /tmp/pulso-ci/frontend
+
+          cat > /tmp/pulso-ci/backend/default.conf <<'EOF'
+          server {
+              listen 8000;
+              location /api/health {
+                  default_type text/plain;
+                  return 200 "backend-mock-ok";
+              }
+          }
+          EOF
+
+          echo "frontend-mock-ok" > /tmp/pulso-ci/frontend/index.html
+
+      - name: Start mock backend and frontend
+        run: |
+          docker run -d \
+            --name pulso-ci-backend \
+            --network pulso-ci-network \
+            --network-alias backend \
+            -v /tmp/pulso-ci/backend/default.conf:/etc/nginx/conf.d/default.conf:ro \
+            nginx:stable-alpine
+
+          docker run -d \
+            --name pulso-ci-frontend \
+            --network pulso-ci-network \
+            --network-alias frontend \
+            -v /tmp/pulso-ci/frontend/index.html:/usr/share/nginx/html/index.html:ro \
+            nginx:stable-alpine
+
+      - name: Validate NGINX configuration
+        run: |
+          docker run --rm \
+            --network pulso-ci-network \
+            -v "${{ github.workspace }}/infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro" \
+            nginx:stable-alpine nginx -t
+
+      - name: Start reverse proxy
+        run: |
+          docker run -d \
+            --name pulso-ci-nginx \
+            --network pulso-ci-network \
+            -p 127.0.0.1:18080:80 \
+            -v "${{ github.workspace }}/infrastructure/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro" \
+            nginx:stable-alpine
+
+      - name: Verify frontend routing
+        run: |
+          response=$(curl --fail --silent --show-error \
+            --retry 10 --retry-connrefused --retry-delay 2 \
+            http://127.0.0.1:18080/)
+
+          echo "$response" | grep -F "frontend-mock-ok"
+
+      - name: Verify API routing
+        run: |
+          response=$(curl --fail --silent --show-error \
+            --retry 10 --retry-connrefused --retry-delay 2 \
+            http://127.0.0.1:18080/api/health)
+
+          echo "$response" | grep -F "backend-mock-ok"
+
+      - name: Verify proxy remains running
+        run: |
+          test "$(docker inspect -f '{{.State.Running}}' pulso-ci-nginx)" = "true"
+
+      - name: Clean up
+        if: always()
+        run: |
+          docker rm -f pulso-ci-nginx pulso-ci-frontend pulso-ci-backend || true
+          docker network rm pulso-ci-network || true
