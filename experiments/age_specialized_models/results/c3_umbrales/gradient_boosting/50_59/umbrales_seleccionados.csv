@@ -1,0 +1,5 @@
+algorithm,group,policy,status,threshold,selection_score,recall_selection,specificity_selection,n_selection
+gradient_boosting,50_59,recall80,seleccionado,0.38,0.5564387917329093,0.8081481481481482,0.5564387917329093,2608
+gradient_boosting,50_59,balanced_accuracy,seleccionado,0.48,0.7192545486663133,0.6777777777777778,0.760731319554849,2608
+gradient_boosting,50_59,minimax,seleccionado,0.44,0.7058823529411765,0.7177777777777777,0.7058823529411765,2608
+gradient_boosting,50_59,weighted_60_40,seleccionado,0.44,0.7130196078431372,0.7177777777777777,0.7058823529411765,2608

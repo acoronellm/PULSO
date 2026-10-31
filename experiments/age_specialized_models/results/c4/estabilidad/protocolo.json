@@ -1,0 +1,10 @@
+{
+  "analysis": "C4 threshold stability",
+  "repetitions": 100,
+  "notes": "Mismo modelo, mismas observaciones redistribuidas; cuantiles NO son intervalos de confianza ni muestras independientes.",
+  "git_commit": "15de14660144ca9a3dc2990198438033bc6a987b",
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "seed": 42,
+  "test_used": false,
+  "created_utc": "2026-10-31T18:14:27.735703+00:00"
+}

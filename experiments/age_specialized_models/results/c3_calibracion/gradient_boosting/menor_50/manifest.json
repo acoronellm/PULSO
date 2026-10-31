@@ -1,0 +1,30 @@
+{
+  "experimento": "C3_calibracion",
+  "algoritmo": "gradient_boosting",
+  "grupo": "menor_50",
+  "metodo_seleccionado": "sigmoid",
+  "criterio": "menor Brier medio en CV externa sobre Train",
+  "outer_folds": 3,
+  "inner_folds": 3,
+  "semilla": 42,
+  "n_train": 14864,
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "c2_run_id": "eeb72868eebb4e9b840d62493bfbd845",
+  "c2_model_sha256": "0e04cda3a4c0841253d1b0f1122ac765fae464f183745d1eabd38e5c8bb0ff66",
+  "c2_params": {
+    "model__learning_rate": 0.03,
+    "model__max_depth": 3,
+    "model__min_samples_leaf": 2,
+    "model__min_samples_split": 5,
+    "model__n_estimators": 200,
+    "model__subsample": 0.8
+  },
+  "model_sha256": "8ab531f936a5f0d9e41c57151b9ca497e0aa490a3b123d8f817b6a12f83a7c72",
+  "git_commit": "15de14660144ca9a3dc2990198438033bc6a987b",
+  "uso_test": false,
+  "validation_para_seleccion": false,
+  "nota": "C3 selecciona calibración solo con Train; C3 umbrales vendrá después. La evaluación CV de la opción elegida tiene sesgo de selección: validación externa pendiente.",
+  "fecha_utc": "2026-10-31T15:25:02.869887+00:00",
+  "duracion_segundos": 100.03,
+  "mlflow_run_id": "13c8d430272642eaae93e11ac225ffd5"
+}

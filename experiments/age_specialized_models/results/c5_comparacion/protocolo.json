@@ -1,0 +1,30 @@
+{
+  "analysis": "C5 global-vs-specialized exploratory",
+  "date_utc": "2026-10-31T19:52:04.718115+00:00",
+  "git_commit": "15de14660144ca9a3dc2990198438033bc6a987b",
+  "seed": 42,
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "train_n": 48027,
+  "validation_n": 10291,
+  "selection_n": 5145,
+  "evaluation_n": 5146,
+  "test_used": false,
+  "global_model": "XGBoost v1 hyperparameters trained exclusively on original Train",
+  "global_threshold_reference": 0.38,
+  "global_threshold_policies": {
+    "recall80": 0.38,
+    "balanced_accuracy": 0.49,
+    "minimax": 0.45,
+    "weighted_60_40": 0.39
+  },
+  "c3_model_sha256": {
+    "xgboost/menor_50": "35beb67b33d1803af05e09a02320739d856cb6699fc4e853f7390df7a687c4df",
+    "xgboost/50_59": "59948b9ea03683ea44310f94774134520820a6d664044f5d77172840eda00166",
+    "xgboost/60_64": "4e33546ce5662e1b3b36e82e643cdef34436bad513892a57967a2a67c95cc7ca",
+    "gradient_boosting/menor_50": "8ab531f936a5f0d9e41c57151b9ca497e0aa490a3b123d8f817b6a12f83a7c72",
+    "gradient_boosting/50_59": "4a99ea352326f442e5d917b7c2bc4bde92abedc6c750b783902feedb4dbb947e",
+    "gradient_boosting/60_64": "3159172b83074ed25f19a21ed12109a833e03054e47147bb40001e0800f060ff"
+  },
+  "note": "Validation revisitada múltiples veces; diferencias exploratorias. Referencia 0.38 no es umbral óptimo. No se utiliza el artefacto oficial ajustado sobre Train+Validation. Comparar políticas iguales; las probabilidades de diferentes modelos no están calibradas de forma equivalente necesariamente. No usar Test de PULSO como confirmatorio si ya fue consultado para decisiones previas.",
+  "mlflow_run_id": "70dafe62a7df4b35b5a045c22f46ca6d"
+}

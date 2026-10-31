@@ -1,0 +1,26 @@
+{
+  "experiment": "C3_thresholds",
+  "algorithm": "xgboost",
+  "group": "60_64",
+  "policies": [
+    "recall80",
+    "balanced_accuracy",
+    "minimax",
+    "weighted_60_40"
+  ],
+  "objective_recall80": "recall >= 0.80, then maximize specificity",
+  "grid": "0.01..0.99 step 0.01",
+  "random_state": 42,
+  "validation_selection_total": 5145,
+  "validation_evaluation_total": 5146,
+  "selection_group": 925,
+  "evaluation_group": 925,
+  "dataset_sha256": "16f4beca139c5e0be6a6a7e1df41e1d08d047d6897c218afb7df666c2248eb91",
+  "c3_calibration_run_id": "d98b88da5bd4423397c1dbaf473096b6",
+  "c3_calibration_model_sha256": "4e33546ce5662e1b3b36e82e643cdef34436bad513892a57967a2a67c95cc7ca",
+  "git_commit": "15de14660144ca9a3dc2990198438033bc6a987b",
+  "test_used": false,
+  "caution": "Validation ya explorada en experimentos anteriores; evaluación interna exploratoria, no confirmatoria. La elección posterior entre políticas reutiliza esta evaluación.",
+  "timestamp_utc": "2026-10-31T16:06:43.815058+00:00",
+  "mlflow_run_id": "b945675fbbcf4607878d421256d9304c"
+}
