@@ -94,6 +94,8 @@ El backend utiliza variables como:
 - `ML_TIMEOUT_SECONDS`
 - `RAG_SERVICE_URL`
 - `RAG_TIMEOUT_SECONDS`
+- `ANALYSIS_CACHE_TTL_SECONDS` (por defecto: 900 segundos)
+- `ANALYSIS_CACHE_MAX_ENTRIES` (por defecto: 100 análisis)
 
 Para el frontend compilado mediante Docker se utiliza una URL base vacía, de forma que las solicitudes a `/api/` se envían al mismo origen y son gestionadas por NGINX.
 
@@ -110,6 +112,8 @@ Se verificó:
 - Acceso al frontend desde `http://localhost`.
 - Respuesta HTTP 200 del endpoint `/api/health`.
 - Enrutamiento correcto de `/api/analyze` y `/api/simulate`.
+- Solicitud opcional de recomendaciones mediante `/api/rag`, posterior al
+  análisis inicial.
 - Predicción con XGBoost v1.
 - Explicación SHAP.
 - Simulación de escenarios.
@@ -117,6 +121,13 @@ Se verificó:
 - Ejecución del análisis completo utilizando una respuesta RAG simulada.
 
 La prueba RAG utilizó un workflow MOCK. No constituye una validación del sistema documental de producción.
+
+El backend conserva temporalmente cada análisis en una caché local para que
+`/api/rag` reutilice el `analysis_id` sin repetir predicción ni SHAP. Los
+registros expiran por TTL, se expulsan al superar el límite configurado y se
+eliminan al reiniciar el proceso. Esta caché no es compartida entre workers o
+réplicas; un despliegue distribuido deberá utilizar Redis u otro almacenamiento
+compartido.
 
 ## 9. Comandos de mantenimiento
 
@@ -186,6 +197,8 @@ Se añadió el workflow `.github/workflows/infrastructure-ci.yml`, encargado de:
 
 Las pruebas automatizadas de enrutamiento utilizan mocks y no ejecutan el modelo XGBoost ni el workflow RAG real.
 
-Las pruebas funcionales de los servicios reales deben verificarse mediante las pruebas de integración correspondientes.
+Las pruebas funcionales de los servicios reales deben verificarse mediante las pruebas de integración correspondientes. El análisis inicial no
+depende de la disponibilidad del RAG; las recomendaciones se solicitan
+después desde el frontend.
 
 La ejecución exitosa del workflow debe confirmarse en GitHub Actions antes de aprobar su integración.

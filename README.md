@@ -12,6 +12,21 @@ El principal valor de PULSO radica en integrar predicción, explicabilidad, iden
 
 ## Documentación del repositorio
 
+### Flujo backend de análisis y recomendaciones
+
+El endpoint `POST /api/analyze` valida los datos y devuelve la predicción,
+la explicación SHAP y un `analysis_id`, sin ejecutar el servicio RAG. Las
+recomendaciones se solicitan posteriormente mediante `POST /api/rag`, enviando
+únicamente ese identificador. El backend recupera el contexto validado desde
+una caché en memoria con TTL y límite de registros, por lo que no repite la
+inferencia del ML Service ni permite que el navegador altere el contexto.
+
+La caché está diseñada para el MVP con una sola instancia del backend. Los
+contextos se eliminan al expirar, al superar el límite configurado o al
+reiniciar el proceso. Si se usan varios workers o réplicas, debe sustituirse
+por almacenamiento compartido, como Redis. La caché contiene temporalmente
+datos relacionados con la salud y no constituye almacenamiento permanente.
+
 ### Primer informe
 
 - [Primer Informe.md](./PrimerInforme.md): Documento que presenta el planteamiento del problema, los objetivos, la solución propuesta, el estado del arte, la metodología de desarrollo y el plan de trabajo del proyecto.
