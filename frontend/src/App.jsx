@@ -49,9 +49,7 @@ function App() {
       setRecommendationsError("");
 
       const result = await requestRecommendations({
-        prediction: analysis.prediction,
-        user_data: originalProfile,
-        shap: analysis.shap,
+        analysis_id: analysis.analysis_id,
       });
 
       setRecommendations(result);

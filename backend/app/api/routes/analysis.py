@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 
 from backend.app.schemas.analysis import (
     AnalysisResponse,
+    RagGenerationRequest,
     RagRequest,
     RagResponse,
     SimulationRequest,
@@ -15,6 +16,11 @@ from backend.app.services.ml_client import (
     generate_explanation,
     simulate_scenario
 )
+from backend.app.services.analysis_cache import (
+    AnalysisCache,
+    AnalysisNotFoundError,
+)
+from backend.app.core.config import settings
 from backend.app.services.rag_client import (
     RagClientError,
     generate_recommendations,
@@ -22,6 +28,10 @@ from backend.app.services.rag_client import (
 
 
 router = APIRouter()
+analysis_cache = AnalysisCache(
+    ttl_seconds=settings.analysis_cache_ttl_seconds,
+    max_entries=settings.analysis_cache_max_entries,
+)
 
 
 @router.post(
@@ -32,41 +42,22 @@ async def rag_analysis(
     payload: RagRequest,
 ):
     try:
-        verified_prediction = await generate_prediction(
-            payload.user_data
-        )
-        verified_shap = await generate_explanation(
-            payload.user_data
-        )
-
-        if (
-            payload.prediction.model_dump()
-            != verified_prediction.model_dump()
-            or payload.shap.model_dump()
-            != verified_shap.model_dump()
-        ):
-            raise HTTPException(
-                status_code=422,
-                detail=(
-                    "El contexto de recomendaciones no coincide "
-                    "con un análisis válido."
-                ),
-            )
-
-        verified_payload = RagRequest(
-            prediction=verified_prediction,
-            user_data=payload.user_data,
-            shap=verified_shap,
+        context = analysis_cache.get(
+            payload.analysis_id
         )
 
         return await generate_recommendations(
-            verified_payload
+            RagGenerationRequest(
+                prediction=context.prediction,
+                user_data=context.user_data,
+                shap=context.shap,
+            )
         )
 
-    except MLClientError as exc:
+    except AnalysisNotFoundError as exc:
         raise HTTPException(
-            status_code=502,
-            detail=str(exc),
+            status_code=404,
+            detail="El análisis no existe o ya expiró.",
         ) from exc
 
     except RagClientError as exc:
@@ -91,8 +82,14 @@ async def analyze(
         shap = await generate_explanation(
             user_data
         )
+        analysis_id = analysis_cache.store(
+            user_data,
+            prediction,
+            shap,
+        )
 
         return AnalysisResponse(
+            analysis_id=analysis_id,
             prediction=prediction,
             shap=shap,
         )

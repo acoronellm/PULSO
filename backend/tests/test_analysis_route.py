@@ -75,6 +75,7 @@ def test_analyze_returns_prediction_and_shap_without_rag(
 
     body = response.json()
 
+    assert body["analysis_id"]
     assert body["prediction"]["probability"] == 0.35
     assert body["prediction"]["threshold"] == 0.38
 

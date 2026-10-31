@@ -1,4 +1,5 @@
 from typing import Literal
+from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -23,10 +24,16 @@ class UserData(BaseModel):
     bmi: float = Field(..., gt=0)
 
     @model_validator(mode="after")
-    def validate_blood_pressure(self):
+    def validate_consistency(self):
         if self.ap_hi <= self.ap_lo:
             raise ValueError(
                 "ap_hi debe ser mayor que ap_lo."
+            )
+
+        expected_bmi = self.weight / ((self.height / 100) ** 2)
+        if abs(self.bmi - expected_bmi) > 0.02:
+            raise ValueError(
+                "bmi no coincide con el peso y la altura."
             )
 
         return self
@@ -47,6 +54,10 @@ class ShapData(BaseModel):
 
 
 class RagRequest(BaseModel):
+    analysis_id: UUID
+
+
+class RagGenerationRequest(BaseModel):
     prediction: PredictionData
     user_data: UserData
     shap: ShapData
@@ -99,6 +110,7 @@ class RagResponse(BaseModel):
 
 
 class AnalysisResponse(BaseModel):
+    analysis_id: UUID
     prediction: PredictionData
     shap: ShapData
 
@@ -148,6 +160,25 @@ class SimulationChanges(BaseModel):
 class SimulationRequest(BaseModel):
     original: UserData
     changes: SimulationChanges
+
+    @model_validator(mode="after")
+    def validate_simulated_bmi(self):
+        simulated_weight = (
+            self.changes.weight
+            if self.changes.weight is not None
+            else self.original.weight
+        )
+        expected_bmi = simulated_weight / (
+            (self.original.height / 100) ** 2
+        )
+
+        # The ML Service recalculates BMI from the simulated weight.
+        if expected_bmi <= 0:
+            raise ValueError(
+                "El IMC del escenario de simulación no es válido."
+            )
+
+        return self
 
 
 class SimulationResult(BaseModel):

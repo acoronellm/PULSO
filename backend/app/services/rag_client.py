@@ -2,7 +2,7 @@ import httpx
 
 from backend.app.core.config import settings
 from backend.app.schemas.analysis import (
-    RagRequest,
+    RagGenerationRequest,
     RagResponse,
 )
 
@@ -12,7 +12,7 @@ class RagClientError(Exception):
 
 
 async def generate_recommendations(
-    payload: RagRequest,
+    payload: RagGenerationRequest,
 ) -> RagResponse:
     """
     Envía el contexto de PULSO al servicio RAG

@@ -94,6 +94,8 @@ El backend utiliza variables como:
 - `ML_TIMEOUT_SECONDS`
 - `RAG_SERVICE_URL`
 - `RAG_TIMEOUT_SECONDS`
+- `ANALYSIS_CACHE_TTL_SECONDS` (por defecto: 900 segundos)
+- `ANALYSIS_CACHE_MAX_ENTRIES` (por defecto: 100 análisis)
 
 Para el frontend compilado mediante Docker se utiliza una URL base vacía, de forma que las solicitudes a `/api/` se envían al mismo origen y son gestionadas por NGINX.
 
@@ -119,6 +121,13 @@ Se verificó:
 - Ejecución del análisis completo utilizando una respuesta RAG simulada.
 
 La prueba RAG utilizó un workflow MOCK. No constituye una validación del sistema documental de producción.
+
+El backend conserva temporalmente cada análisis en una caché local para que
+`/api/rag` reutilice el `analysis_id` sin repetir predicción ni SHAP. Los
+registros expiran por TTL, se expulsan al superar el límite configurado y se
+eliminan al reiniciar el proceso. Esta caché no es compartida entre workers o
+réplicas; un despliegue distribuido deberá utilizar Redis u otro almacenamiento
+compartido.
 
 ## 9. Comandos de mantenimiento
 
