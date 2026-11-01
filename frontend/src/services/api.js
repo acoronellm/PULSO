@@ -20,6 +20,28 @@ export async function analyzeProfile(userData) {
   return response.json();
 }
 
+export async function requestRecommendations(context, options = {}) {
+  const response = await fetch(`${API_URL}/api/rag`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(context),
+    signal: options.signal,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+
+    throw new Error(
+      errorData?.detail ||
+        "No fue posible obtener recomendaciones preventivas."
+    );
+  }
+
+  return response.json();
+}
+
 export async function simulateScenario(payload) {
   const response = await fetch(`${API_URL}/api/simulate`, {
     method: "POST",

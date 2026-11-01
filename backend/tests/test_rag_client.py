@@ -1,7 +1,7 @@
 import httpx
 import pytest
 
-from backend.app.schemas.analysis import RagRequest
+from backend.app.schemas.analysis import RagGenerationRequest
 from backend.app.services.rag_client import (
     generate_recommendations,
 )
@@ -9,7 +9,7 @@ from backend.app.services.rag_client import (
 
 @pytest.mark.asyncio
 async def test_generate_recommendations(monkeypatch):
-    payload = RagRequest(
+    payload = RagGenerationRequest(
         prediction={
             "probability": 0.35,
             "classification": 0,

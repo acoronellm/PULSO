@@ -1,12 +1,30 @@
-function Recommendations({ rag }) {
-  if (!rag) {
-    return null;
-  }
-
+function Recommendations({ rag, loading, error, onRequest }) {
   return (
     <section className="card">
       <h2>Información preventiva personalizada</h2>
 
+      {!rag && (
+        <>
+          <p>
+            Puedes solicitar recomendaciones educativas basadas en este
+            análisis y en sus factores explicativos.
+          </p>
+          <button
+            type="button"
+            onClick={onRequest}
+            disabled={loading}
+          >
+            {loading
+              ? "Consultando recomendaciones..."
+              : "Solicitar recomendaciones"}
+          </button>
+        </>
+      )}
+
+      {error && <p className="error-message">{error}</p>}
+
+      {rag && (
+        <>
       {rag.summary && (
         <div className="rag-summary">
           <h3>Resumen</h3>
@@ -65,6 +83,8 @@ function Recommendations({ rag }) {
           <strong>Importante:</strong>
           <p>{rag.note}</p>
         </div>
+      )}
+        </>
       )}
     </section>
   );

@@ -16,10 +16,16 @@ class PredictionRequest(BaseModel):
     bmi: float = Field(..., gt=0)
 
     @model_validator(mode="after")
-    def validate_blood_pressure(self):
+    def validate_consistency(self):
         if self.ap_hi <= self.ap_lo:
             raise ValueError(
                 "ap_hi debe ser mayor que ap_lo."
+            )
+
+        expected_bmi = self.weight / ((self.height / 100) ** 2)
+        if abs(self.bmi - expected_bmi) > 0.02:
+            raise ValueError(
+                "bmi no coincide con el peso y la altura."
             )
 
         return self
