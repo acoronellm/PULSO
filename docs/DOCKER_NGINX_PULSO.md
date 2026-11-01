@@ -129,6 +129,10 @@ eliminan al reiniciar el proceso. Esta caché no es compartida entre workers o
 réplicas; un despliegue distribuido deberá utilizar Redis u otro almacenamiento
 compartido.
 
+El frontend cancela las solicitudes RAG pendientes al iniciar un nuevo análisis
+y verifica que cada respuesta corresponda al `analysis_id` vigente. Esto evita
+mostrar recomendaciones de un perfil anterior junto con la predicción actual.
+
 ## 9. Comandos de mantenimiento
 
 Consultar registros:

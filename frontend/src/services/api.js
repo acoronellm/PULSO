@@ -20,13 +20,14 @@ export async function analyzeProfile(userData) {
   return response.json();
 }
 
-export async function requestRecommendations(context) {
+export async function requestRecommendations(context, options = {}) {
   const response = await fetch(`${API_URL}/api/rag`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(context),
+    signal: options.signal,
   });
 
   if (!response.ok) {

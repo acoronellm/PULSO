@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "./App.css";
 
 import HealthForm from "./components/HealthForm";
@@ -19,23 +19,42 @@ function App() {
   const [recommendationsLoading, setRecommendationsLoading] =
     useState(false);
   const [recommendationsError, setRecommendationsError] = useState("");
+  const analysisVersion = useRef(0);
+  const currentAnalysisId = useRef(null);
+  const recommendationsRequest = useRef(null);
 
   async function handleAnalyze(userData) {
+    const requestVersion = analysisVersion.current + 1;
+    analysisVersion.current = requestVersion;
+    currentAnalysisId.current = null;
+    recommendationsRequest.current?.abort();
+
     try {
       setLoading(true);
       setError("");
       setAnalysis(null);
       setRecommendations(null);
+      setRecommendationsLoading(false);
       setRecommendationsError("");
 
       const result = await analyzeProfile(userData);
 
+      if (analysisVersion.current !== requestVersion) {
+        return;
+      }
+
       setOriginalProfile(userData);
       setAnalysis(result);
+      currentAnalysisId.current = result.analysis_id;
     } catch (error) {
+      if (analysisVersion.current !== requestVersion) {
+        return;
+      }
       setError(error.message);
     } finally {
-      setLoading(false);
+      if (analysisVersion.current === requestVersion) {
+        setLoading(false);
+      }
     }
   }
 
@@ -44,19 +63,45 @@ function App() {
       return;
     }
 
+    const requestVersion = analysisVersion.current;
+    const requestedAnalysisId = analysis.analysis_id;
+    const controller = new AbortController();
+    recommendationsRequest.current?.abort();
+    recommendationsRequest.current = controller;
+
     try {
       setRecommendationsLoading(true);
       setRecommendationsError("");
 
       const result = await requestRecommendations({
-        analysis_id: analysis.analysis_id,
+        analysis_id: requestedAnalysisId,
+      }, {
+        signal: controller.signal,
       });
 
+      if (
+        analysisVersion.current !== requestVersion ||
+        currentAnalysisId.current !== requestedAnalysisId
+      ) {
+        return;
+      }
       setRecommendations(result);
     } catch (error) {
+      if (
+        error.name === "AbortError" ||
+        analysisVersion.current !== requestVersion ||
+        currentAnalysisId.current !== requestedAnalysisId
+      ) {
+        return;
+      }
       setRecommendationsError(error.message);
     } finally {
-      setRecommendationsLoading(false);
+      if (
+        analysisVersion.current === requestVersion &&
+        currentAnalysisId.current === requestedAnalysisId
+      ) {
+        setRecommendationsLoading(false);
+      }
     }
   }
 
