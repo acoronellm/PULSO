@@ -29,38 +29,31 @@ vi.mock("./services/api", () => ({
 import App from "./App";
 
 const profile = {
-  gender: "1",
-  age_years: "61",
-  height: "172",
-  weight: "88",
-  ap_hi: "150",
-  ap_lo: "92",
-  smoke: "1",
-  alco: "0",
-  active: "0",
+  edad: "61",
+  estatura: "172",
+  peso: "88",
+  sistolica: "150",
+  diastolica: "92",
+};
+
+const labels = {
+  edad: /Edad actual/,
+  estatura: /Estatura habitual/,
+  peso: /Peso actual/,
+  sistolica: /Presión sistólica/,
+  diastolica: /Presión diastólica/,
 };
 
 function submitProfile(overrides = {}) {
   const values = { ...profile, ...overrides };
-  const labels = {
-    gender: "Sexo",
-    age_years: "Edad",
-    height: "Altura",
-    weight: "Peso",
-    ap_hi: "Presión sistólica",
-    ap_lo: "Presión diastólica",
-    smoke: "¿Fuma?",
-    alco: "¿Consume alcohol?",
-    active: "¿Realiza actividad física?",
-  };
 
   Object.entries(values).forEach(([name, value]) => {
-    fireEvent.change(screen.getByLabelText(new RegExp(labels[name])), {
+    fireEvent.change(screen.getByLabelText(labels[name]), {
       target: { value },
     });
   });
 
-  fireEvent.click(screen.getByRole("button", { name: /analizar mi perfil/i }));
+  fireEvent.click(screen.getByRole("button", { name: /ver mi resultado/i }));
 }
 
 function analysisResult(analysisId, probability) {
@@ -79,6 +72,8 @@ function analysisResult(analysisId, probability) {
 describe("recommendation request consistency", () => {
   it("does not display stale RAG results after a new analysis", async () => {
     render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: /usuario demo/i }));
+    fireEvent.click(screen.getByRole("button", { name: /ingresar a pulso/i }));
 
     submitProfile();
     await waitFor(() => expect(analysisRequests).toHaveLength(1));
@@ -86,7 +81,7 @@ describe("recommendation request consistency", () => {
       analysisResult("analysis-a", 0.35)
     );
 
-    await screen.findByText("35.0%");
+    await screen.findByText("Tu punto: 35%");
     fireEvent.click(
       screen.getByRole("button", {
         name: /solicitar recomendaciones/i,
@@ -94,14 +89,15 @@ describe("recommendation request consistency", () => {
     );
     await waitFor(() => expect(recommendationRequests).toHaveLength(1));
 
-    submitProfile({ weight: "70" });
+    fireEvent.click(screen.getByRole("link", { name: /editar mis datos/i }));
+    submitProfile({ peso: "70" });
     await waitFor(() => expect(analysisRequests).toHaveLength(2));
     expect(recommendationRequests[0].options.signal.aborted).toBe(true);
     analysisRequests[1].request.resolve(
       analysisResult("analysis-b", 0.8)
     );
 
-    await screen.findByText("80.0%");
+    await screen.findByText("Tu punto: 80%");
     recommendationRequests[0].request.resolve({
       summary: "Recomendaciones del perfil A",
       recommendations: [],

@@ -1,20 +1,27 @@
-import { useRef, useState } from "react";
-import "./App.css";
+import { useEffect, useRef, useState } from "react";
 
-import HealthForm from "./components/HealthForm";
-import PredictionResult from "./components/PredictionResult";
+import Footer from "./components/Footer";
+import Header from "./components/Header";
+import EvaluationPage from "./pages/EvaluationPage";
+import HistoryPage from "./pages/HistoryPage";
+import LoginPage from "./pages/LoginPage";
+import ResultPage from "./pages/ResultPage";
+import SimulationPage from "./pages/SimulationPage";
 import {
   analyzeProfile,
   requestRecommendations,
 } from "./services/api";
-import ShapFactors from "./components/ShapFactors";
-import Recommendations from "./components/Recommendations";
-import SimulationPanel from "./components/SimulationPanel";
+import { DEMO_FORM, formToPayload } from "./utils/health";
+
+const PAGES_WITH_SCREEN = ["login", "evaluacion", "resultado", "historial", "simulacion"];
+
 function App() {
+  const [view, setView] = useState("login");
+  const [form, setForm] = useState(DEMO_FORM);
   const [analysis, setAnalysis] = useState(null);
   const [originalProfile, setOriginalProfile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [analysisError, setAnalysisError] = useState("");
   const [recommendations, setRecommendations] = useState(null);
   const [recommendationsLoading, setRecommendationsLoading] =
     useState(false);
@@ -23,7 +30,40 @@ function App() {
   const currentAnalysisId = useRef(null);
   const recommendationsRequest = useRef(null);
 
-  async function handleAnalyze(userData) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
+
+  function navigate(path) {
+    if (PAGES_WITH_SCREEN.includes(path)) {
+      setView(path);
+    }
+  }
+
+  function updateForm(name, value) {
+    setForm((previous) => ({ ...previous, [name]: value }));
+  }
+
+  function resetAnalysis() {
+    analysisVersion.current += 1;
+    currentAnalysisId.current = null;
+    recommendationsRequest.current?.abort();
+    setAnalysis(null);
+    setOriginalProfile(null);
+    setLoading(false);
+    setRecommendations(null);
+    setRecommendationsLoading(false);
+    setRecommendationsError("");
+  }
+
+  // Muestra la pantalla de resultado con los datos de ejemplo de Stitch
+  function handleQuickDemo() {
+    resetAnalysis();
+    setView("resultado");
+  }
+
+  async function handleAnalyze(notify) {
+    const userData = formToPayload(form);
     const requestVersion = analysisVersion.current + 1;
     analysisVersion.current = requestVersion;
     currentAnalysisId.current = null;
@@ -31,7 +71,7 @@ function App() {
 
     try {
       setLoading(true);
-      setError("");
+      setAnalysisError("");
       setAnalysis(null);
       setRecommendations(null);
       setRecommendationsLoading(false);
@@ -46,11 +86,17 @@ function App() {
       setOriginalProfile(userData);
       setAnalysis(result);
       currentAnalysisId.current = result.analysis_id;
+      setView("resultado");
     } catch (error) {
       if (analysisVersion.current !== requestVersion) {
         return;
       }
-      setError(error.message);
+      // fetch lanza TypeError cuando no hay conexión con el servidor
+      const message = error instanceof TypeError
+        ? "No se pudo conectar con el servidor de PULSO. Verifica que el backend esté activo."
+        : error.message;
+      setAnalysisError(message);
+      notify(message);
     } finally {
       if (analysisVersion.current === requestVersion) {
         setLoading(false);
@@ -105,60 +151,52 @@ function App() {
     }
   }
 
+  if (view === "login") {
+    return <LoginPage onLogin={() => setView("evaluacion")} />;
+  }
+
   return (
-    <div className="app">
-      <header className="header">
-        <div>
-          <h1>PULSO</h1>
-          <p>
-            Predicción explicable y educación preventiva cardiovascular
-          </p>
-        </div>
-      </header>
+    <>
+      <Header
+        active={view === "resultado" ? "evaluacion" : view}
+        onNavigate={navigate}
+        onQuickDemo={handleQuickDemo}
+      />
 
-      <main className="main-content">
-        <section className="intro">
-          <h2>Comprende mejor tus factores cardiovasculares</h2>
-
-          <p>
-            PULSO utiliza Machine Learning para generar una estimación
-            educativa, explicar los factores que influyen en ella y explorar
-            escenarios hipotéticos.
-          </p>
-        </section>
-
-        <HealthForm
+      {view === "evaluacion" && (
+        <EvaluationPage
+          form={form}
+          onChange={updateForm}
           onSubmit={handleAnalyze}
           loading={loading}
+          error={analysisError}
         />
+      )}
 
-        {error && (
-          <section className="card error-card">
-            <h2>No fue posible completar el análisis</h2>
-            <p>{error}</p>
-          </section>
-        )}
+      {view === "resultado" && (
+        <ResultPage
+          analysis={analysis}
+          profile={originalProfile}
+          recommendations={recommendations}
+          recommendationsLoading={recommendationsLoading}
+          recommendationsError={recommendationsError}
+          onRequestRecommendations={handleRecommendations}
+          onNavigate={navigate}
+        />
+      )}
 
-        {analysis && (
-          <>
-            <PredictionResult prediction={analysis.prediction} />
+      {view === "historial" && <HistoryPage onNavigate={navigate} />}
 
-            <ShapFactors shap={analysis.shap} />
+      {view === "simulacion" && (
+        <SimulationPage
+          analysis={analysis}
+          profile={originalProfile}
+          onNavigate={navigate}
+        />
+      )}
 
-            <Recommendations
-              rag={recommendations}
-              loading={recommendationsLoading}
-              error={recommendationsError}
-              onRequest={handleRecommendations}
-            />
-            <SimulationPanel
-              originalProfile={originalProfile}
-              originalPrediction={analysis.prediction}
-            />
-          </>
-        )}
-      </main>
-    </div>
+      <Footer />
+    </>
   );
 }
 
