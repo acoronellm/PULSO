@@ -1,5 +1,18 @@
-// Valores del perfil demo de Stitch (Clara Méndez), como texto de los campos
-export const DEMO_FORM = {
+// El formulario empieza vacío: PULSO v1 no guarda perfiles ni usa datos de demostración
+export const EMPTY_FORM = {
+  edad: "",
+  sexo: "mujer",
+  estatura: "",
+  peso: "",
+  sistolica: "",
+  diastolica: "",
+  tabaco: false,
+  alcohol: false,
+  ejercicio: false,
+};
+
+// Perfil sintético que la persona puede cargar explícitamente para probar la herramienta
+export const EXAMPLE_FORM = {
   edad: "52",
   sexo: "mujer",
   estatura: "165",
@@ -10,8 +23,6 @@ export const DEMO_FORM = {
   alcohol: false,
   ejercicio: true,
 };
-
-export const DEMO_PERCENT = 28;
 
 export function calculateBmi(heightCm, weightKg) {
   const meters = heightCm / 100;
@@ -37,8 +48,18 @@ export function formToPayload(form) {
   };
 }
 
-export function toPercent(probability) {
-  return Math.round(probability * 100);
+// Probabilidad del clasificador con un decimal, por ejemplo 0.6337 -> "63.4"
+export function formatProbability(probability) {
+  return (probability * 100).toFixed(1);
+}
+
+// Umbral sin decimales innecesarios, por ejemplo 0.38 -> "38"
+export function formatThreshold(threshold) {
+  return String(Number((threshold * 100).toFixed(1)));
+}
+
+export function genderLabel(gender) {
+  return gender === 1 ? "Mujer" : "Hombre";
 }
 
 const FEATURE_NAMES = {

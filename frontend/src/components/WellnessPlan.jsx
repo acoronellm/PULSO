@@ -1,6 +1,6 @@
 import { IMAGES } from "../utils/images";
 
-// Contenido de ejemplo: más adelante lo personalizará el RAG según cada perfil
+// Contenido educativo general, igual para todos los perfiles (no lo genera el modelo)
 const TABS = [
   {
     id: "recetas",
@@ -106,9 +106,9 @@ export default function WellnessPlan({ activeTab, onTabChange }) {
         </div>
         <span className="font-label-sm text-on-surface-variant flex items-center gap-1">
           <span className="material-symbols-outlined text-[14px]">
-            auto_awesome
+            school
           </span>
-          Ejemplos · pronto personalizados para ti
+          Contenido educativo general · no personalizado
         </span>
       </div>
 

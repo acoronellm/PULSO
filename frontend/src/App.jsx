@@ -3,21 +3,20 @@ import { useEffect, useRef, useState } from "react";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import EvaluationPage from "./pages/EvaluationPage";
-import HistoryPage from "./pages/HistoryPage";
-import LoginPage from "./pages/LoginPage";
 import ResultPage from "./pages/ResultPage";
 import SimulationPage from "./pages/SimulationPage";
 import {
   analyzeProfile,
   requestRecommendations,
 } from "./services/api";
-import { DEMO_FORM, formToPayload } from "./utils/health";
+import { EMPTY_FORM, formToPayload } from "./utils/health";
 
-const PAGES_WITH_SCREEN = ["login", "evaluacion", "resultado", "historial", "simulacion"];
+// PULSO v1 no tiene cuentas ni historial: solo evaluación, resultado y simulación
+const PAGES_WITH_SCREEN = ["evaluacion", "resultado", "simulacion"];
 
 function App() {
-  const [view, setView] = useState("login");
-  const [form, setForm] = useState(DEMO_FORM);
+  const [view, setView] = useState("evaluacion");
+  const [form, setForm] = useState(EMPTY_FORM);
   const [analysis, setAnalysis] = useState(null);
   const [originalProfile, setOriginalProfile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -35,31 +34,18 @@ function App() {
   }, [view]);
 
   function navigate(path) {
-    if (PAGES_WITH_SCREEN.includes(path)) {
-      setView(path);
+    if (!PAGES_WITH_SCREEN.includes(path)) {
+      return;
     }
+    // El resultado solo existe después de un análisis real
+    if (path === "resultado" && !analysis) {
+      return;
+    }
+    setView(path);
   }
 
   function updateForm(name, value) {
     setForm((previous) => ({ ...previous, [name]: value }));
-  }
-
-  function resetAnalysis() {
-    analysisVersion.current += 1;
-    currentAnalysisId.current = null;
-    recommendationsRequest.current?.abort();
-    setAnalysis(null);
-    setOriginalProfile(null);
-    setLoading(false);
-    setRecommendations(null);
-    setRecommendationsLoading(false);
-    setRecommendationsError("");
-  }
-
-  // Muestra la pantalla de resultado con los datos de ejemplo de Stitch
-  function handleQuickDemo() {
-    resetAnalysis();
-    setView("resultado");
   }
 
   async function handleAnalyze(notify) {
@@ -151,29 +137,26 @@ function App() {
     }
   }
 
-  if (view === "login") {
-    return <LoginPage onLogin={() => setView("evaluacion")} />;
-  }
-
   return (
     <>
       <Header
-        active={view === "resultado" ? "evaluacion" : view}
+        active={view}
+        hasResult={Boolean(analysis)}
         onNavigate={navigate}
-        onQuickDemo={handleQuickDemo}
       />
 
       {view === "evaluacion" && (
         <EvaluationPage
           form={form}
           onChange={updateForm}
+          onFillExample={(example) => setForm(example)}
           onSubmit={handleAnalyze}
           loading={loading}
           error={analysisError}
         />
       )}
 
-      {view === "resultado" && (
+      {view === "resultado" && analysis && (
         <ResultPage
           analysis={analysis}
           profile={originalProfile}
@@ -184,8 +167,6 @@ function App() {
           onNavigate={navigate}
         />
       )}
-
-      {view === "historial" && <HistoryPage onNavigate={navigate} />}
 
       {view === "simulacion" && (
         <SimulationPage

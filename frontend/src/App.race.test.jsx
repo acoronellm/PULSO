@@ -38,8 +38,8 @@ const profile = {
 
 const labels = {
   edad: /Edad actual/,
-  estatura: /Estatura habitual/,
-  peso: /Peso actual/,
+  estatura: /^Estatura$/,
+  peso: /^Peso$/,
   sistolica: /Presión sistólica/,
   diastolica: /Presión diastólica/,
 };
@@ -72,8 +72,6 @@ function analysisResult(analysisId, probability) {
 describe("recommendation request consistency", () => {
   it("does not display stale RAG results after a new analysis", async () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: /usuario demo/i }));
-    fireEvent.click(screen.getByRole("button", { name: /ingresar a pulso/i }));
 
     submitProfile();
     await waitFor(() => expect(analysisRequests).toHaveLength(1));
@@ -81,7 +79,7 @@ describe("recommendation request consistency", () => {
       analysisResult("analysis-a", 0.35)
     );
 
-    await screen.findByText("Tu punto: 35%");
+    await screen.findByText("Probabilidad: 35.0 %");
     fireEvent.click(
       screen.getByRole("button", {
         name: /solicitar recomendaciones/i,
@@ -97,7 +95,7 @@ describe("recommendation request consistency", () => {
       analysisResult("analysis-b", 0.8)
     );
 
-    await screen.findByText("Tu punto: 80%");
+    await screen.findByText("Probabilidad: 80.0 %");
     recommendationRequests[0].request.resolve({
       summary: "Recomendaciones del perfil A",
       recommendations: [],
