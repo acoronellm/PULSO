@@ -1,5 +1,14 @@
 const API_URL = import.meta.env.VITE_API_URL || "";
 
+// FastAPI devuelve `detail` como texto o como lista de errores de validación (422)
+function errorMessage(errorData, fallback) {
+  const detail = errorData?.detail;
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item.msg).join(" ") || fallback;
+  }
+  return detail || fallback;
+}
+
 export async function analyzeProfile(userData) {
   const response = await fetch(`${API_URL}/api/analyze`, {
     method: "POST",
@@ -13,7 +22,7 @@ export async function analyzeProfile(userData) {
     const errorData = await response.json().catch(() => null);
 
     throw new Error(
-      errorData?.detail || "No fue posible analizar el perfil."
+      errorMessage(errorData, "No fue posible analizar el perfil.")
     );
   }
 
@@ -34,8 +43,7 @@ export async function requestRecommendations(context, options = {}) {
     const errorData = await response.json().catch(() => null);
 
     throw new Error(
-      errorData?.detail ||
-        "No fue posible obtener recomendaciones preventivas."
+      errorMessage(errorData, "No fue posible obtener recomendaciones preventivas.")
     );
   }
 
@@ -55,7 +63,7 @@ export async function simulateScenario(payload) {
     const errorData = await response.json().catch(() => null);
 
     throw new Error(
-      errorData?.detail || "No fue posible realizar la simulación."
+      errorMessage(errorData, "No fue posible realizar la simulación.")
     );
   }
 
