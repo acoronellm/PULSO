@@ -1,7 +1,7 @@
 // Configuración basada en el diseño de Stitch, con tipografía y espaciado más aireados
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./index.html", "./src/**/*.{js,jsx}"],
+  content: ["./index.html", "./src/**/*.{ts,tsx}"],
   darkMode: "class",
   theme: {
     extend: {

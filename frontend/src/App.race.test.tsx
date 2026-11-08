@@ -1,25 +1,42 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-const analysisRequests = [];
-const recommendationRequests = [];
+import type {
+  AnalysisResponse,
+  RagRequest,
+  RagResponse,
+  RequestOptions,
+  UserData,
+} from "./types/pulso";
 
-function deferred() {
-  let resolve;
-  const promise = new Promise((promiseResolve) => {
+interface Deferred<T> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+}
+
+const analysisRequests: { request: Deferred<AnalysisResponse>; userData: UserData }[] = [];
+const recommendationRequests: {
+  request: Deferred<RagResponse>;
+  context: RagRequest;
+  options: RequestOptions;
+}[] = [];
+
+function deferred<T>(): Deferred<T> {
+  let resolve: (value: T) => void = () => {};
+  const promise = new Promise<T>((promiseResolve) => {
     resolve = promiseResolve;
   });
   return { promise, resolve };
 }
 
 vi.mock("./services/api", () => ({
-  analyzeProfile: vi.fn((userData) => {
-    const request = deferred();
+  analyzeProfile: vi.fn((userData: UserData) => {
+    const request = deferred<AnalysisResponse>();
     analysisRequests.push({ request, userData });
     return request.promise;
   }),
-  requestRecommendations: vi.fn((context, options) => {
-    const request = deferred();
+  requestRecommendations: vi.fn((context: RagRequest, options: RequestOptions) => {
+    const request = deferred<RagResponse>();
     recommendationRequests.push({ request, context, options });
     return request.promise;
   }),
@@ -44,10 +61,12 @@ const labels = {
   diastolica: /Presión diastólica/,
 };
 
-function submitProfile(overrides = {}) {
+type ProfileField = keyof typeof labels;
+
+function submitProfile(overrides: Partial<Record<ProfileField, string>> = {}) {
   const values = { ...profile, ...overrides };
 
-  Object.entries(values).forEach(([name, value]) => {
+  (Object.entries(values) as [ProfileField, string][]).forEach(([name, value]) => {
     fireEvent.change(screen.getByLabelText(labels[name]), {
       target: { value },
     });
@@ -56,7 +75,7 @@ function submitProfile(overrides = {}) {
   fireEvent.click(screen.getByRole("button", { name: /ver mi resultado/i }));
 }
 
-function analysisResult(analysisId, probability) {
+function analysisResult(analysisId: string, probability: number): AnalysisResponse {
   return {
     analysis_id: analysisId,
     prediction: {
@@ -79,7 +98,7 @@ describe("recommendation request consistency", () => {
       analysisResult("analysis-a", 0.35)
     );
 
-    await screen.findByText("Probabilidad: 35.0 %");
+    await screen.findByText("Tu resultado: 35,0 %");
     fireEvent.click(
       screen.getByRole("button", {
         name: /solicitar recomendaciones/i,
@@ -90,12 +109,12 @@ describe("recommendation request consistency", () => {
     fireEvent.click(screen.getByRole("link", { name: /editar mis datos/i }));
     submitProfile({ peso: "70" });
     await waitFor(() => expect(analysisRequests).toHaveLength(2));
-    expect(recommendationRequests[0].options.signal.aborted).toBe(true);
+    expect(recommendationRequests[0].options.signal?.aborted).toBe(true);
     analysisRequests[1].request.resolve(
       analysisResult("analysis-b", 0.8)
     );
 
-    await screen.findByText("Probabilidad: 80.0 %");
+    await screen.findByText("Tu resultado: 80,0 %");
     recommendationRequests[0].request.resolve({
       summary: "Recomendaciones del perfil A",
       recommendations: [],

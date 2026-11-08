@@ -1,11 +1,29 @@
 import { useEffect } from "react";
 
+export interface InfoItem {
+  title: string;
+  category: string;
+  icon: string;
+  image: string | null;
+  bar: string;
+  tile: string;
+  accent: string;
+  detail: string;
+  benefit: string;
+  benefitIcon: string;
+}
+
+interface InfoModalProps {
+  item: InfoItem | null;
+  onClose: () => void;
+}
+
 // Ventana emergente para mostrar el detalle sin recargar la página
-export default function InfoModal({ item, onClose }) {
+export default function InfoModal({ item, onClose }: InfoModalProps) {
   useEffect(() => {
     if (!item) return undefined;
 
-    function handleKey(event) {
+    function handleKey(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }
 

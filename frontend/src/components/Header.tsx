@@ -1,3 +1,4 @@
+import type { Navigate, View } from "../types/app";
 import Logo from "./Logo";
 
 const INACTIVE_LINK =
@@ -7,14 +8,20 @@ const ACTIVE_LINK =
 const DISABLED_LINK =
   "whitespace-nowrap px-space-md py-space-sm rounded-lg font-label-md text-outline cursor-not-allowed";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: { path: View; label: string; needsResult?: boolean }[] = [
   { path: "evaluacion", label: "Evaluación" },
   { path: "resultado", label: "Resultado", needsResult: true },
   { path: "simulacion", label: "Simulación" },
 ];
 
-export default function Header({ active, hasResult, onNavigate }) {
-  function handleLink(event, path) {
+interface HeaderProps {
+  active: View;
+  hasResult: boolean;
+  onNavigate: Navigate;
+}
+
+export default function Header({ active, hasResult, onNavigate }: HeaderProps) {
+  function handleLink(event: React.MouseEvent<HTMLAnchorElement>, path: View) {
     event.preventDefault();
     onNavigate(path);
   }

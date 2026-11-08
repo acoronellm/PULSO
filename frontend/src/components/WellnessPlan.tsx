@@ -1,7 +1,23 @@
 import { IMAGES } from "../utils/images";
 
 // Contenido educativo general, igual para todos los perfiles (no lo genera el modelo)
-const TABS = [
+export type WellnessTab = "recetas" | "ejercicios" | "medir";
+
+interface WellnessContent {
+  id: WellnessTab;
+  label: string;
+  icon: string;
+  accent: string;
+  tile: string;
+  image: string;
+  title: string;
+  subtitle: string;
+  items?: { icon: string; title: string; tags: string[] }[];
+  steps?: { icon: string; text: string }[];
+  note?: string;
+}
+
+const TABS: WellnessContent[] = [
   {
     id: "recetas",
     label: "Recetas",
@@ -81,7 +97,12 @@ const TAB_ACTIVE =
 const TAB_INACTIVE =
   "flex items-center gap-1.5 px-4 py-2 rounded-lg font-label-md text-on-surface-variant hover:text-on-surface transition-all";
 
-export default function WellnessPlan({ activeTab, onTabChange }) {
+interface WellnessPlanProps {
+  activeTab: WellnessTab;
+  onTabChange: (tab: WellnessTab) => void;
+}
+
+export default function WellnessPlan({ activeTab, onTabChange }: WellnessPlanProps) {
   const tab = TABS.find((item) => item.id === activeTab) || TABS[0];
 
   return (

@@ -1,5 +1,5 @@
 // Corazón con trazo de pulso, tomado de la pantalla de acceso de Stitch
-export default function Logo({ className = "w-9 h-9" }) {
+export default function Logo({ className = "w-9 h-9" }: { className?: string }) {
   return (
     <div className={`${className} rounded-xl bg-primary-container flex items-center justify-center text-on-primary shadow-md shrink-0`}>
       <svg className="w-3/5 h-3/5" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" viewBox="0 0 24 24">

@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 
-import useToast from "../hooks/useToast";
-import { EXAMPLE_FORM, calculateBmi } from "../utils/health";
+import useToast, { type ShowToast } from "../hooks/useToast";
+import { EXAMPLE_FORM, calculateBmi, type FormField, type FormState } from "../utils/health";
+
+type HabitField = "tabaco" | "alcohol" | "ejercicio";
+type NumericField = "edad" | "estatura" | "peso" | "sistolica" | "diastolica";
+type UpdateForm = <K extends FormField>(name: K, value: FormState[K]) => void;
 
 const INPUT =
   "w-full h-12 px-space-md rounded-xl bg-surface-container-low border-[1.5px] border-outline-variant shadow-sm font-title-md font-semibold text-on-surface outline-none hover:border-primary/60 focus:bg-surface-container-lowest focus:border-primary focus:ring-4 focus:ring-primary/15 transition-all text-left [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none";
@@ -14,13 +18,19 @@ const HABIT_ACTIVE =
 const HABIT_INACTIVE =
   "py-2 rounded-lg font-label-md text-on-surface-variant bg-surface-container-lowest border-[1.5px] border-outline-variant hover:border-primary/60 transition-all flex items-center justify-center gap-1";
 
-const HABITS = [
+const HABITS: { key: HabitField; icon: string; title: string; hint: string }[] = [
   { key: "tabaco", icon: "smoking_rooms", title: "Tabaquismo", hint: "¿Fumas actualmente?" },
   { key: "alcohol", icon: "local_bar", title: "Consumo de alcohol", hint: "¿Consumes alcohol habitualmente?" },
   { key: "ejercicio", icon: "directions_run", title: "Actividad física", hint: "¿Realizas actividad física con regularidad?" },
 ];
 
-function HabitButtons({ habit, value, onChange }) {
+interface HabitButtonsProps {
+  habit: HabitField;
+  value: boolean;
+  onChange: UpdateForm;
+}
+
+function HabitButtons({ habit, value, onChange }: HabitButtonsProps) {
   return (
     <div className="grid grid-cols-2 gap-space-xs mt-2">
       <button aria-pressed={value} className={value ? HABIT_ACTIVE : HABIT_INACTIVE} id={`${habit}-si`} onClick={() => onChange(habit, true)} type="button">
@@ -47,7 +57,20 @@ function HabitButtons({ habit, value, onChange }) {
   );
 }
 
-function NumberField({ id, name, label, unit, min, max, step, value, onChange, help }) {
+interface NumberFieldProps {
+  id: string;
+  name: NumericField;
+  label: string;
+  unit: string;
+  min: string;
+  max: string;
+  step?: string;
+  value: string;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  help?: string;
+}
+
+function NumberField({ id, name, label, unit, min, max, step, value, onChange, help }: NumberFieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="font-label-md text-on-surface font-medium" htmlFor={id}>
@@ -68,7 +91,7 @@ function NumberField({ id, name, label, unit, min, max, step, value, onChange, h
   );
 }
 
-function SectionTitle({ number, title, subtitle }) {
+function SectionTitle({ number, title, subtitle }: { number: string; title: string; subtitle?: string }) {
   return (
     <div className="flex items-center gap-space-sm">
       <span className="w-8 h-8 rounded-lg bg-surface-container text-primary flex items-center justify-center font-semibold text-label-md">
@@ -88,7 +111,16 @@ function SectionTitle({ number, title, subtitle }) {
   );
 }
 
-export default function EvaluationPage({ form, onChange, onFillExample, onSubmit, loading, error }) {
+interface EvaluationPageProps {
+  form: FormState;
+  onChange: UpdateForm;
+  onFillExample: (example: FormState) => void;
+  onSubmit: (notify: ShowToast) => void;
+  loading: boolean;
+  error: string;
+}
+
+export default function EvaluationPage({ form, onChange, onFillExample, onSubmit, loading, error }: EvaluationPageProps) {
   const { toast, toastClasses, showToast } = useToast(3500);
   const [validationError, setValidationError] = useState("");
   const visibleError = validationError || error;
@@ -98,11 +130,11 @@ export default function EvaluationPage({ form, onChange, onFillExample, onSubmit
   const bmiValid = estatura > 80 && peso > 20;
   const bmi = bmiValid ? calculateBmi(estatura, peso).toFixed(1) : null;
 
-  function handleInput(event) {
-    onChange(event.target.name, event.target.value);
+  function handleInput(event: ChangeEvent<HTMLInputElement>) {
+    onChange(event.target.name as NumericField, event.target.value);
   }
 
-  function handleSubmit(event) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (Number(form.sistolica) <= Number(form.diastolica)) {
       setValidationError("La presión sistólica debe ser mayor que la diastólica.");
@@ -375,7 +407,7 @@ export default function EvaluationPage({ form, onChange, onFillExample, onSubmit
                   PULSO v1 · XGBoost
                 </div>
                 <p className="font-label-sm text-on-surface-variant">
-                  Estima la probabilidad de pertenecer a la clase cardio = 1 del conjunto de datos de entrenamiento. Es una herramienta educativa, no un diagnóstico.
+                  Compara tus datos con los patrones aprendidos de su conjunto de entrenamiento y entrega una estimación educativa. No es un diagnóstico.
                 </p>
               </div>
               <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-surface-container rounded-full opacity-60 pointer-events-none"></div>

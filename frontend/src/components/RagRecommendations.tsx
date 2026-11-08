@@ -1,12 +1,14 @@
+import type { RagResponse, RagSource } from "../types/pulso";
+
 // Recomendaciones educativas del módulo RAG (POST /api/rag con analysis_id)
 
 // Las fuentes actuales traen source, source_id, score y lines; `url` es opcional
 // para cuando el RAG empiece a devolverla. Nunca se construyen enlaces propios.
-function safeUrl(url) {
+function safeUrl(url: unknown): string | null {
   return typeof url === "string" && /^https?:\/\//i.test(url) ? url : null;
 }
 
-function SourceItem({ source }) {
+function SourceItem({ source }: { source: RagSource }) {
   const url = safeUrl(source.url);
   const lines = source.lines ? ` · Líneas ${source.lines.from}–${source.lines.to}` : "";
 
@@ -33,14 +35,14 @@ function SourceItem({ source }) {
   );
 }
 
-function uniqueSources(rag) {
+function uniqueSources(rag: RagResponse | null): RagSource[] {
   const sources = (rag?.recommendations || []).flatMap((item) => item.sources || []);
   return sources.filter(
     (source, index) => sources.findIndex((other) => other.source_id === source.source_id) === index
   );
 }
 
-export function RagSources({ rag }) {
+export function RagSources({ rag }: { rag: RagResponse | null }) {
   const sources = uniqueSources(rag);
 
   if (!sources.length) {
@@ -62,7 +64,14 @@ export function RagSources({ rag }) {
   );
 }
 
-export default function RagRecommendations({ rag, loading, error, onRequest }) {
+interface RagRecommendationsProps {
+  rag: RagResponse | null;
+  loading: boolean;
+  error: string;
+  onRequest: () => void;
+}
+
+export default function RagRecommendations({ rag, loading, error, onRequest }: RagRecommendationsProps) {
   if (!rag) {
     return (
       <div className="md:col-span-3 bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">

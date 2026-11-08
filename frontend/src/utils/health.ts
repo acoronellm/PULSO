@@ -1,5 +1,22 @@
+import type { Binary, UserData } from "../types/pulso";
+
+// Valores del formulario de evaluación: los campos numéricos se guardan como texto
+export interface FormState {
+  edad: string;
+  sexo: "mujer" | "hombre";
+  estatura: string;
+  peso: string;
+  sistolica: string;
+  diastolica: string;
+  tabaco: boolean;
+  alcohol: boolean;
+  ejercicio: boolean;
+}
+
+export type FormField = keyof FormState;
+
 // El formulario empieza vacío: PULSO v1 no guarda perfiles ni usa datos de demostración
-export const EMPTY_FORM = {
+export const EMPTY_FORM: FormState = {
   edad: "",
   sexo: "mujer",
   estatura: "",
@@ -12,7 +29,7 @@ export const EMPTY_FORM = {
 };
 
 // Perfil sintético que la persona puede cargar explícitamente para probar la herramienta
-export const EXAMPLE_FORM = {
+export const EXAMPLE_FORM: FormState = {
   edad: "52",
   sexo: "mujer",
   estatura: "165",
@@ -24,13 +41,17 @@ export const EXAMPLE_FORM = {
   ejercicio: true,
 };
 
-export function calculateBmi(heightCm, weightKg) {
+export function calculateBmi(heightCm: number, weightKg: number): number {
   const meters = heightCm / 100;
   return weightKg / (meters * meters);
 }
 
 // Payload esperado por POST /api/analyze
-export function formToPayload(form) {
+function toBinary(value: boolean): Binary {
+  return value ? 1 : 0;
+}
+
+export function formToPayload(form: FormState): UserData {
   const height = Number(form.estatura);
   const weight = Number(form.peso);
 
@@ -40,29 +61,29 @@ export function formToPayload(form) {
     weight,
     ap_hi: Number(form.sistolica),
     ap_lo: Number(form.diastolica),
-    smoke: form.tabaco ? 1 : 0,
-    alco: form.alcohol ? 1 : 0,
-    active: form.ejercicio ? 1 : 0,
+    smoke: toBinary(form.tabaco),
+    alco: toBinary(form.alcohol),
+    active: toBinary(form.ejercicio),
     age_years: Number(form.edad),
     bmi: Number(calculateBmi(height, weight).toFixed(2)),
   };
 }
 
-// Probabilidad del clasificador con un decimal, por ejemplo 0.6337 -> "63.4"
-export function formatProbability(probability) {
-  return (probability * 100).toFixed(1);
+// Probabilidad con un decimal y coma decimal, por ejemplo 0.6337 -> "63,4"
+export function formatProbability(probability: number): string {
+  return (probability * 100).toFixed(1).replace(".", ",");
 }
 
-// Umbral sin decimales innecesarios, por ejemplo 0.38 -> "38"
-export function formatThreshold(threshold) {
-  return String(Number((threshold * 100).toFixed(1)));
+// Umbral sin decimales innecesarios, por ejemplo 0.38 -> "38" y 0.425 -> "42,5"
+export function formatThreshold(threshold: number): string {
+  return String(Number((threshold * 100).toFixed(1))).replace(".", ",");
 }
 
-export function genderLabel(gender) {
+export function genderLabel(gender: UserData["gender"]): string {
   return gender === 1 ? "Mujer" : "Hombre";
 }
 
-const FEATURE_NAMES = {
+const FEATURE_NAMES: Record<string, string> = {
   ap_hi: "Presión sistólica",
   ap_lo: "Presión diastólica",
   weight: "Peso",
@@ -75,7 +96,7 @@ const FEATURE_NAMES = {
   gender: "Sexo",
 };
 
-const FEATURE_ICONS = {
+const FEATURE_ICONS: Record<string, string> = {
   ap_hi: "speed",
   ap_lo: "compress",
   weight: "scale",
@@ -88,15 +109,15 @@ const FEATURE_ICONS = {
   gender: "wc",
 };
 
-export function featureName(feature) {
+export function featureName(feature: string): string {
   return FEATURE_NAMES[feature] || feature;
 }
 
-export function featureIcon(feature) {
+export function featureIcon(feature: string): string {
   return FEATURE_ICONS[feature] || "insights";
 }
 
-export function featureValue(feature, value) {
+export function featureValue(feature: string, value: number): string {
   if (feature === "smoke" || feature === "alco" || feature === "active") {
     return value === 1 ? "Sí" : "No";
   }
@@ -118,5 +139,5 @@ export function featureValue(feature, value) {
   if (feature === "bmi") {
     return `${Number(value).toFixed(1)} kg/m²`;
   }
-  return value;
+  return String(value);
 }

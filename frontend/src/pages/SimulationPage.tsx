@@ -1,7 +1,9 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import InfoModal from "../components/InfoModal";
+import InfoModal, { type InfoItem } from "../components/InfoModal";
 import { simulateScenario } from "../services/api";
+import { errorText, isAbortError, type Navigate } from "../types/app";
+import type { AnalysisResponse, Binary, SimulationResponse, UserData } from "../types/pulso";
 import {
   calculateBmi,
   formatProbability,
@@ -9,9 +11,28 @@ import {
   genderLabel,
 } from "../utils/health";
 import { IMAGES } from "../utils/images";
+import { thresholdLabel } from "../utils/interpretation";
+
+// Variables que el usuario puede cambiar en el escenario
+interface Scenario {
+  ap_hi: number;
+  ap_lo: number;
+  weight: number;
+  active: Binary;
+  smoke: Binary;
+  alco: Binary;
+}
+
+type SliderKey = "ap_hi" | "ap_lo" | "weight";
+type HabitKey = "active" | "smoke" | "alco";
+
+interface MicroHabit extends InfoItem {
+  short: string;
+  tagline: string;
+}
 
 // Consejos educativos generales: no forman parte del cálculo de XGBoost
-const MICRO_HABITS = [
+const MICRO_HABITS: MicroHabit[] = [
   {
     short: "Menos sal, más sabor",
     tagline: "Hierbas, limón y especias",
@@ -56,23 +77,23 @@ const MICRO_HABITS = [
   },
 ];
 
-const HABIT_TOGGLES = [
+const HABIT_TOGGLES: { key: HabitKey; icon: string; title: string; hint: string }[] = [
   { key: "active", icon: "directions_run", title: "Actividad física regular", hint: "Variable del modelo: actividad física (sí/no)" },
   { key: "smoke", icon: "smoking_rooms", title: "Tabaquismo", hint: "Variable del modelo: fuma (sí/no)" },
   { key: "alco", icon: "local_bar", title: "Consumo de alcohol", hint: "Variable del modelo: consume alcohol (sí/no)" },
 ];
 
-function differenceText(points) {
+function differenceText(points: number): string {
   if (points < 0) {
-    return `En este escenario hipotético la probabilidad estimada por el modelo disminuye ${Math.abs(points).toFixed(1)} puntos porcentuales.`;
+    return `En este escenario hipotético la probabilidad estimada por el modelo disminuye ${Math.abs(points).toFixed(1).replace(".", ",")} puntos porcentuales.`;
   }
   if (points > 0) {
-    return `En este escenario hipotético la probabilidad estimada por el modelo aumenta ${points.toFixed(1)} puntos porcentuales.`;
+    return `En este escenario hipotético la probabilidad estimada por el modelo aumenta ${points.toFixed(1).replace(".", ",")} puntos porcentuales.`;
   }
   return "En este escenario hipotético la probabilidad estimada por el modelo no cambia.";
 }
 
-function EmptyState({ onNavigate }) {
+function EmptyState({ onNavigate }: { onNavigate: Navigate }) {
   return (
     <main className="w-full pt-24 bg-surface min-h-[calc(100vh-140px)]">
       <div className="w-full px-margin-mobile md:px-margin max-w-3xl mx-auto py-space-xl">
@@ -104,7 +125,14 @@ const HEART_PATH =
   "M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z";
 
 // Colores y latido de las tarjetas de Stitch: azul para el original, menta para el escenario
-function ProbabilityCard({ label, probability, classification, highlight }) {
+interface ProbabilityCardProps {
+  label: string;
+  probability: number | null;
+  classification: Binary | null;
+  highlight?: boolean;
+}
+
+function ProbabilityCard({ label, probability, classification, highlight = false }: ProbabilityCardProps) {
   return (
     <div className={`md:col-span-5 rounded-xl p-space-md flex flex-col items-center text-center space-y-space-sm relative overflow-hidden ${highlight ? "bg-gradient-to-b from-mint-vitality-subtle/70 to-surface-card shadow-sm" : "bg-surface-container-low"}`}>
       {highlight && (
@@ -136,7 +164,7 @@ function ProbabilityCard({ label, probability, classification, highlight }) {
           {probability === null ? "-- %" : `${formatProbability(probability)} %`}
         </span>
         <span className={`font-label-md ${highlight ? "text-secondary font-semibold" : "text-text-secondary"}`}>
-          {classification === null ? "Pendiente de calcular" : `Clase ${classification} asignada`}
+          {classification === null ? "Pendiente de calcular" : thresholdLabel({ classification })}
         </span>
       </div>
     </div>
@@ -144,7 +172,7 @@ function ProbabilityCard({ label, probability, classification, highlight }) {
 }
 
 // Barras con la paleta original de Stitch (azul, verde azulado y menta)
-function ProbabilityBars({ original, simulated, threshold }) {
+function ProbabilityBars({ original, simulated, threshold }: { original: number; simulated: number | null; threshold: number }) {
   const rows = [
     { label: "Perfil original", value: original, fill: "bg-primary-container" },
     { label: "Escenario simulado", value: simulated, fill: "bg-gradient-to-r from-secondary to-mint-vitality" },
@@ -191,28 +219,51 @@ function ProbabilityBars({ original, simulated, threshold }) {
   );
 }
 
-export default function SimulationPage({ analysis, profile, onNavigate }) {
-  const [scenario, setScenario] = useState(() => (profile
-    ? {
-        ap_hi: profile.ap_hi,
-        ap_lo: profile.ap_lo,
-        weight: profile.weight,
-        active: profile.active,
-        smoke: profile.smoke,
-        alco: profile.alco,
-      }
-    : null));
-  const [result, setResult] = useState(null);
-  const [projecting, setProjecting] = useState(false);
-  const [projectionError, setProjectionError] = useState("");
-  const [openHabit, setOpenHabit] = useState(null);
-  const closeHabit = useCallback(() => setOpenHabit(null), []);
+function scenarioFrom(profile: UserData): Scenario {
+  return {
+    ap_hi: profile.ap_hi,
+    ap_lo: profile.ap_lo,
+    weight: profile.weight,
+    active: profile.active,
+    smoke: profile.smoke,
+    alco: profile.alco,
+  };
+}
 
+interface SimulationPageProps {
+  analysis: AnalysisResponse | null;
+  profile: UserData | null;
+  onNavigate: Navigate;
+}
+
+export default function SimulationPage({ analysis, profile, onNavigate }: SimulationPageProps) {
   if (!analysis || !profile) {
     return <EmptyState onNavigate={onNavigate} />;
   }
+  return <SimulationWorkspace analysis={analysis} onNavigate={onNavigate} profile={profile} />;
+}
 
-  const ranges = {
+interface SimulationWorkspaceProps {
+  analysis: AnalysisResponse;
+  profile: UserData;
+  onNavigate: Navigate;
+}
+
+function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorkspaceProps) {
+  const [scenario, setScenario] = useState<Scenario>(() => scenarioFrom(profile));
+  const [result, setResult] = useState<SimulationResponse | null>(null);
+  const [projecting, setProjecting] = useState(false);
+  const [projectionError, setProjectionError] = useState("");
+  const [openHabit, setOpenHabit] = useState<MicroHabit | null>(null);
+  const closeHabit = useCallback(() => setOpenHabit(null), []);
+  // Cada cambio de valores invalida la simulación en curso: solo se muestra
+  // la respuesta del último escenario calculado con los valores actuales.
+  const simulationVersion = useRef(0);
+  const simulationRequest = useRef<AbortController | null>(null);
+
+  useEffect(() => () => simulationRequest.current?.abort(), []);
+
+  const ranges: Record<SliderKey, [number, number]> = {
     ap_hi: [Math.min(90, profile.ap_hi), Math.max(200, profile.ap_hi)],
     ap_lo: [Math.min(50, profile.ap_lo), Math.max(130, profile.ap_lo)],
     weight: [
@@ -223,23 +274,23 @@ export default function SimulationPage({ analysis, profile, onNavigate }) {
   const bmi = calculateBmi(profile.height, scenario.weight).toFixed(1);
   const threshold = formatThreshold(result?.threshold ?? analysis.prediction.threshold);
 
-  function update(name, value) {
-    setScenario((previous) => ({ ...previous, [name]: value }));
+  function invalidateSimulation() {
+    simulationVersion.current += 1;
+    simulationRequest.current?.abort();
+    simulationRequest.current = null;
     setResult(null);
+    setProjecting(false);
     setProjectionError("");
   }
 
+  function update<K extends keyof Scenario>(name: K, value: Scenario[K]) {
+    setScenario((previous) => ({ ...previous, [name]: value }));
+    invalidateSimulation();
+  }
+
   function resetDefaults() {
-    setScenario({
-      ap_hi: profile.ap_hi,
-      ap_lo: profile.ap_lo,
-      weight: profile.weight,
-      active: profile.active,
-      smoke: profile.smoke,
-      alco: profile.alco,
-    });
-    setResult(null);
-    setProjectionError("");
+    setScenario(scenarioFrom(profile));
+    invalidateSimulation();
   }
 
   async function handleProject() {
@@ -248,19 +299,37 @@ export default function SimulationPage({ analysis, profile, onNavigate }) {
       return;
     }
 
+    const requestVersion = simulationVersion.current + 1;
+    simulationVersion.current = requestVersion;
+    simulationRequest.current?.abort();
+    const controller = new AbortController();
+    simulationRequest.current = controller;
+
     try {
       setProjecting(true);
       setProjectionError("");
-      const response = await simulateScenario({ original: profile, changes: scenario });
+      setResult(null);
+      const response = await simulateScenario(
+        { original: profile, changes: scenario },
+        { signal: controller.signal }
+      );
+      if (simulationVersion.current !== requestVersion) {
+        return;
+      }
       setResult(response);
     } catch (error) {
-      setProjectionError(error.message);
+      if (isAbortError(error) || simulationVersion.current !== requestVersion) {
+        return;
+      }
+      setProjectionError(errorText(error));
     } finally {
-      setProjecting(false);
+      if (simulationVersion.current === requestVersion) {
+        setProjecting(false);
+      }
     }
   }
 
-  const sliders = [
+  const sliders: { key: SliderKey; icon: string; label: string; unit: string; step: number }[] = [
     { key: "ap_hi", icon: "speed", label: "Presión sistólica", unit: "mmHg", step: 1 },
     { key: "ap_lo", icon: "compress", label: "Presión diastólica", unit: "mmHg", step: 1 },
     { key: "weight", icon: "scale", label: "Peso", unit: "kg", step: 0.1 },
@@ -452,7 +521,7 @@ export default function SimulationPage({ analysis, profile, onNavigate }) {
                     </span>
                   </div>
                   <span className="font-label-sm text-primary font-bold whitespace-nowrap" data-testid="simulation-difference">
-                    {result ? `${result.probability_difference > 0 ? "+" : ""}${(result.probability_difference * 100).toFixed(1)} pp` : "--"}
+                    {result ? `${result.probability_difference > 0 ? "+" : ""}${(result.probability_difference * 100).toFixed(1).replace(".", ",")} pp` : "--"}
                   </span>
                 </div>
                 <ProbabilityCard

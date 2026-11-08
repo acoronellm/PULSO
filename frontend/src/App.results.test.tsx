@@ -9,10 +9,15 @@ vi.mock("./services/api", () => ({
 
 import App from "./App";
 import {
-  analyzeProfile,
-  requestRecommendations,
-  simulateScenario,
+  analyzeProfile as analyzeProfileApi,
+  requestRecommendations as requestRecommendationsApi,
+  simulateScenario as simulateScenarioApi,
 } from "./services/api";
+import type { AnalysisResponse, Prediction, RequestOptions, SimulationResponse } from "./types/pulso";
+
+const analyzeProfile = vi.mocked(analyzeProfileApi);
+const requestRecommendations = vi.mocked(requestRecommendationsApi);
+const simulateScenario = vi.mocked(simulateScenarioApi);
 
 const labels = {
   edad: /Edad actual/,
@@ -30,7 +35,9 @@ const profile = {
   diastolica: "82",
 };
 
-function analysis(prediction) {
+type TestPrediction = Omit<Prediction, "model_version">;
+
+function analysis(prediction: TestPrediction): AnalysisResponse {
   return {
     analysis_id: "00000000-0000-0000-0000-000000000001",
     prediction: { model_version: "v1", ...prediction },
@@ -43,16 +50,16 @@ function analysis(prediction) {
   };
 }
 
-async function analyze(prediction) {
+async function analyze(prediction: TestPrediction) {
   analyzeProfile.mockResolvedValueOnce(analysis(prediction));
   render(<App />);
 
-  Object.entries(profile).forEach(([name, value]) => {
+  (Object.entries(profile) as [keyof typeof labels, string][]).forEach(([name, value]) => {
     fireEvent.change(screen.getByLabelText(labels[name]), { target: { value } });
   });
   fireEvent.click(screen.getByRole("button", { name: /ver mi resultado/i }));
 
-  return screen.findByTestId("classification-message");
+  return screen.findByTestId("result-summary");
 }
 
 beforeEach(() => {
@@ -79,25 +86,41 @@ describe("acceso y alcance de PULSO v1", () => {
 });
 
 describe("interpretación del resultado", () => {
-  it("explica la clase 0 con el umbral recibido del backend", async () => {
-    const message = await analyze({ probability: 0.3456, classification: 0, threshold: 0.5 });
+  it("explica en lenguaje sencillo un resultado por debajo del umbral", async () => {
+    const summary = await analyze({ probability: 0.3456, classification: 0, threshold: 0.5 });
 
-    expect(message).toHaveTextContent(
-      "El modelo PULSO estimó una probabilidad del 34.6 % de pertenecer a la clase cardio = 1. Este valor se encuentra por debajo del umbral de clasificación del 50 %, por lo que el modelo asignó el perfil a la clase 0."
+    expect(summary).toHaveTextContent(
+      "Al analizar tus datos, PULSO obtuvo una estimación del 34,6 %, por debajo del umbral de clasificación del 50 %."
     );
-    expect(screen.getByText("Umbral: 50 %")).toBeInTheDocument();
-    expect(screen.getByTestId("model-disclaimer")).toHaveTextContent(
-      "No constituye un diagnóstico médico, no confirma ni descarta una enfermedad cardiovascular"
+    expect(screen.getByTestId("result-meaning")).toHaveTextContent(
+      "El umbral es el punto de referencia que utiliza PULSO para decidir a cuál de los dos grupos asignar tu perfil. Como tu resultado está por debajo de ese valor, el modelo asignó tu perfil al grupo que representa a las personas registradas sin enfermedad cardiovascular"
     );
+    expect(screen.getByTestId("result-important")).toHaveTextContent(
+      "Esto no significa que estés libre de enfermedades cardiovasculares."
+    );
+    expect(screen.getAllByText("Umbral: 50 %").length).toBeGreaterThan(0);
   });
 
-  it("explica la clase 1 cuando la probabilidad alcanza el umbral", async () => {
-    const message = await analyze({ probability: 0.38, classification: 1, threshold: 0.38 });
+  it("explica un resultado igual al umbral como igual o superior", async () => {
+    const summary = await analyze({ probability: 0.38, classification: 1, threshold: 0.38 });
 
-    expect(message).toHaveTextContent(
-      "Este valor es igual o superior al umbral de clasificación del 38 %, por lo que el modelo asignó el perfil a la clase 1."
+    expect(summary).toHaveTextContent("estimación del 38,0 %, igual o superior al umbral de clasificación del 38 %.");
+    expect(screen.getByTestId("result-meaning")).toHaveTextContent(
+      "al grupo que representa a las personas registradas con enfermedad cardiovascular"
     );
-    expect(screen.getByTestId("probability-value")).toHaveTextContent("38.0");
+    expect(screen.getByTestId("result-important")).toHaveTextContent(
+      "Esto no confirma que tengas una enfermedad cardiovascular"
+    );
+    expect(screen.getByTestId("probability-value")).toHaveTextContent("38,0");
+  });
+
+  it("no muestra clases ni cardio = 1 en la vista principal", async () => {
+    await analyze({ probability: 0.2561, classification: 0, threshold: 0.38 });
+    const main = document.body.cloneNode(true) as HTMLElement;
+    main.querySelector("[data-testid=technical-details]")?.remove();
+
+    expect(main.textContent).not.toMatch(/clase [01]|cardio ?= ?[01]|clase cardio/i);
+    expect(screen.getByTestId("technical-details")).toHaveTextContent("se asignó a cardio = 0");
   });
 
   it("no muestra identidades, porcentajes demostrativos ni etiquetas clínicas", async () => {
@@ -181,16 +204,62 @@ describe("simulación de escenarios", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /calcular escenario/i }));
 
-    await waitFor(() => expect(screen.getByTestId("simulation-difference")).toHaveTextContent("-26.7 pp"));
+    await waitFor(() => expect(screen.getByTestId("simulation-difference")).toHaveTextContent("-26,7 pp"));
     expect(simulateScenario).toHaveBeenCalledWith({
       original: expect.objectContaining({ ap_hi: 128, ap_lo: 82, weight: 80, age_years: 47 }),
       changes: { ap_hi: 128, ap_lo: 82, weight: 80, active: 0, smoke: 0, alco: 0 },
-    });
-    const simulated = screen.getAllByText("Escenario simulado")[0].parentElement;
-    expect(within(simulated).getByText("33.3 %")).toBeInTheDocument();
-    expect(within(simulated).getByText("Clase 0 asignada")).toBeInTheDocument();
+    }, expect.objectContaining({ signal: expect.any(AbortSignal) }));
+    const simulated = screen.getAllByText("Escenario simulado")[0].parentElement as HTMLElement;
+    expect(within(simulated).getByText("33,3 %")).toBeInTheDocument();
+    expect(within(simulated).getByText("Por debajo del umbral")).toBeInTheDocument();
     expect(screen.getByTestId("simulation-description")).toHaveTextContent(
-      "la probabilidad estimada por el modelo disminuye 26.7 puntos porcentuales"
+      "la probabilidad estimada por el modelo disminuye 26,7 puntos porcentuales"
     );
+  });
+
+  it("descarta la respuesta de un escenario anterior si cambian los valores", async () => {
+    await analyze({ probability: 0.6, classification: 1, threshold: 0.38 });
+    let resolveA: (value: SimulationResponse) => void = () => {};
+    simulateScenario.mockImplementationOnce(
+      (_payload, _options?: RequestOptions) => new Promise<SimulationResponse>((resolve) => {
+        resolveA = resolve;
+      })
+    );
+
+    fireEvent.click(screen.getByRole("link", { name: "Simulación" }));
+    fireEvent.click(screen.getByRole("button", { name: /calcular escenario/i }));
+    await waitFor(() => expect(simulateScenario).toHaveBeenCalledTimes(1));
+    const signalA = simulateScenario.mock.calls[0][1]?.signal as AbortSignal;
+
+    // Escenario B: el usuario cambia la presión mientras A sigue pendiente
+    fireEvent.change(screen.getByLabelText(/Presión sistólica/), { target: { value: "118" } });
+    expect(signalA.aborted).toBe(true);
+
+    resolveA({
+      original: { probability: 0.6, classification: 1 },
+      simulated: { probability: 0.55, classification: 1 },
+      probability_difference: -0.05,
+      applied_changes: {},
+      model_version: "v1",
+      threshold: 0.38,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(screen.getByTestId("simulation-difference")).toHaveTextContent("--");
+    expect(screen.queryByText("55,0 %")).not.toBeInTheDocument();
+
+    simulateScenario.mockResolvedValueOnce({
+      original: { probability: 0.6, classification: 1 },
+      simulated: { probability: 0.31, classification: 0 },
+      probability_difference: -0.29,
+      applied_changes: { ap_hi: 118 },
+      model_version: "v1",
+      threshold: 0.38,
+    });
+    fireEvent.click(screen.getByRole("button", { name: /calcular escenario/i }));
+
+    await waitFor(() => expect(screen.getByTestId("simulation-difference")).toHaveTextContent("-29,0 pp"));
+    expect(simulateScenario.mock.calls[1][0].changes.ap_hi).toBe(118);
+    expect(screen.getAllByText("31,0 %").length).toBeGreaterThan(0);
   });
 });

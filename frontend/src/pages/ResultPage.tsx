@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 
 import RagRecommendations, { RagSources } from "../components/RagRecommendations";
-import WellnessPlan from "../components/WellnessPlan";
+import WellnessPlan, { type WellnessTab } from "../components/WellnessPlan";
+import type { Navigate, View } from "../types/app";
+import type { AnalysisResponse, RagResponse, ShapFactor, UserData } from "../types/pulso";
 import {
   featureIcon,
   featureName,
@@ -12,12 +14,15 @@ import {
 } from "../utils/health";
 import { IMAGES } from "../utils/images";
 import {
-  MODEL_DISCLAIMER,
-  classLabel,
-  classificationMessage,
+  THRESHOLD_EXPLANATION,
+  groupExplanation,
+  importantNote,
+  resultSummary,
+  technicalDetail,
+  thresholdLabel,
 } from "../utils/interpretation";
 
-function formatDate(date) {
+function formatDate(date: Date): string {
   const day = date.toLocaleDateString("es-ES", {
     day: "numeric",
     month: "long",
@@ -31,7 +36,7 @@ function formatDate(date) {
 }
 
 // Tarjetas con las características que más contribuyeron a la salida del modelo (SHAP)
-function ShapFactorCards({ factors }) {
+function ShapFactorCards({ factors }: { factors: ShapFactor[] }) {
   if (!factors.length) {
     return (
       <p className="font-body-md text-body-md text-on-surface-variant md:col-span-3">
@@ -83,6 +88,16 @@ function ShapFactorCards({ factors }) {
   });
 }
 
+interface ResultPageProps {
+  analysis: AnalysisResponse;
+  profile: UserData;
+  recommendations: RagResponse | null;
+  recommendationsLoading: boolean;
+  recommendationsError: string;
+  onRequestRecommendations: () => void;
+  onNavigate: Navigate;
+}
+
 export default function ResultPage({
   analysis,
   profile,
@@ -91,7 +106,7 @@ export default function ResultPage({
   recommendationsError,
   onRequestRecommendations,
   onNavigate,
-}) {
+}: ResultPageProps) {
   const { prediction } = analysis;
   const probability = formatProbability(prediction.probability);
   const threshold = formatThreshold(prediction.threshold);
@@ -101,15 +116,15 @@ export default function ResultPage({
 
   const [motionActive, setMotionActive] = useState(true);
   const [sourcesOpen, setSourcesOpen] = useState(false);
-  const [planTab, setPlanTab] = useState("recetas");
-  const planRef = useRef(null);
-  const heartRef = useRef(null);
-  const haloRef = useRef(null);
-  const haloOuterRef = useRef(null);
+  const [planTab, setPlanTab] = useState<WellnessTab>("recetas");
+  const planRef = useRef<HTMLElement>(null);
+  const heartRef = useRef<HTMLDivElement>(null);
+  const haloRef = useRef<HTMLDivElement>(null);
+  const haloOuterRef = useRef<HTMLDivElement>(null);
 
   // Animación de latido suave (se puede desactivar por accesibilidad)
   useEffect(() => {
-    const setScale = (heart, halo, outer) => {
+    const setScale = (heart: number, halo: number, outer: number) => {
       if (heartRef.current) heartRef.current.style.transform = `scale(${heart})`;
       if (haloRef.current) haloRef.current.style.transform = `scale(${halo})`;
       if (haloOuterRef.current) haloOuterRef.current.style.transform = `scale(${outer})`;
@@ -120,7 +135,7 @@ export default function ResultPage({
       return undefined;
     }
 
-    const timers = [];
+    const timers: ReturnType<typeof setTimeout>[] = [];
     const interval = setInterval(() => {
       setScale(1.065, 1.25, 1.4);
       timers.push(setTimeout(() => {
@@ -140,7 +155,7 @@ export default function ResultPage({
     planRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function handleLink(event, path) {
+  function handleLink(event: MouseEvent<HTMLAnchorElement>, path: View) {
     event.preventDefault();
     onNavigate(path);
   }
@@ -189,10 +204,10 @@ export default function ResultPage({
           <section className="lg:col-span-7 flex flex-col bg-surface-container-lowest rounded-xl shadow-md p-space-lg relative overflow-hidden">
             <div className="flex items-center justify-between z-10">
               <span className="font-label-md font-semibold text-secondary uppercase tracking-wider">
-                Probabilidad estimada
+                Estimación de PULSO
               </span>
               <span className="font-label-sm text-on-surface-variant bg-surface-container-low px-3 py-1 rounded-full">
-                Clase cardio = 1
+                {`Umbral: ${threshold} %`}
               </span>
             </div>
 
@@ -228,7 +243,7 @@ export default function ResultPage({
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
                   <span className="font-headline-sm text-headline-sm font-semibold tracking-wide text-on-surface uppercase -mb-1">
-                    Probabilidad
+                    Estimación
                   </span>
                   <div className="flex items-baseline">
                     <span className="font-display-hero text-[52px] sm:text-[60px] leading-none font-bold text-on-surface tracking-tighter drop-shadow-sm" data-testid="probability-value">
@@ -239,7 +254,7 @@ export default function ResultPage({
                     </span>
                   </div>
                   <span className="font-label-sm text-label-sm text-on-surface-variant font-medium bg-surface-container-lowest/80 backdrop-blur px-2.5 py-0.5 rounded-full shadow-sm mt-1">
-                    {classLabel(prediction.classification)}
+                    {thresholdLabel(prediction)}
                   </span>
                 </div>
               </div>
@@ -262,7 +277,7 @@ export default function ResultPage({
                     <div className="w-2 h-2 rounded-full bg-primary"></div>
                   </div>
                   <div className="absolute -top-8 whitespace-nowrap px-2 py-0.5 rounded-md bg-on-surface text-surface-bright font-label-sm font-semibold shadow-sm">
-                    {`Probabilidad: ${probability} %`}
+                    {`Tu resultado: ${probability} %`}
                   </div>
                 </div>
                 <div className="absolute -top-1.5 -bottom-1.5 w-0.5 bg-on-surface-variant z-10" style={{ left: `${prediction.threshold * 100}%` }}></div>
@@ -283,7 +298,7 @@ export default function ResultPage({
                   ¿Qué significa este porcentaje?
                 </h2>
                 <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-                  Es la salida del clasificador XGBoost para la clase cardio = 1, que en los datos de entrenamiento representa la presencia de enfermedad cardiovascular registrada. No es un pronóstico ni un nivel de riesgo clínico.
+                  Es la estimación que calcula PULSO a partir de tus datos. PULSO la compara con el umbral para decidir a cuál de dos grupos de su entrenamiento asignar tu perfil. No es la probabilidad de tener una enfermedad ni un diagnóstico.
                 </p>
               </div>
             </div>
@@ -301,17 +316,37 @@ export default function ResultPage({
                   Tu resultado
                 </h2>
               </div>
-              <p className="font-body-lg text-body-lg text-on-surface font-medium leading-relaxed" data-testid="classification-message">
-                {classificationMessage(prediction)}
+              <p className="font-headline-md text-headline-md text-primary font-bold">
+                {`${probability} %`}
+              </p>
+              <p className="font-body-lg text-body-lg text-on-surface font-medium leading-relaxed mt-1" data-testid="result-summary">
+                {resultSummary(prediction)}
+              </p>
+              <h3 className="font-title-md text-title-md text-on-surface font-semibold mt-space-md">
+                ¿Qué significa esto?
+              </h3>
+              <p className="font-body-md text-body-md text-on-surface-variant mt-1" data-testid="result-meaning">
+                {THRESHOLD_EXPLANATION} {groupExplanation(prediction)}
               </p>
               <div className="mt-space-md bg-surface-container-high/60 rounded-xl p-3.5 flex items-start gap-2.5 text-on-surface-variant">
                 <span className="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">
                   verified_user
                 </span>
-                <p className="font-label-sm text-label-sm leading-snug" data-testid="model-disclaimer">
-                  {MODEL_DISCLAIMER}
+                <p className="font-label-sm text-label-sm leading-snug" data-testid="result-important">
+                  <strong className="text-on-surface font-semibold">
+                    Importante:
+                  </strong>{" "}
+                  {importantNote(prediction)}
                 </p>
               </div>
+              <details className="mt-space-sm group" data-testid="technical-details">
+                <summary className="cursor-pointer font-label-sm text-on-surface-variant hover:text-primary">
+                  Detalles técnicos del modelo
+                </summary>
+                <p className="font-label-sm text-on-surface-variant mt-2">
+                  {technicalDetail(prediction)}
+                </p>
+              </details>
             </div>
 
             <div className="bg-surface-container-lowest rounded-xl shadow-md p-space-md">
@@ -445,7 +480,7 @@ export default function ResultPage({
           <div className="hidden md:flex items-center gap-2 whitespace-nowrap">
             <span className="w-3 h-3 rounded-full bg-primary"></span>
             <span className="font-label-md text-on-surface font-medium">
-              {`Probabilidad estimada: ${probability} % · ${classLabel(prediction.classification)}`}
+              {`Tu resultado: ${probability} % · ${thresholdLabel(prediction).toLowerCase()}`}
             </span>
           </div>
           <div className="flex items-center gap-space-sm w-full sm:w-auto justify-end">

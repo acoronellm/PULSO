@@ -9,31 +9,34 @@ import {
   analyzeProfile,
   requestRecommendations,
 } from "./services/api";
-import { EMPTY_FORM, formToPayload } from "./utils/health";
+import type { ShowToast } from "./hooks/useToast";
+import { errorText, isAbortError, type View } from "./types/app";
+import type { AnalysisResponse, RagResponse, UserData } from "./types/pulso";
+import { EMPTY_FORM, formToPayload, type FormField, type FormState } from "./utils/health";
 
 // PULSO v1 no tiene cuentas ni historial: solo evaluación, resultado y simulación
-const PAGES_WITH_SCREEN = ["evaluacion", "resultado", "simulacion"];
+const PAGES_WITH_SCREEN: View[] = ["evaluacion", "resultado", "simulacion"];
 
 function App() {
-  const [view, setView] = useState("evaluacion");
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [analysis, setAnalysis] = useState(null);
-  const [originalProfile, setOriginalProfile] = useState(null);
+  const [view, setView] = useState<View>("evaluacion");
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
+  const [originalProfile, setOriginalProfile] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(false);
   const [analysisError, setAnalysisError] = useState("");
-  const [recommendations, setRecommendations] = useState(null);
+  const [recommendations, setRecommendations] = useState<RagResponse | null>(null);
   const [recommendationsLoading, setRecommendationsLoading] =
     useState(false);
   const [recommendationsError, setRecommendationsError] = useState("");
   const analysisVersion = useRef(0);
-  const currentAnalysisId = useRef(null);
-  const recommendationsRequest = useRef(null);
+  const currentAnalysisId = useRef<string | null>(null);
+  const recommendationsRequest = useRef<AbortController | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [view]);
 
-  function navigate(path) {
+  function navigate(path: View) {
     if (!PAGES_WITH_SCREEN.includes(path)) {
       return;
     }
@@ -44,11 +47,11 @@ function App() {
     setView(path);
   }
 
-  function updateForm(name, value) {
+  function updateForm<K extends FormField>(name: K, value: FormState[K]) {
     setForm((previous) => ({ ...previous, [name]: value }));
   }
 
-  async function handleAnalyze(notify) {
+  async function handleAnalyze(notify: ShowToast) {
     const userData = formToPayload(form);
     const requestVersion = analysisVersion.current + 1;
     analysisVersion.current = requestVersion;
@@ -80,7 +83,7 @@ function App() {
       // fetch lanza TypeError cuando no hay conexión con el servidor
       const message = error instanceof TypeError
         ? "No se pudo conectar con el servidor de PULSO. Verifica que el backend esté activo."
-        : error.message;
+        : errorText(error);
       setAnalysisError(message);
       notify(message);
     } finally {
@@ -120,13 +123,13 @@ function App() {
       setRecommendations(result);
     } catch (error) {
       if (
-        error.name === "AbortError" ||
+        isAbortError(error) ||
         analysisVersion.current !== requestVersion ||
         currentAnalysisId.current !== requestedAnalysisId
       ) {
         return;
       }
-      setRecommendationsError(error.message);
+      setRecommendationsError(errorText(error));
     } finally {
       if (
         analysisVersion.current === requestVersion &&
@@ -149,14 +152,14 @@ function App() {
         <EvaluationPage
           form={form}
           onChange={updateForm}
-          onFillExample={(example) => setForm(example)}
+          onFillExample={(example: FormState) => setForm(example)}
           onSubmit={handleAnalyze}
           loading={loading}
           error={analysisError}
         />
       )}
 
-      {view === "resultado" && analysis && (
+      {view === "resultado" && analysis && originalProfile && (
         <ResultPage
           analysis={analysis}
           profile={originalProfile}

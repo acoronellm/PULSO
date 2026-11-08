@@ -1,5 +1,5 @@
 // Fotografías generadas por Stitch para el prototipo
-export const IMAGES = {
+export const IMAGES: Record<"food" | "walking" | "monitorDesk" | "measuring", string> = {
   food: "https://lh3.googleusercontent.com/aida-public/AB6AXuAv01UnnY-PVD4GXnPyXwtvUack6t5Bo5cXyG1SL2yXtYlw_xb-Q3msQWkFGjaMckiufebMNO61YWHPSgDJDa3tpCXSvvqMnXk_G5YRqX0otHm2VSlzeXOUT-PfSZjI6RWBodFlaFyr_6dK7NRX7QEaDY8V-dxnZ7VmN2Pp2JjQ92o4rxujFEkHVHyfCPGQXRNTKXWlzqm5rozjlpALn1cZC7A-93nhCA1KclAQJYo",
   walking:
     "https://lh3.googleusercontent.com/aida-public/AB6AXuBth1Kkia_B-RbVuhwuNfh2QsYfpzael2MqD5ZXwus0q7Hdy25TBho6BD2uF_9KQXC0ufggJHrar90u__G_5oPOlLtpgL2PVZsMGTP1dxU0sbYpUHofKQECq99NbsQotk48oMbyCK3liSVnME3P-xyCFyCQS9N29w8bqdkHnbQRbxOGScByw_Z6824nLFB476qd2T2PHGNc70P_N2mn45IhKfQOhmqc_9Rdm0Dj3Ow",
