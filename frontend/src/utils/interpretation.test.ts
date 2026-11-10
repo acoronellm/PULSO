@@ -1,3 +1,4 @@
+
 import { describe, expect, it } from "vitest";
 
 import { formatProbability, formatThreshold } from "./health";
@@ -12,80 +13,130 @@ import {
 
 import type { Binary, Prediction } from "../types/pulso";
 
-function prediction(probability: number, classification: Binary, threshold = 0.38): Prediction {
-  return { probability, classification, threshold, model_version: "v1" };
+function prediction(
+  probability: number,
+  classification: Binary,
+  threshold = 0.38,
+): Prediction {
+  return {
+    probability,
+    classification,
+    threshold,
+    model_version: "v1",
+  };
 }
 
 const below = prediction(0.2561, 0);
 const above = prediction(0.65, 1);
 
+const EXPECTED_SUMMARY = (percentage: string) =>
+  `Según los datos que ingresaste, PULSO estimó una probabilidad del ${percentage}\u00a0% de pertenecer al grupo de personas registradas con enfermedad cardiovascular en los datos con los que se entrenó el modelo.`;
+
 describe("resultado por debajo del umbral", () => {
-  it("resume la estimación frente al umbral recibido", () => {
+  it("explica qué representa la estimación del modelo", () => {
     expect(resultSummary(below)).toBe(
-      "Al analizar tus datos, PULSO obtuvo una estimación del 25,6\u00a0%, por debajo del umbral de clasificación del 38\u00a0%."
+      EXPECTED_SUMMARY("25,6"),
     );
   });
 
   it("explica el grupo asignado sin términos técnicos", () => {
     expect(groupExplanation(below)).toBe(
-      "Como tu resultado está por debajo de ese valor, el modelo asignó tu perfil al grupo que representa a las personas registradas sin enfermedad cardiovascular en los datos utilizados para su entrenamiento."
+      "Como tu resultado está por debajo del 38\u00a0%, el modelo asignó tu perfil al grupo que representa a las personas registradas sin enfermedad cardiovascular en los datos de entrenamiento.",
     );
+
     expect(importantNote(below)).toBe(
-      "Esto no significa que estés libre de enfermedades cardiovasculares. PULSO ofrece una estimación estadística con fines educativos y preventivos, no un diagnóstico médico."
+      "Esto no significa que estés libre de enfermedades cardiovasculares. PULSO ofrece una estimación estadística con fines educativos y preventivos, no un diagnóstico médico.",
     );
-    expect(thresholdLabel(below)).toBe("Por debajo del umbral");
+
+    expect(thresholdLabel(below)).toBe(
+      "Por debajo del umbral",
+    );
   });
 });
 
 describe("resultado igual o superior al umbral", () => {
-  it("resume la estimación y el grupo asignado", () => {
+  it("explica la estimación y el grupo asignado", () => {
     expect(resultSummary(above)).toBe(
-      "Al analizar tus datos, PULSO obtuvo una estimación del 65,0\u00a0%, igual o superior al umbral de clasificación del 38\u00a0%."
+      EXPECTED_SUMMARY("65,0"),
     );
+
     expect(groupExplanation(above)).toContain(
-      "al grupo que representa a las personas registradas con enfermedad cardiovascular"
+      "al grupo que representa a las personas registradas con enfermedad cardiovascular",
     );
+
     expect(importantNote(above)).toBe(
-      "Esto no confirma que tengas una enfermedad cardiovascular ni indica un riesgo clínico individual determinado. PULSO ofrece una estimación estadística con fines educativos y preventivos, no un diagnóstico médico."
+      "Esto no confirma que tengas una enfermedad cardiovascular ni representa una valoración clínica individual. PULSO ofrece una estimación estadística con fines educativos y preventivos, no un diagnóstico médico.",
     );
-    expect(thresholdLabel(above)).toBe("Igual o superior al umbral");
+
+    expect(thresholdLabel(above)).toBe(
+      "Igual o superior al umbral",
+    );
   });
 
-  it("trata el valor igual al umbral como igual o superior", () => {
-    expect(resultSummary(prediction(0.38, 1, 0.38))).toContain(
-      "38,0\u00a0%, igual o superior al umbral de clasificación del 38\u00a0%"
+  it("trata un resultado igual al umbral como igual o superior", () => {
+    const equal = prediction(0.38, 1, 0.38);
+
+    expect(resultSummary(equal)).toBe(
+      EXPECTED_SUMMARY("38,0"),
+    );
+
+    expect(groupExplanation(equal)).toContain(
+      "igual o superior al 38\u00a0%",
+    );
+
+    expect(thresholdLabel(equal)).toBe(
+      "Igual o superior al umbral",
     );
   });
 });
 
 describe("textos compartidos", () => {
-  it("usa el umbral del backend, no un valor fijo", () => {
-    expect(resultSummary(prediction(0.45, 0, 0.5))).toContain(
-      "umbral de clasificación del 50\u00a0%"
+  it("utiliza el umbral del backend y no un valor fijo", () => {
+    const customThreshold = prediction(0.45, 0, 0.5);
+
+    expect(groupExplanation(customThreshold)).toContain(
+      "por debajo del 50\u00a0%",
+    );
+
+    expect(resultSummary(customThreshold)).toBe(
+      EXPECTED_SUMMARY("45,0"),
+    );
+
+    expect(thresholdLabel(customThreshold)).toBe(
+      "Por debajo del umbral",
     );
   });
 
-  it("explica qué es el umbral y evita etiquetas de riesgo", () => {
+  it("explica el umbral y evita etiquetas clínicas incorrectas", () => {
     expect(THRESHOLD_EXPLANATION).toBe(
-      "El umbral es el punto de referencia que utiliza PULSO para decidir a cuál de los dos grupos asignar tu perfil."
+      "El umbral de clasificación es el valor que utiliza PULSO para asignar cada perfil a uno de los dos grupos.",
     );
-    const texts = [below, above].flatMap((prediction) => [
-      resultSummary(prediction),
-      groupExplanation(prediction),
-      importantNote(prediction),
-      thresholdLabel(prediction),
+
+    const texts = [below, above].flatMap((item) => [
+      resultSummary(item),
+      groupExplanation(item),
+      importantNote(item),
+      thresholdLabel(item),
     ]);
+
     texts.forEach((text) => {
-      expect(text).not.toMatch(/clase|\bcardio\b|riesgo (bajo|alto)|\bsano\b|\benfermo\b/i);
+      expect(text).not.toMatch(
+        /clase|\bcardio\b|riesgo (bajo|alto)|\bsano\b|\benfermo\b/i,
+      );
     });
   });
 
-  it("deja los términos técnicos solo en el detalle del modelo", () => {
-    expect(technicalDetail(below)).toContain("se asignó a cardio = 0");
-    expect(technicalDetail(above)).toContain("se asignó a cardio = 1");
+  it("deja los términos técnicos en el detalle del modelo", () => {
+    expect(technicalDetail(below)).toContain(
+      "se asignó a cardio = 0",
+    );
+
+    expect(technicalDetail(above)).toContain(
+      "se asignó a cardio = 1",
+    );
   });
 
-  it("formatea con coma decimal", () => {
+  it("formatea los porcentajes con coma decimal", () => {
     expect(formatProbability(0.63366)).toBe("63,4");
     expect(formatThreshold(0.38)).toBe("38");
     expect(formatThreshold(0.425)).toBe("42,5");

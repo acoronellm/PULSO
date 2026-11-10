@@ -68,9 +68,12 @@ function ShapFactorCards({ factors }: { factors: ShapFactor[] }) {
               {featureValue(factor.feature, factor.value)}
             </span>
           </div>
+
           <p className="font-body-md text-body-md text-on-surface-variant mt-2 leading-relaxed">
-            Esta característica contribuyó a {up ? "aumentar" : "disminuir"} la probabilidad estimada por el modelo. No implica una relación causal médica.
+            Este valor contribuyó a que PULSO obtuviera una estimación{" "}
+            {up ? "mayor" : "menor"}. No implica una relación causal médica.
           </p>
+
         </div>
         <div className="mt-space-md pt-space-sm border-t border-surface-container flex items-center justify-between text-on-surface font-label-sm">
           <span className="text-on-surface-variant">
@@ -316,18 +319,23 @@ export default function ResultPage({
                   Tu resultado
                 </h2>
               </div>
-              <p className="font-headline-md text-headline-md text-primary font-bold">
-                {`${probability} %`}
-              </p>
+
               <p className="font-body-lg text-body-lg text-on-surface font-medium leading-relaxed mt-1" data-testid="result-summary">
                 {resultSummary(prediction)}
               </p>
               <h3 className="font-title-md text-title-md text-on-surface font-semibold mt-space-md">
                 ¿Qué significa esto?
               </h3>
-              <p className="font-body-md text-body-md text-on-surface-variant mt-1" data-testid="result-meaning">
-                {THRESHOLD_EXPLANATION} {groupExplanation(prediction)}
-              </p>
+
+              <div
+                className="font-body-md text-body-md text-on-surface-variant mt-1 space-y-3"
+                data-testid="result-meaning"
+              >
+                <p>{THRESHOLD_EXPLANATION}</p>
+
+                <p>{groupExplanation(prediction)}</p>
+              </div>
+
               <div className="mt-space-md bg-surface-container-high/60 rounded-xl p-3.5 flex items-start gap-2.5 text-on-surface-variant">
                 <span className="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">
                   verified_user
@@ -403,11 +411,11 @@ export default function ResultPage({
                 Explicación SHAP
               </span>
               <h2 className="font-headline-md text-headline-md text-on-surface font-semibold">
-                Qué influyó en la salida del modelo
+                ¿Qué pesó en tu resultado?
               </h2>
             </div>
             <p className="font-body-md text-on-surface-variant text-sm max-w-md">
-              Características que más contribuyeron a la probabilidad estimada, sin atribuir causalidad médica.
+              Estos son los tres factores que más influyeron en el cálculo de PULSO. Cada uno contribuyó a aumentar o disminuir la estimación del modelo.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">

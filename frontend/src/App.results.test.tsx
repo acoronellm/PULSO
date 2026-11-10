@@ -86,32 +86,63 @@ describe("acceso y alcance de PULSO v1", () => {
 });
 
 describe("interpretación del resultado", () => {
+
   it("explica en lenguaje sencillo un resultado por debajo del umbral", async () => {
-    const summary = await analyze({ probability: 0.3456, classification: 0, threshold: 0.5 });
+    const summary = await analyze({
+      probability: 0.3456,
+      classification: 0,
+      threshold: 0.5,
+    });
 
     expect(summary).toHaveTextContent(
-      "Al analizar tus datos, PULSO obtuvo una estimación del 34,6 %, por debajo del umbral de clasificación del 50 %."
+      "Según los datos que ingresaste, PULSO estimó una probabilidad del 34,6 % de pertenecer al grupo de personas registradas con enfermedad cardiovascular en los datos con los que se entrenó el modelo.",
     );
+
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
-      "El umbral es el punto de referencia que utiliza PULSO para decidir a cuál de los dos grupos asignar tu perfil. Como tu resultado está por debajo de ese valor, el modelo asignó tu perfil al grupo que representa a las personas registradas sin enfermedad cardiovascular"
+      "El umbral de clasificación es el valor que utiliza PULSO para asignar cada perfil a uno de los dos grupos.",
     );
+
+    expect(screen.getByTestId("result-meaning")).toHaveTextContent(
+      "Como tu resultado está por debajo del 50 %",
+    );
+
+    expect(screen.getByTestId("result-meaning")).toHaveTextContent(
+      "al grupo que representa a las personas registradas sin enfermedad cardiovascular",
+    );
+
     expect(screen.getByTestId("result-important")).toHaveTextContent(
-      "Esto no significa que estés libre de enfermedades cardiovasculares."
+      "Esto no significa que estés libre de enfermedades cardiovasculares.",
     );
+
     expect(screen.getAllByText("Umbral: 50 %").length).toBeGreaterThan(0);
   });
 
   it("explica un resultado igual al umbral como igual o superior", async () => {
-    const summary = await analyze({ probability: 0.38, classification: 1, threshold: 0.38 });
+    const summary = await analyze({
+      probability: 0.38,
+      classification: 1,
+      threshold: 0.38,
+    });
 
-    expect(summary).toHaveTextContent("estimación del 38,0 %, igual o superior al umbral de clasificación del 38 %.");
+    expect(summary).toHaveTextContent(
+      "PULSO estimó una probabilidad del 38,0 %",
+    );
+
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
-      "al grupo que representa a las personas registradas con enfermedad cardiovascular"
+      "Como tu resultado es igual o superior al 38 %",
     );
+
+    expect(screen.getByTestId("result-meaning")).toHaveTextContent(
+      "al grupo que representa a las personas registradas con enfermedad cardiovascular",
+    );
+
     expect(screen.getByTestId("result-important")).toHaveTextContent(
-      "Esto no confirma que tengas una enfermedad cardiovascular"
+      "Esto no confirma que tengas una enfermedad cardiovascular",
     );
-    expect(screen.getByTestId("probability-value")).toHaveTextContent("38,0");
+
+    expect(screen.getByTestId("probability-value")).toHaveTextContent(
+      "38,0",
+    );
   });
 
   it("no muestra clases ni cardio = 1 en la vista principal", async () => {
@@ -199,8 +230,7 @@ describe("simulación de escenarios", () => {
     });
 
     fireEvent.click(screen.getByRole("link", { name: "Simulación" }));
-    expect(screen.getByRole("heading", { name: /simulación de escenarios con pulso v1/i })).toBeInTheDocument();
-    expect(screen.queryByText(/sodio|sal/i, { selector: "label *" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /¿qué pasaría si cambian tus factores\?/i })).toBeInTheDocument(); expect(screen.queryByText(/sodio|sal/i, { selector: "label *" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /calcular escenario/i }));
 
@@ -212,14 +242,20 @@ describe("simulación de escenarios", () => {
     const simulated = screen.getAllByText("Escenario simulado")[0].parentElement as HTMLElement;
     expect(within(simulated).getByText("33,3 %")).toBeInTheDocument();
     expect(within(simulated).getByText("Por debajo del umbral")).toBeInTheDocument();
+
     expect(screen.getByTestId("simulation-description")).toHaveTextContent(
-      "la probabilidad estimada por el modelo disminuye 26,7 puntos porcentuales"
+      "la estimación de PULSO disminuyó 26,7 puntos porcentuales"
     );
+
+    expect(screen.getByTestId("simulation-description")).toHaveTextContent(
+      "El resultado pasó de estar igual o por encima a estar por debajo del umbral de clasificación del 38 %."
+    );
+
   });
 
   it("descarta la respuesta de un escenario anterior si cambian los valores", async () => {
     await analyze({ probability: 0.6, classification: 1, threshold: 0.38 });
-    let resolveA: (value: SimulationResponse) => void = () => {};
+    let resolveA: (value: SimulationResponse) => void = () => { };
     simulateScenario.mockImplementationOnce(
       (_payload, _options?: RequestOptions) => new Promise<SimulationResponse>((resolve) => {
         resolveA = resolve;
