@@ -1,25 +1,42 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-const analysisRequests = [];
-const recommendationRequests = [];
+import type {
+  AnalysisResponse,
+  RagRequest,
+  RagResponse,
+  RequestOptions,
+  UserData,
+} from "./types/pulso";
 
-function deferred() {
-  let resolve;
-  const promise = new Promise((promiseResolve) => {
+interface Deferred<T> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+}
+
+const analysisRequests: { request: Deferred<AnalysisResponse>; userData: UserData }[] = [];
+const recommendationRequests: {
+  request: Deferred<RagResponse>;
+  context: RagRequest;
+  options: RequestOptions;
+}[] = [];
+
+function deferred<T>(): Deferred<T> {
+  let resolve: (value: T) => void = () => {};
+  const promise = new Promise<T>((promiseResolve) => {
     resolve = promiseResolve;
   });
   return { promise, resolve };
 }
 
 vi.mock("./services/api", () => ({
-  analyzeProfile: vi.fn((userData) => {
-    const request = deferred();
+  analyzeProfile: vi.fn((userData: UserData) => {
+    const request = deferred<AnalysisResponse>();
     analysisRequests.push({ request, userData });
     return request.promise;
   }),
-  requestRecommendations: vi.fn((context, options) => {
-    const request = deferred();
+  requestRecommendations: vi.fn((context: RagRequest, options: RequestOptions) => {
+    const request = deferred<RagResponse>();
     recommendationRequests.push({ request, context, options });
     return request.promise;
   }),
@@ -29,41 +46,36 @@ vi.mock("./services/api", () => ({
 import App from "./App";
 
 const profile = {
-  gender: "1",
-  age_years: "61",
-  height: "172",
-  weight: "88",
-  ap_hi: "150",
-  ap_lo: "92",
-  smoke: "1",
-  alco: "0",
-  active: "0",
+  edad: "61",
+  estatura: "172",
+  peso: "88",
+  sistolica: "150",
+  diastolica: "92",
 };
 
-function submitProfile(overrides = {}) {
-  const values = { ...profile, ...overrides };
-  const labels = {
-    gender: "Sexo",
-    age_years: "Edad",
-    height: "Altura",
-    weight: "Peso",
-    ap_hi: "Presión sistólica",
-    ap_lo: "Presión diastólica",
-    smoke: "¿Fuma?",
-    alco: "¿Consume alcohol?",
-    active: "¿Realiza actividad física?",
-  };
+const labels = {
+  edad: /Edad actual/,
+  estatura: /^Estatura$/,
+  peso: /^Peso$/,
+  sistolica: /Presión sistólica/,
+  diastolica: /Presión diastólica/,
+};
 
-  Object.entries(values).forEach(([name, value]) => {
-    fireEvent.change(screen.getByLabelText(new RegExp(labels[name])), {
+type ProfileField = keyof typeof labels;
+
+function submitProfile(overrides: Partial<Record<ProfileField, string>> = {}) {
+  const values = { ...profile, ...overrides };
+
+  (Object.entries(values) as [ProfileField, string][]).forEach(([name, value]) => {
+    fireEvent.change(screen.getByLabelText(labels[name]), {
       target: { value },
     });
   });
 
-  fireEvent.click(screen.getByRole("button", { name: /analizar mi perfil/i }));
+  fireEvent.click(screen.getByRole("button", { name: /ver mi resultado/i }));
 }
 
-function analysisResult(analysisId, probability) {
+function analysisResult(analysisId: string, probability: number): AnalysisResponse {
   return {
     analysis_id: analysisId,
     prediction: {
@@ -86,7 +98,7 @@ describe("recommendation request consistency", () => {
       analysisResult("analysis-a", 0.35)
     );
 
-    await screen.findByText("35.0%");
+    await screen.findByText("Tu resultado: 35,0 %");
     fireEvent.click(
       screen.getByRole("button", {
         name: /solicitar recomendaciones/i,
@@ -94,14 +106,15 @@ describe("recommendation request consistency", () => {
     );
     await waitFor(() => expect(recommendationRequests).toHaveLength(1));
 
-    submitProfile({ weight: "70" });
+    fireEvent.click(screen.getByRole("link", { name: /editar mis datos/i }));
+    submitProfile({ peso: "70" });
     await waitFor(() => expect(analysisRequests).toHaveLength(2));
-    expect(recommendationRequests[0].options.signal.aborted).toBe(true);
+    expect(recommendationRequests[0].options.signal?.aborted).toBe(true);
     analysisRequests[1].request.resolve(
       analysisResult("analysis-b", 0.8)
     );
 
-    await screen.findByText("80.0%");
+    await screen.findByText("Tu resultado: 80,0 %");
     recommendationRequests[0].request.resolve({
       summary: "Recomendaciones del perfil A",
       recommendations: [],
