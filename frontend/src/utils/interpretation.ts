@@ -8,11 +8,6 @@ function isAboveThreshold(prediction: Classified): boolean {
   return prediction.classification === 1;
 }
 
-const GROUP_WITH =
-  "grupo que representa a las personas registradas con enfermedad cardiovascular en los datos de entrenamiento";
-
-const GROUP_WITHOUT =
-  "grupo que representa a las personas registradas sin enfermedad cardiovascular en los datos de entrenamiento";
 
 export const THRESHOLD_EXPLANATION =
   "El umbral de clasificación es el valor que utiliza PULSO para asignar cada perfil a uno de los dos grupos.";
@@ -31,41 +26,31 @@ export function resultSummary(prediction: Prediction): string {
   return `Según los datos que ingresaste, PULSO estimó una probabilidad del ${probability}\u00a0% de pertenecer al grupo de personas registradas con enfermedad cardiovascular en los datos con los que se entrenó el modelo.`;
 }
 
+
 export function groupExplanation(prediction: Prediction): string {
   const threshold = formatThreshold(prediction.threshold);
 
   if (isAboveThreshold(prediction)) {
-    return (
-      `Como tu resultado es igual o superior al ${threshold}\u00a0%, ` +
-      `el modelo asignó tu perfil al ${GROUP_WITH}.`
-    );
+    return `Este valor alcanza o supera el nivel de atención establecido en PULSO (${threshold} %). Esto indica que tus datos presentan características que el modelo relaciona más con personas con enfermedad cardiovascular.`;
   }
 
-  return (
-    `Como tu resultado está por debajo del ${threshold}\u00a0%, ` +
-    `el modelo asignó tu perfil al ${GROUP_WITHOUT}.`
-  );
+  return `Este valor está por debajo del nivel de atención establecido en PULSO (${threshold} %). Esto indica que tus datos presentan características que el modelo relaciona más con personas sin enfermedad cardiovascular.`;
 }
 
-export function importantNote(prediction: Prediction): string {
-  const scope =
-    "PULSO ofrece una estimación estadística con fines educativos " +
-    "y preventivos, no un diagnóstico médico.";
-
+export function resultGuidance(prediction: Prediction): string {
   if (isAboveThreshold(prediction)) {
-    return (
-      "Esto no confirma que tengas una enfermedad cardiovascular " +
-      "ni representa una valoración clínica individual. " +
-      scope
-    );
+    return "Este resultado no significa que tengas una enfermedad, pero sí es recomendable consultar con un profesional de la salud para una valoración más completa.";
   }
 
-  return (
-    "Esto no significa que estés libre de enfermedades " +
-    "cardiovasculares. " +
-    scope
-  );
+  return "Aunque tu resultado es favorable, recuerda que ninguna herramienta puede garantizar que estés libre de problemas cardiovasculares. Sigue cuidando tu salud y realizando tus controles habituales.";
 }
+
+
+
+export function importantNote(_prediction: Prediction): string {
+  return "PULSO es una herramienta de orientación basada en inteligencia artificial. Sus resultados no constituyen un diagnóstico médico.";
+}
+
 
 export function technicalDetail(prediction: Prediction): string {
   const threshold = String(prediction.threshold);

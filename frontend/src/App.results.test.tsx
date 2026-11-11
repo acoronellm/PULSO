@@ -98,21 +98,36 @@ describe("interpretación del resultado", () => {
       "Según los datos que ingresaste, PULSO estimó una probabilidad del 34,6 % de pertenecer al grupo de personas registradas con enfermedad cardiovascular en los datos con los que se entrenó el modelo.",
     );
 
+
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
-      "El umbral de clasificación es el valor que utiliza PULSO para asignar cada perfil a uno de los dos grupos.",
+      "Este valor está por debajo del nivel de atención establecido en PULSO (50 %)"
     );
 
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
-      "Como tu resultado está por debajo del 50 %",
+      "tus datos presentan características que el modelo relaciona más con personas sin enfermedad cardiovascular"
     );
 
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
-      "al grupo que representa a las personas registradas sin enfermedad cardiovascular",
+      "Aunque tu resultado es favorable"
+    );
+
+    expect(screen.getByTestId("result-meaning")).toHaveTextContent(
+      "Sigue cuidando tu salud y realizando tus controles habituales."
     );
 
     expect(screen.getByTestId("result-important")).toHaveTextContent(
-      "Esto no significa que estés libre de enfermedades cardiovasculares.",
+      "PULSO es una herramienta de orientación basada en inteligencia artificial. Sus resultados no constituyen un diagnóstico médico."
     );
+
+    const important = screen.getByTestId("result-important");
+
+    expect(important).toHaveClass("font-semibold");
+    expect(important).toHaveClass("text-body-lg");
+
+    expect(
+      screen.getByText("Importante")
+    ).toBeInTheDocument();
+
 
     expect(screen.getAllByText("Umbral: 50 %").length).toBeGreaterThan(0);
   });
@@ -128,17 +143,36 @@ describe("interpretación del resultado", () => {
       "PULSO estimó una probabilidad del 38,0 %",
     );
 
+
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
-      "Como tu resultado es igual o superior al 38 %",
+      "Este valor alcanza o supera el nivel de atención establecido en PULSO (38 %)"
     );
 
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
-      "al grupo que representa a las personas registradas con enfermedad cardiovascular",
+      "tus datos presentan características que el modelo relaciona más con personas con enfermedad cardiovascular"
+    );
+
+    expect(screen.getByTestId("result-meaning")).toHaveTextContent(
+      "Este resultado no significa que tengas una enfermedad"
+    );
+
+    expect(screen.getByTestId("result-meaning")).toHaveTextContent(
+      "es recomendable consultar con un profesional de la salud"
     );
 
     expect(screen.getByTestId("result-important")).toHaveTextContent(
-      "Esto no confirma que tengas una enfermedad cardiovascular",
+      "PULSO es una herramienta de orientación basada en inteligencia artificial. Sus resultados no constituyen un diagnóstico médico."
     );
+
+
+    const important = screen.getByTestId("result-important");
+
+    expect(important).toHaveClass("font-semibold");
+    expect(important).toHaveClass("text-body-lg");
+
+    expect(
+      screen.getByText("Importante")
+    ).toBeInTheDocument();
 
     expect(screen.getByTestId("probability-value")).toHaveTextContent(
       "38,0",

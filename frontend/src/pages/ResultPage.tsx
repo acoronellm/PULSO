@@ -14,12 +14,12 @@ import {
 } from "../utils/health";
 import { IMAGES } from "../utils/images";
 import {
-  THRESHOLD_EXPLANATION,
   groupExplanation,
   importantNote,
   resultSummary,
   technicalDetail,
   thresholdLabel,
+  resultGuidance,
 } from "../utils/interpretation";
 
 function formatDate(date: Date): string {
@@ -483,25 +483,48 @@ export default function ResultPage({
                 ¿Qué significa esto?
               </h3>
 
+
               <div
-                className="font-body-md text-body-md text-on-surface-variant mt-1 space-y-3"
+                className="space-y-4 mt-3"
                 data-testid="result-meaning"
               >
-                <p>{THRESHOLD_EXPLANATION}</p>
+                <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                  {groupExplanation(prediction)}
+                </p>
 
-                <p>{groupExplanation(prediction)}</p>
+                <p className="font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                  {resultGuidance(prediction)}
+                </p>
               </div>
+
 
               <div className="mt-space-md bg-surface-container-high/60 rounded-xl p-3.5 flex items-start gap-2.5 text-on-surface-variant">
                 <span className="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">
                   verified_user
                 </span>
-                <p className="font-label-sm text-label-sm leading-snug" data-testid="result-important">
-                  <strong className="text-on-surface font-semibold">
-                    Importante:
-                  </strong>{" "}
-                  {importantNote(prediction)}
-                </p>
+
+                <div className="mt-space-md bg-primary-fixed/40 border border-primary/20 rounded-xl p-5 flex items-start gap-3">
+                  <span
+                    className="material-symbols-outlined text-primary text-[26px] shrink-0"
+                    aria-hidden="true"
+                  >
+                    info
+                  </span>
+
+                  <div>
+                    <p className="font-title-md text-title-md font-bold text-on-surface mb-2">
+                      Importante
+                    </p>
+
+                    <p
+                      className="font-body-lg text-body-lg font-semibold text-on-surface leading-relaxed"
+                      data-testid="result-important"
+                    >
+                      {importantNote(prediction)}
+                    </p>
+                  </div>
+                </div>
+
               </div>
               <details className="mt-space-sm group" data-testid="technical-details">
                 <summary className="cursor-pointer font-label-sm text-on-surface-variant hover:text-primary">

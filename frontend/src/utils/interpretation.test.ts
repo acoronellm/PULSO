@@ -6,6 +6,7 @@ import {
   THRESHOLD_EXPLANATION,
   groupExplanation,
   importantNote,
+  resultGuidance,
   resultSummary,
   technicalDetail,
   thresholdLabel,
@@ -41,15 +42,15 @@ describe("resultado por debajo del umbral", () => {
 
   it("explica el grupo asignado sin términos técnicos", () => {
     expect(groupExplanation(below)).toBe(
-      "Como tu resultado está por debajo del 38\u00a0%, el modelo asignó tu perfil al grupo que representa a las personas registradas sin enfermedad cardiovascular en los datos de entrenamiento.",
+      "Este valor está por debajo del nivel de atención establecido en PULSO (38 %). Esto indica que tus datos presentan características que el modelo relaciona más con personas sin enfermedad cardiovascular."
+    );
+
+    expect(resultGuidance(below)).toBe(
+      "Aunque tu resultado es favorable, recuerda que ninguna herramienta puede garantizar que estés libre de problemas cardiovasculares. Sigue cuidando tu salud y realizando tus controles habituales."
     );
 
     expect(importantNote(below)).toBe(
-      "Esto no significa que estés libre de enfermedades cardiovasculares. PULSO ofrece una estimación estadística con fines educativos y preventivos, no un diagnóstico médico.",
-    );
-
-    expect(thresholdLabel(below)).toBe(
-      "Por debajo del umbral",
+      "PULSO es una herramienta de orientación basada en inteligencia artificial. Sus resultados no constituyen un diagnóstico médico."
     );
   });
 });
@@ -60,52 +61,48 @@ describe("resultado igual o superior al umbral", () => {
       EXPECTED_SUMMARY("65,0"),
     );
 
-    expect(groupExplanation(above)).toContain(
-      "al grupo que representa a las personas registradas con enfermedad cardiovascular",
+    expect(groupExplanation(above)).toBe(
+      "Este valor alcanza o supera el nivel de atención establecido en PULSO (38 %). Esto indica que tus datos presentan características que el modelo relaciona más con personas con enfermedad cardiovascular."
+    );
+
+    expect(resultGuidance(above)).toBe(
+      "Este resultado no significa que tengas una enfermedad, pero sí es recomendable consultar con un profesional de la salud para una valoración más completa."
     );
 
     expect(importantNote(above)).toBe(
-      "Esto no confirma que tengas una enfermedad cardiovascular ni representa una valoración clínica individual. PULSO ofrece una estimación estadística con fines educativos y preventivos, no un diagnóstico médico.",
-    );
-
-    expect(thresholdLabel(above)).toBe(
-      "Igual o superior al umbral",
+      "PULSO es una herramienta de orientación basada en inteligencia artificial. Sus resultados no constituyen un diagnóstico médico."
     );
   });
+
 
   it("trata un resultado igual al umbral como igual o superior", () => {
     const equal = prediction(0.38, 1, 0.38);
 
-    expect(resultSummary(equal)).toBe(
-      EXPECTED_SUMMARY("38,0"),
-    );
+    expect(resultSummary(equal)).toBe(EXPECTED_SUMMARY("38,0"));
 
     expect(groupExplanation(equal)).toContain(
-      "igual o superior al 38\u00a0%",
+      "alcanza o supera el nivel de atención establecido en PULSO (38 %)"
     );
 
-    expect(thresholdLabel(equal)).toBe(
-      "Igual o superior al umbral",
-    );
+    expect(thresholdLabel(equal)).toBe("Igual o superior al umbral");
   });
+
 });
 
 describe("textos compartidos", () => {
+
   it("utiliza el umbral del backend y no un valor fijo", () => {
     const customThreshold = prediction(0.45, 0, 0.5);
 
     expect(groupExplanation(customThreshold)).toContain(
-      "por debajo del 50\u00a0%",
+      "por debajo del nivel de atención establecido en PULSO (50 %)"
     );
 
-    expect(resultSummary(customThreshold)).toBe(
-      EXPECTED_SUMMARY("45,0"),
-    );
+    expect(resultSummary(customThreshold)).toBe(EXPECTED_SUMMARY("45,0"));
 
-    expect(thresholdLabel(customThreshold)).toBe(
-      "Por debajo del umbral",
-    );
+    expect(thresholdLabel(customThreshold)).toBe("Por debajo del umbral");
   });
+
 
   it("explica el umbral y evita etiquetas clínicas incorrectas", () => {
     expect(THRESHOLD_EXPLANATION).toBe(
