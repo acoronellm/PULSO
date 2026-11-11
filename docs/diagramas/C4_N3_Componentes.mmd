@@ -1,0 +1,141 @@
+%%{init: {"c4": {"personFontSize": 15, "componentFontSize": 15, "containerFontSize": 15, "messageFontSize": 14, "boundaryFontSize": 17, "c4ShapeMargin": 25}}}%%
+C4Component
+    title Backend API de PULSO — Componentes (C4, nivel 3)
+
+    Boundary(entrada, "Entrada", "contenedor") {
+        Container(nginx, "Proxy inverso", "NGINX", "Redirige /api/* al backend")
+    }
+
+    Container_Boundary(api, "Backend API", "Python, FastAPI") {
+        Boundary(capa_http, "Interfaces HTTP", "interfaces/http") {
+            Component(r_auth, "routes/auth.py", "FastAPI APIRouter", "register · login · me")
+            Component(cur_user, "get_current_user", "dependencies.py · HTTPBearer", "Valida el token Bearer y obtiene AuthUser")
+            Component(r_analysis, "routes/analysis.py", "FastAPI APIRouter", "analyze · rag · simulate · analyses")
+            Component(deps, "dependencies.py", "Raíz de composición", "Construye e inyecta las dependencias")
+            Component(schemas, "schemas.py · auth_schemas.py", "Pydantic", "Contratos JSON")
+            Component(http_err, "errors.py", "Exception handlers", "Errores a 404 / 422 / 502")
+            Component(r_health, "routes/health.py", "FastAPI APIRouter", "GET /api/health")
+        }
+        Boundary(capa_app, "Aplicación", "application") {
+            Component(uc_register, "RegisterUser", "Caso de uso", "Crea la cuenta y emite el token")
+            Component(uc_auth, "AuthenticateUser", "Caso de uso", "Verifica credenciales y emite el token")
+            Component(uc_history, "ListAnalysisHistory", "Caso de uso", "Historial paginado del usuario")
+            Component(uc_analyze, "AnalyzeProfile", "Caso de uso", "Predicción, SHAP, contexto e historial")
+            Component(uc_recs, "RequestRecommendations", "Caso de uso", "Contexto → recomendaciones")
+            Component(uc_sim, "SimulateScenario", "Caso de uso", "Perfil original vs. escenario")
+        }
+        Boundary(capa_dom, "Dominio", "domain") {
+            Component(p_users, "UserRepository", "Puerto · ports.py", "find_by_email · find_by_id · create")
+            Component(p_hasher, "PasswordHasher", "Puerto · ports.py", "hash · verify")
+            Component(p_tokens, "AccessTokenIssuer", "Puerto · ports.py", "issue · subject")
+            Component(p_history, "AnalysisHistoryRepository", "Puerto · ports.py", "save · list_for_user")
+            Component(p_repo, "AnalysisRepository", "Puerto · ports.py", "save · get")
+            Component(p_model, "CardiovascularModel", "Puerto · ports.py", "predict · explain · simulate")
+            Component(p_recs, "RecommendationGenerator", "Puerto · ports.py", "generate")
+            Component(d_model, "entities · rules · errors", "Python estándar", "Entidades, reglas y errores")
+        }
+        Boundary(capa_inf, "Infraestructura", "infrastructure") {
+            Component(i_users, "SQLAlchemyUserRepository", "SQLAlchemy", "Tabla users")
+            Component(i_hasher, "Argon2PasswordHasher", "pwdlib · Argon2", "Hash de contraseñas")
+            Component(i_tokens, "JWTAccessTokens", "PyJWT · HS256", "Emite y valida tokens")
+            Component(i_history, "SQLAlchemyAnalysisHistoryRepository", "SQLAlchemy", "Tabla analyses")
+            Component(i_mem, "InMemoryAnalysisRepository", "Memoria del proceso", "TTL 900 s, máximo 100")
+            Component(i_ml, "MLServiceClient", "httpx", "Cliente del ML Service")
+            Component(i_n8n, "N8nRecommendationClient", "httpx", "Cliente del webhook RAG")
+            Component(i_db, "database.py · modelos ORM", "SQLAlchemy", "Engine, sesiones, UserModel, AnalysisHistoryModel")
+            Component(i_settings, "Settings", "pydantic-settings", "Variables de entorno")
+        }
+    }
+
+    Boundary(otros, "Otros contenedores de PULSO", "contenedores") {
+        ContainerDb(pg, "PostgreSQL", "PostgreSQL 16", "users · analyses")
+        Container(ml, "ML Service", "FastAPI, XGBoost, SHAP", "Predicción, SHAP, simulación")
+        Container(rag, "Workflow RAG", "n8n", "Recomendaciones con fuentes")
+    }
+
+    Rel(nginx, r_auth, "Redirige /api/auth/*", "HTTP/JSON")
+    Rel(nginx, r_analysis, "Redirige /api/*", "HTTP/JSON")
+
+    Rel(r_auth, cur_user, "Exige usuario (me)")
+    Rel(r_analysis, cur_user, "Exige usuario")
+    Rel(r_analysis, deps, "Obtiene dependencias", "Depends")
+
+    Rel(r_auth, uc_register, "Ejecuta")
+    Rel(r_auth, uc_auth, "Ejecuta")
+    Rel(r_analysis, uc_history, "Ejecuta")
+    Rel(r_analysis, uc_analyze, "Ejecuta")
+    Rel(r_analysis, uc_recs, "Ejecuta")
+    Rel(r_analysis, uc_sim, "Ejecuta")
+
+    Rel(uc_register, p_users, "Utiliza")
+    Rel(uc_register, p_hasher, "Utiliza")
+    Rel(uc_register, p_tokens, "Utiliza")
+    Rel(uc_auth, p_users, "Utiliza")
+    Rel(uc_auth, p_hasher, "Utiliza")
+    Rel(uc_auth, p_tokens, "Utiliza")
+    Rel(uc_history, p_history, "Utiliza")
+    Rel(uc_analyze, p_history, "Utiliza")
+    Rel(uc_analyze, p_repo, "Utiliza")
+    Rel(uc_analyze, p_model, "Utiliza")
+    Rel(uc_recs, p_repo, "Utiliza")
+    Rel(uc_recs, p_recs, "Utiliza")
+    Rel(uc_sim, p_model, "Utiliza")
+
+    Rel(i_users, p_users, "Implementa")
+    Rel(i_hasher, p_hasher, "Implementa")
+    Rel(i_tokens, p_tokens, "Implementa")
+    Rel(i_history, p_history, "Implementa")
+    Rel(i_mem, p_repo, "Implementa")
+    Rel(i_ml, p_model, "Implementa")
+    Rel(i_n8n, p_recs, "Implementa")
+
+    Rel(i_users, pg, "Consulta", "SQLAlchemy/psycopg")
+    Rel(i_history, pg, "Consulta", "SQLAlchemy/psycopg")
+    Rel(i_ml, ml, "Invoca", "HTTP/JSON")
+    Rel(i_n8n, rag, "Invoca", "HTTP/JSON")
+
+    UpdateElementStyle(rag, $bgColor="#0E7C7B", $borderColor="#0A5E5D")
+    UpdateElementStyle(deps, $borderColor="#C05600")
+    UpdateElementStyle(cur_user, $borderColor="#C05600")
+
+    UpdateRelStyle(nginx, r_auth, $offsetX="-45", $offsetY="-28")
+    UpdateRelStyle(nginx, r_analysis, $offsetX="-75", $offsetY="0")
+    UpdateRelStyle(r_analysis, deps, $textColor="#C05600", $lineColor="#C05600", $offsetX="-112", $offsetY="-12")
+    UpdateRelStyle(r_auth, cur_user, $textColor="#C05600", $lineColor="#C05600")
+    UpdateRelStyle(r_analysis, cur_user, $textColor="#C05600", $lineColor="#C05600")
+
+    UpdateRelStyle(r_auth, uc_register, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(r_auth, uc_auth, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(r_analysis, uc_history, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(r_analysis, uc_analyze, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(r_analysis, uc_recs, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(r_analysis, uc_sim, $textColor="#1F3A93", $lineColor="#1F3A93")
+
+    UpdateRelStyle(uc_register, p_users, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_register, p_hasher, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_register, p_tokens, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_auth, p_users, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_auth, p_hasher, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_auth, p_tokens, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_history, p_history, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_analyze, p_history, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_analyze, p_repo, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_analyze, p_model, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_recs, p_repo, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_recs, p_recs, $textColor="#1F3A93", $lineColor="#1F3A93")
+    UpdateRelStyle(uc_sim, p_model, $textColor="#1F3A93", $lineColor="#1F3A93")
+
+    UpdateRelStyle(i_users, p_users, $textColor="#1B7F3B", $lineColor="#1B7F3B")
+    UpdateRelStyle(i_hasher, p_hasher, $textColor="#1B7F3B", $lineColor="#1B7F3B")
+    UpdateRelStyle(i_tokens, p_tokens, $textColor="#1B7F3B", $lineColor="#1B7F3B")
+    UpdateRelStyle(i_history, p_history, $textColor="#1B7F3B", $lineColor="#1B7F3B")
+    UpdateRelStyle(i_mem, p_repo, $textColor="#1B7F3B", $lineColor="#1B7F3B")
+    UpdateRelStyle(i_ml, p_model, $textColor="#1B7F3B", $lineColor="#1B7F3B")
+    UpdateRelStyle(i_n8n, p_recs, $textColor="#1B7F3B", $lineColor="#1B7F3B")
+
+    UpdateRelStyle(i_users, pg, $textColor="#7B2D8E", $lineColor="#7B2D8E")
+    UpdateRelStyle(i_history, pg, $textColor="#7B2D8E", $lineColor="#7B2D8E", $offsetX="-115", $offsetY="0")
+    UpdateRelStyle(i_ml, ml, $textColor="#7B2D8E", $lineColor="#7B2D8E")
+    UpdateRelStyle(i_n8n, rag, $textColor="#7B2D8E", $lineColor="#7B2D8E")
+
+    UpdateLayoutConfig($c4ShapeInRow="1", $c4BoundaryInRow="4")

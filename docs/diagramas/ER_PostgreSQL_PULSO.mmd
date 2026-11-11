@@ -1,0 +1,20 @@
+---
+title: PULSO — PostgreSQL 16 del backend (backend/migrations) · índice ix_analyses_user_created_at (user_id, created_at DESC, id DESC)
+---
+erDiagram
+    users ||--o{ analyses : "tiene en su historial"
+    users {
+        UUID id PK "NOT NULL"
+        VARCHAR(254) email UK "NOT NULL"
+        VARCHAR(255) password_hash "NOT NULL · hash Argon2"
+        TIMESTAMPTZ created_at "NOT NULL · DEFAULT CURRENT_TIMESTAMP"
+    }
+    analyses {
+        UUID id PK "NOT NULL · mismo valor que analysis_id"
+        UUID user_id FK "NOT NULL · REFERENCES users(id) ON DELETE CASCADE · índice (1.ª columna)"
+        DOUBLE_PRECISION probability "NOT NULL · CHECK 0 ≤ valor ≤ 1"
+        SMALLINT classification "NOT NULL · CHECK valor IN (0, 1)"
+        DOUBLE_PRECISION threshold "NOT NULL · CHECK 0 ≤ valor ≤ 1"
+        VARCHAR(50) model_version "NOT NULL"
+        TIMESTAMPTZ created_at "NOT NULL · DEFAULT CURRENT_TIMESTAMP · índice (2.ª columna, DESC)"
+    }

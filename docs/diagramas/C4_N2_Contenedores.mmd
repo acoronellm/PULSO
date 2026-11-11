@@ -1,0 +1,45 @@
+%%{init: {"c4": {"messageFontSize": 15, "boundaryFontSize": 17}}}%%
+%%{wrap}%%
+C4Container
+    title PULSO — Diagrama de contenedores (C4, nivel 2)
+
+    Person(usuaria, "Persona usuaria", "Usa PULSO desde un navegador web, donde se ejecuta la SPA React.")
+
+    System_Boundary(pulso, "PULSO") {
+        Boundary(compose, "Stack Docker Compose local", "despliegue local") {
+            Container(frontend, "Frontend web", "React, TypeScript, Vite", "Archivos estáticos de la SPA; React se ejecuta en el navegador.")
+            Container(nginx, "Proxy inverso", "NGINX", "Punto de entrada :80. Sirve el frontend y redirige /api/* al backend.")
+            Container(backend, "Backend API", "Python, FastAPI", "JWT, casos de uso, análisis e historial; contexto temporal en memoria.")
+            Container(ml, "ML Service", "Python, FastAPI, XGBoost, SHAP", "Predicción, explicación SHAP y simulación de escenarios.")
+            ContainerDb(postgres, "Base de datos relacional", "PostgreSQL 16", "Cuentas de usuario, credenciales protegidas e historial de análisis.")
+        }
+        Boundary(externo, "Infraestructura externa al stack", "despliegue externo") {
+            ContainerDb(kb, "Base de conocimiento", "Supabase: PostgreSQL + pgvector", "Corpus educativo fragmentado y sus embeddings.")
+            Container(rag, "Workflow RAG", "n8n", "Recupera fragmentos y genera recomendaciones con fuentes.")
+        }
+    }
+
+    Boundary(fuera, "Fuera del límite de PULSO", "sistema externo") {
+        System_Ext(gemini, "Google Gemini API", "Embeddings y generación de texto.")
+    }
+
+    Rel(usuaria, nginx, "Accede a PULSO", "HTTP")
+    Rel(nginx, frontend, "Solicita archivos HTML, JS y CSS", "HTTP")
+    Rel(nginx, backend, "Redirige solicitudes /api/*", "HTTP/JSON")
+    Rel(backend, ml, "Solicita predicción, SHAP y simulación", "HTTP/JSON")
+    Rel(backend, postgres, "Registra usuarios y persiste/consulta historiales", "SQLAlchemy/psycopg, PostgreSQL")
+    Rel(backend, rag, "Envía contexto del análisis para recomendaciones", "HTTP/JSON")
+    Rel(rag, kb, "Recupera fragmentos mediante búsqueda vectorial", "HTTPS/API")
+    Rel(rag, gemini, "Solicita procesamiento y generación mediante modelos de IA", "HTTPS/JSON")
+
+    UpdateElementStyle(rag, $bgColor="#0E7C7B", $borderColor="#0A5E5D")
+    UpdateElementStyle(kb, $bgColor="#0E7C7B", $borderColor="#0A5E5D")
+
+    UpdateRelStyle(usuaria, nginx, $offsetX="-90", $offsetY="10")
+    UpdateRelStyle(nginx, frontend, $offsetX="0", $offsetY="70")
+    UpdateRelStyle(nginx, backend, $offsetX="0", $offsetY="70")
+    UpdateRelStyle(backend, ml, $offsetX="0", $offsetY="70")
+    UpdateRelStyle(backend, postgres, $offsetX="-30", $offsetY="75")
+    UpdateRelStyle(rag, kb, $offsetX="0", $offsetY="84")
+
+    UpdateLayoutConfig($c4ShapeInRow="4", $c4BoundaryInRow="1")

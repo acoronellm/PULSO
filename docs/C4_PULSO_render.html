@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagramas C4 PULSO</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#fff;color:#111;margin:0;padding:16px}
+section{margin:0 0 48px} .diagram{overflow:auto;border:1px solid #ddd;padding:8px}
+.src{display:none} .err{color:#b00;white-space:pre-wrap} button{margin-right:8px}
+</style></head><body>
+<h1>Diagramas C4 de PULSO</h1>
+<p>Generado desde <code>docs/C4_PULSO.md</code>. Necesita conexión para cargar Mermaid.</p>
+<section><h2>C4_N1_Contexto</h2><div class="btns"><button data-k="0" data-f="svg">Descargar SVG</button><button data-k="0" data-f="png">Descargar PNG</button></div><div class="diagram" id="d0" data-name="C4_N1_Contexto"><pre class="src">%%{wrap}%%
+C4Context
+    title PULSO — Diagrama de contexto (C4, nivel 1)
+
+    Person(usuaria, &quot;Persona usuaria&quot;, &quot;Ingresa sus factores cardiovasculares y consulta información educativa preventiva.&quot;)
+    Person(responsable, &quot;Responsable técnico&quot;, &quot;Despliega y verifica la plataforma; mantiene el workflow RAG y el corpus documental.&quot;)
+
+    System(pulso, &quot;PULSO&quot;, &quot;Plataforma educativa de prevención cardiovascular: predicción ML, explicación SHAP, simulación y RAG.&quot;)
+
+    System_Ext(gemini, &quot;Google Gemini API&quot;, &quot;Proveedor externo de IA: embeddings y generación de texto.&quot;)
+
+    Rel(usuaria, pulso, &quot;Ingresa factores, consulta resultados, simula escenarios y recibe información educativa&quot;, &quot;Navegador web, HTTP&quot;)
+    Rel(responsable, pulso, &quot;Despliega, verifica y mantiene workflow y corpus&quot;, &quot;Docker Compose, n8n, Supabase&quot;)
+    Rel(pulso, gemini, &quot;Pide embeddings y texto educativo&quot;, &quot;HTTPS/JSON&quot;)
+
+    UpdateRelStyle(usuaria, pulso, $offsetX=&quot;-190&quot;, $offsetY=&quot;-25&quot;)
+    UpdateRelStyle(responsable, pulso, $offsetX=&quot;40&quot;, $offsetY=&quot;5&quot;)
+    UpdateRelStyle(pulso, gemini, $offsetX=&quot;-60&quot;, $offsetY=&quot;55&quot;)
+    UpdateLayoutConfig($c4ShapeInRow=&quot;2&quot;, $c4BoundaryInRow=&quot;1&quot;)
+</pre></div></section>
+<section><h2>C4_N2_Contenedores</h2><div class="btns"><button data-k="1" data-f="svg">Descargar SVG</button><button data-k="1" data-f="png">Descargar PNG</button></div><div class="diagram" id="d1" data-name="C4_N2_Contenedores"><pre class="src">%%{init: {&quot;c4&quot;: {&quot;messageFontSize&quot;: 15, &quot;boundaryFontSize&quot;: 17}}}%%
+%%{wrap}%%
+C4Container
+    title PULSO — Diagrama de contenedores (C4, nivel 2)
+
+    Person(usuaria, &quot;Persona usuaria&quot;, &quot;Usa PULSO desde un navegador web, donde se ejecuta la SPA React.&quot;)
+
+    System_Boundary(pulso, &quot;PULSO&quot;) {
+        Boundary(compose, &quot;Stack Docker Compose local&quot;, &quot;despliegue local&quot;) {
+            Container(nginx, &quot;Proxy inverso&quot;, &quot;NGINX&quot;, &quot;Punto de entrada :80. Sirve el frontend y redirige /api/* al backend.&quot;)
+            Container(frontend, &quot;Frontend web&quot;, &quot;React, TypeScript, Vite&quot;, &quot;Archivos estáticos de la SPA; React se ejecuta en el navegador.&quot;)
+            Container(backend, &quot;Backend API&quot;, &quot;Python, FastAPI&quot;, &quot;API REST con Clean Architecture; contextos de análisis en memoria.&quot;)
+            Container(ml, &quot;ML Service&quot;, &quot;Python, FastAPI, XGBoost, SHAP&quot;, &quot;Predicción, explicación SHAP y simulación de escenarios.&quot;)
+        }
+        Boundary(externo, &quot;Infraestructura externa al stack&quot;, &quot;despliegue externo&quot;) {
+            Container(rag, &quot;Workflow RAG&quot;, &quot;n8n&quot;, &quot;Recupera fragmentos y genera recomendaciones con fuentes.&quot;)
+            ContainerDb(kb, &quot;Base de conocimiento&quot;, &quot;Supabase: PostgreSQL + pgvector&quot;, &quot;Corpus educativo fragmentado y sus embeddings.&quot;)
+        }
+    }
+
+    Boundary(fuera, &quot;Fuera del límite de PULSO&quot;, &quot;sistema externo&quot;) {
+        System_Ext(gemini, &quot;Google Gemini API&quot;, &quot;Embeddings y generación de texto.&quot;)
+    }
+
+    Rel(usuaria, nginx, &quot;Accede a PULSO&quot;, &quot;HTTP&quot;)
+    Rel(nginx, frontend, &quot;Solicita archivos HTML, JS y CSS&quot;, &quot;HTTP&quot;)
+    Rel(nginx, backend, &quot;Redirige solicitudes /api/*&quot;, &quot;HTTP/JSON&quot;)
+    Rel(backend, ml, &quot;Solicita predicción, SHAP y simulación&quot;, &quot;HTTP/JSON&quot;)
+    Rel(backend, rag, &quot;Envía contexto del análisis para recomendaciones&quot;, &quot;HTTP/JSON&quot;)
+    Rel(rag, kb, &quot;Recupera fragmentos mediante búsqueda vectorial&quot;, &quot;HTTPS/API&quot;)
+    Rel(rag, gemini, &quot;Solicita procesamiento y generación mediante modelos de IA&quot;, &quot;HTTPS/JSON&quot;)
+
+    UpdateElementStyle(rag, $bgColor=&quot;#0E7C7B&quot;, $borderColor=&quot;#0A5E5D&quot;)
+    UpdateElementStyle(kb, $bgColor=&quot;#0E7C7B&quot;, $borderColor=&quot;#0A5E5D&quot;)
+
+    UpdateRelStyle(nginx, frontend, $offsetX=&quot;100&quot;, $offsetY=&quot;80&quot;)
+    UpdateRelStyle(backend, ml, $offsetX=&quot;100&quot;, $offsetY=&quot;113&quot;)
+    UpdateRelStyle(rag, kb, $offsetX=&quot;65&quot;, $offsetY=&quot;108&quot;)
+
+    UpdateLayoutConfig($c4ShapeInRow=&quot;2&quot;, $c4BoundaryInRow=&quot;1&quot;)
+</pre></div></section>
+<section><h2>C4_N3_Componentes</h2><div class="btns"><button data-k="2" data-f="svg">Descargar SVG</button><button data-k="2" data-f="png">Descargar PNG</button></div><div class="diagram" id="d2" data-name="C4_N3_Componentes"><pre class="src">%%{init: {&quot;c4&quot;: {&quot;personFontSize&quot;: 15, &quot;componentFontSize&quot;: 15, &quot;containerFontSize&quot;: 15, &quot;messageFontSize&quot;: 15, &quot;boundaryFontSize&quot;: 17, &quot;c4ShapeMargin&quot;: 30}}}%%
+C4Component
+    title Backend API de PULSO — Componentes (C4, nivel 3)
+
+    Container(nginx, &quot;Proxy inverso&quot;, &quot;NGINX&quot;, &quot;Redirige /api/* al backend.&quot;)
+
+    Container_Boundary(api, &quot;Backend API&quot;, &quot;Python, FastAPI&quot;) {
+        Boundary(capa_http, &quot;Interfaces HTTP&quot;, &quot;interfaces/http&quot;) {
+            Component(r_analysis, &quot;routes/analysis.py&quot;, &quot;FastAPI APIRouter&quot;, &quot;POST analyze · rag · simulate&quot;)
+            Component(deps, &quot;dependencies.py&quot;, &quot;Raíz de composición&quot;, &quot;Ensambla casos de uso y adaptadores&quot;)
+            Component(schemas, &quot;schemas.py&quot;, &quot;Pydantic&quot;, &quot;Contratos JSON&quot;)
+            Component(http_err, &quot;errors.py&quot;, &quot;Exception handlers&quot;, &quot;Errores a 404 / 422 / 502&quot;)
+            Component(r_health, &quot;routes/health.py&quot;, &quot;FastAPI APIRouter&quot;, &quot;GET /api/health (sin casos de uso)&quot;)
+        }
+        Boundary(capa_app, &quot;Aplicación&quot;, &quot;application&quot;) {
+            Component(uc_sim, &quot;SimulateScenario&quot;, &quot;Caso de uso&quot;, &quot;Perfil original vs. escenario&quot;)
+            Component(uc_analyze, &quot;AnalyzeProfile&quot;, &quot;Caso de uso&quot;, &quot;Predicción, SHAP y contexto&quot;)
+            Component(uc_recs, &quot;RequestRecommendations&quot;, &quot;Caso de uso&quot;, &quot;Contexto → recomendaciones&quot;)
+        }
+        Boundary(capa_dom, &quot;Dominio&quot;, &quot;domain&quot;) {
+            Component(p_model, &quot;CardiovascularModel&quot;, &quot;Puerto · ports.py&quot;, &quot;predict · explain · simulate&quot;)
+            Component(p_repo, &quot;AnalysisRepository&quot;, &quot;Puerto · ports.py&quot;, &quot;save · get&quot;)
+            Component(p_recs, &quot;RecommendationGenerator&quot;, &quot;Puerto · ports.py&quot;, &quot;generate&quot;)
+            Component(d_model, &quot;entities · rules · errors&quot;, &quot;Python estándar&quot;, &quot;Entidades, reglas y errores&quot;)
+        }
+        Boundary(capa_inf, &quot;Infraestructura&quot;, &quot;infrastructure&quot;) {
+            Component(i_ml, &quot;MLServiceClient&quot;, &quot;httpx&quot;, &quot;Cliente del ML Service.&quot;)
+            Component(i_mem, &quot;InMemoryAnalysisRepository&quot;, &quot;Memoria del proceso&quot;, &quot;TTL 900 s, máximo 100.&quot;)
+            Component(i_n8n, &quot;N8nRecommendationClient&quot;, &quot;httpx&quot;, &quot;Cliente del webhook RAG.&quot;)
+            Component(i_settings, &quot;Settings&quot;, &quot;pydantic-settings&quot;, &quot;Variables de entorno.&quot;)
+        }
+    }
+
+    Boundary(otros, &quot;Otros contenedores&quot;, &quot;PULSO&quot;) {
+        Container(ml, &quot;ML Service&quot;, &quot;FastAPI, XGBoost, SHAP&quot;, &quot;Predicción, SHAP, simulación&quot;)
+        Container(rag, &quot;Workflow RAG&quot;, &quot;n8n&quot;, &quot;Recomendaciones con fuentes&quot;)
+    }
+
+    Rel(nginx, r_analysis, &quot;Redirige /api/*&quot;, &quot;HTTP/JSON&quot;)
+    Rel(r_analysis, deps, &quot;Obtiene casos de uso&quot;, &quot;Depends&quot;)
+    Rel(r_analysis, uc_sim, &quot;Ejecuta&quot;)
+    Rel(r_analysis, uc_analyze, &quot;Ejecuta&quot;)
+    Rel(r_analysis, uc_recs, &quot;Ejecuta&quot;)
+    Rel(uc_sim, p_model, &quot;Utiliza&quot;)
+    Rel(uc_analyze, p_model, &quot;Utiliza&quot;)
+    Rel(uc_analyze, p_repo, &quot;Utiliza&quot;)
+    Rel(uc_recs, p_repo, &quot;Utiliza&quot;)
+    Rel(uc_recs, p_recs, &quot;Utiliza&quot;)
+    Rel(i_ml, p_model, &quot;Implementa&quot;)
+    Rel(i_mem, p_repo, &quot;Implementa&quot;)
+    Rel(i_n8n, p_recs, &quot;Implementa&quot;)
+    Rel(i_ml, ml, &quot;Invoca&quot;, &quot;HTTP/JSON&quot;)
+    Rel(i_n8n, rag, &quot;Invoca&quot;, &quot;HTTP/JSON&quot;)
+
+    UpdateElementStyle(rag, $bgColor=&quot;#0E7C7B&quot;, $borderColor=&quot;#0A5E5D&quot;)
+    UpdateElementStyle(deps, $borderColor=&quot;#C05600&quot;)
+    UpdateRelStyle(nginx, r_analysis, $offsetX=&quot;-115&quot;, $offsetY=&quot;-10&quot;)
+
+    UpdateRelStyle(r_analysis, deps, $textColor=&quot;#C05600&quot;, $lineColor=&quot;#C05600&quot;, $offsetX=&quot;-80&quot;, $offsetY=&quot;0&quot;)
+    UpdateRelStyle(r_analysis, uc_sim, $textColor=&quot;#1F3A93&quot;, $lineColor=&quot;#1F3A93&quot;)
+    UpdateRelStyle(r_analysis, uc_analyze, $textColor=&quot;#1F3A93&quot;, $lineColor=&quot;#1F3A93&quot;)
+    UpdateRelStyle(r_analysis, uc_recs, $textColor=&quot;#1F3A93&quot;, $lineColor=&quot;#1F3A93&quot;)
+    UpdateRelStyle(uc_sim, p_model, $textColor=&quot;#1F3A93&quot;, $lineColor=&quot;#1F3A93&quot;)
+    UpdateRelStyle(uc_analyze, p_model, $textColor=&quot;#1F3A93&quot;, $lineColor=&quot;#1F3A93&quot;)
+    UpdateRelStyle(uc_analyze, p_repo, $textColor=&quot;#1F3A93&quot;, $lineColor=&quot;#1F3A93&quot;)
+    UpdateRelStyle(uc_recs, p_repo, $textColor=&quot;#1F3A93&quot;, $lineColor=&quot;#1F3A93&quot;)
+    UpdateRelStyle(uc_recs, p_recs, $textColor=&quot;#1F3A93&quot;, $lineColor=&quot;#1F3A93&quot;)
+    UpdateRelStyle(i_ml, p_model, $textColor=&quot;#1B7F3B&quot;, $lineColor=&quot;#1B7F3B&quot;)
+    UpdateRelStyle(i_mem, p_repo, $textColor=&quot;#1B7F3B&quot;, $lineColor=&quot;#1B7F3B&quot;)
+    UpdateRelStyle(i_n8n, p_recs, $textColor=&quot;#1B7F3B&quot;, $lineColor=&quot;#1B7F3B&quot;)
+    UpdateRelStyle(i_ml, ml, $textColor=&quot;#7B2D8E&quot;, $lineColor=&quot;#7B2D8E&quot;)
+    UpdateRelStyle(i_n8n, rag, $textColor=&quot;#7B2D8E&quot;, $lineColor=&quot;#7B2D8E&quot;)
+
+    UpdateLayoutConfig($c4ShapeInRow=&quot;1&quot;, $c4BoundaryInRow=&quot;4&quot;)
+</pre></div></section>
+<script type="module">
+import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.esm.min.mjs";
+// Mermaid C4 limita el ancho con screen.availWidth: se fija un mínimo para que la exportación no dependa de la pantalla.
+for (const k of ["availWidth", "width"]) { try { if (!(screen[k] >= 1280)) Object.defineProperty(screen, k, {get: () => 1280, configurable: true}); } catch (e) {} }
+mermaid.initialize({startOnLoad:false, theme:"default", securityLevel:"strict", c4:{diagramMarginY:20, wrapPadding:12} });
+window.__results = []; window.__codes = [...document.querySelectorAll(".src")].map(e=>e.textContent); window.__mermaid = mermaid;
+for (const el of document.querySelectorAll(".diagram")) {
+  const code = el.querySelector(".src").textContent;
+  try {
+    const {svg} = await mermaid.render(el.id + "svg", code);
+    el.innerHTML = svg; window.__results.push("ok " + el.id);
+  } catch (e) {
+    el.innerHTML = '<div class="err">' + String(e.message || e) + '</div>'; window.__results.push("ERR " + el.id + ": " + (e.message||e));
+  }
+}
+window.__overlaps = (svg) => { const ts=[...svg.querySelectorAll("text")].filter(t=>t.textContent.trim()); const bs=ts.map(t=>t.getBoundingClientRect()); const out=[]; for(let i=0;i<ts.length;i++)for(let j=i+1;j<ts.length;j++){const a=bs[i],b=bs[j]; const ox=Math.min(a.right,b.right)-Math.max(a.left,b.left), oy=Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top); if(ox>2&&oy>2) out.push(ts[i].textContent.slice(0,35)+" <> "+ts[j].textContent.slice(0,35));} return out; };
+function save(blob, name){ const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=name; a.click(); }
+window.__export = async (k) => { const el=document.getElementById("d"+k); const svg=el.querySelector("svg"); return svg; };
+document.addEventListener("click", ev => {
+  const b = ev.target.closest("button"); if (!b) return;
+  const el = document.getElementById("d" + b.dataset.k); const svg = el.querySelector("svg"); if (!svg) return;
+  const bb = svg.getBBox(), pad = 24, vb = {width: Math.ceil(bb.width + 2*pad), height: Math.ceil(bb.height + 2*pad)}, clone = svg.cloneNode(true);
+  clone.setAttribute("viewBox", `${bb.x - pad} ${bb.y - pad} ${vb.width} ${vb.height}`);
+  clone.setAttribute("width", vb.width); clone.setAttribute("height", vb.height); clone.removeAttribute("style");
+  const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  bg.setAttribute("x", bb.x - pad); bg.setAttribute("y", bb.y - pad); bg.setAttribute("width", vb.width); bg.setAttribute("height", vb.height); bg.setAttribute("fill", "#ffffff");
+  clone.insertBefore(bg, clone.firstChild);
+  const xml = new XMLSerializer().serializeToString(clone);
+  if (b.dataset.f === "svg") return save(new Blob([xml], {type:"image/svg+xml"}), el.dataset.name + ".svg");
+  const r = {width: vb.width, height: vb.height}, scale = 2, img = new Image();
+  img.onload = () => { const c=document.createElement("canvas"); c.width=r.width*scale; c.height=r.height*scale;
+    const x=c.getContext("2d"); x.fillStyle="#fff"; x.fillRect(0,0,c.width,c.height); x.drawImage(img,0,0,c.width,c.height);
+    c.toBlob(bl => save(bl, el.dataset.name + ".png")); };
+  img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(xml);
+});
+</script></body></html>

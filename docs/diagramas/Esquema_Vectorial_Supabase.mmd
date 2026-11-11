@@ -1,0 +1,10 @@
+---
+title: Supabase — corpus vectorial del RAG, separado del PostgreSQL del backend (esquema informado por el equipo; no versionado en el repositorio)
+---
+erDiagram
+    documents_pulso_test {
+        BIGINT id PK "tabla public.documents_pulso_test"
+        TEXT content "texto del fragmento"
+        JSONB metadata "fuente y ubicación"
+        VECTOR(3072) embedding "gemini-embedding-001 · búsqueda con match_documents_pulso_test()"
+    }

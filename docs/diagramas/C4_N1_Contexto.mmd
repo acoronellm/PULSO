@@ -1,0 +1,19 @@
+%%{wrap}%%
+C4Context
+    title PULSO — Diagrama de contexto (C4, nivel 1)
+
+    Person(usuaria, "Persona usuaria", "Se registra, inicia sesión, analiza sus factores, simula escenarios y consulta recomendaciones e historial.")
+    Person(responsable, "Responsable técnico", "Administra y supervisa la infraestructura; mantiene el workflow RAG y el corpus.")
+
+    System(pulso, "PULSO", "Plataforma educativa cardiovascular con autenticación, ML, SHAP, simulación, RAG e historial.")
+
+    System_Ext(gemini, "Google Gemini API", "Proveedor externo de IA: embeddings y generación de texto.")
+
+    Rel(usuaria, pulso, "Se autentica, analiza su perfil, simula escenarios y consulta su historial", "Navegador web, HTTP")
+    Rel(responsable, pulso, "Despliega, supervisa y mantiene workflow y corpus", "Docker Compose, n8n, Supabase")
+    Rel(pulso, gemini, "Pide embeddings y texto educativo", "HTTPS/JSON")
+
+    UpdateRelStyle(usuaria, pulso, $offsetX="-190", $offsetY="-25")
+    UpdateRelStyle(responsable, pulso, $offsetX="40", $offsetY="5")
+    UpdateRelStyle(pulso, gemini, $offsetX="-60", $offsetY="55")
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")

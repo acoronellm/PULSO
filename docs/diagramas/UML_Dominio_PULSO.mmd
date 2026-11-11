@@ -1,0 +1,147 @@
+---
+title: PULSO — Clases del dominio (backend/app/domain/entities.py)
+config:
+  themeVariables:
+    fontSize: 18px
+---
+classDiagram
+    direction TB
+
+    namespace Usuarios_e_historial {
+        class AuthUser {
+            <<entity>>
+            +UUID id
+            +str email
+            +str password_hash
+        }
+        class AnalysisHistoryEntry {
+            <<entity>>
+            +UUID analysis_id
+            +float probability
+            +int classification
+            +float threshold
+            +str model_version
+            +datetime created_at
+        }
+    }
+
+    namespace Analisis_cardiovascular {
+        class AnalysisContext {
+            <<value object>>
+            +CardiovascularProfile profile
+            +Prediction prediction
+            +Explanation explanation
+            +UUID|None owner_id
+        }
+        class CardiovascularProfile {
+            <<value object>>
+            +int gender
+            +float height
+            +float weight
+            +float ap_hi
+            +float ap_lo
+            +int smoke
+            +int alco
+            +int active
+            +float age_years
+            +float bmi
+        }
+        class Prediction {
+            <<value object>>
+            +float probability
+            +int classification
+            +float threshold
+            +str model_version
+        }
+        class Explanation {
+            <<value object>>
+            +tuple~ShapFactor~ top_factors
+        }
+        class ShapFactor {
+            <<value object>>
+            +str feature
+            +float value
+            +float shap_value
+            +ShapDirection direction
+        }
+        class ShapDirection {
+            <<enumeration>>
+            increase
+            decrease
+        }
+    }
+
+    namespace Simulacion {
+        class ScenarioChanges {
+            <<value object>>
+            +float|None weight
+            +float|None ap_hi
+            +float|None ap_lo
+            +int|None smoke
+            +int|None alco
+            +int|None active
+        }
+        class SimulationOutcome {
+            <<value object>>
+            +ScenarioResult original
+            +ScenarioResult simulated
+            +float probability_difference
+            +str model_version
+            +float threshold
+            +Mapping applied_changes
+        }
+        class ScenarioResult {
+            <<value object>>
+            +float probability
+            +int classification
+        }
+    }
+
+    namespace Recomendaciones {
+        class RecommendationReport {
+            <<value object>>
+            +str summary
+            +str considerations
+            +str note
+            +bool insufficient_information
+            +tuple~Recommendation~ recommendations
+        }
+        class Recommendation {
+            <<value object>>
+            +str factor
+            +str recommendation
+            +tuple~str~ source_ids
+            +tuple~DocumentSource~ sources
+        }
+        class DocumentSource {
+            <<value object>>
+            +str source_id
+            +str source
+            +float score
+            +SourceLines lines
+        }
+        class SourceLines {
+            <<value object>>
+            +int start
+            +int end
+        }
+    }
+
+    AnalysisContext "1" *-- "1" CardiovascularProfile : profile
+    AnalysisContext "1" *-- "1" Prediction : prediction
+    AnalysisContext "1" *-- "1" Explanation : explanation
+    Explanation "1" *-- "0..*" ShapFactor : top_factors
+    ShapFactor ..> ShapDirection : direction
+    AnalysisContext "0..*" ..> "0..1" AuthUser : owner_id
+    AuthUser "1" .. "0..*" AnalysisHistoryEntry : historial por owner_id
+    AnalysisHistoryEntry ..> Prediction : copia sus valores
+
+    SimulationOutcome "1" *-- "1" ScenarioResult : original
+    SimulationOutcome "1" *-- "1" ScenarioResult : simulated
+    SimulationOutcome ..> ScenarioChanges : applied_changes
+    ScenarioChanges ..> CardiovascularProfile : modifica
+
+    RecommendationReport "1" *-- "0..*" Recommendation : recommendations
+    Recommendation "1" *-- "0..*" DocumentSource : sources
+    DocumentSource "1" *-- "1" SourceLines : lines
+    RecommendationReport ..> AnalysisContext : se genera a partir de
