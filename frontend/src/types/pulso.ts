@@ -1,4 +1,4 @@
-// Contratos de la API de PULSO, tal como los define backend/app/schemas/analysis.py
+// Contratos de la API de PULSO, tal como los define backend/app/interfaces/http/schemas.py
 
 export type Binary = 0 | 1;
 
