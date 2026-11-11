@@ -608,6 +608,8 @@ También se registran:
 - ubicación de artefactos;
 - experimento MLflow.
 
+El artefacto serializado de PULSO v1 dispone de una huella SHA-256 registrada en models/pulso/v1/metadata.yaml, que permite verificar su integridad respecto a la versión documentada.
+
 ---
 
 ## 18. Trazabilidad del código
@@ -712,43 +714,25 @@ Los cinco clasificadores soportados se prueban en las etapas correspondientes.
 
 ## 22. Integración continua
 
-PULSO utiliza GitHub Actions para ejecutar automáticamente la suite de pruebas.
+PULSO utiliza GitHub Actions para automatizar las validaciones del repositorio y controlar la calidad de los cambios propuestos mediante Pull Requests.
 
-Workflow:
+El sistema dispone de cinco workflows:
 
-```text id="kpw3nb"
-.github/workflows/ml-training-ci.yml
-```
+| Workflow | Responsabilidad |
+|---|---|
+| `ml-training-ci.yml` | Validación estática con Ruff y ejecución de pruebas automatizadas del pipeline de entrenamiento. |
+| `ml-service-ci.yml` | Validación estática con Ruff y ejecución de pruebas del servicio de inferencia. |
+| `backend-rag-ci.yml` | Validación del backend y sus componentes asociados. |
+| `frontend-ci.yml` | Validación del frontend. |
+| `infrastructure-ci.yml` | Comprobación de la configuración de Docker Compose, construcción de imágenes y validaciones de NGINX. |
 
-El workflow:
+Los workflows constituyen los controles automatizados del repositorio. Los cinco checks de validación se configuraron como obligatorios para integrar cambios en la rama `main`.
 
-1. descarga el repositorio;
-2. configura Python;
-3. instala `requirements-ml.txt`;
-4. ejecuta pytest.
+Las pruebas de Machine Learning utilizan datos sintéticos y mocks cuando corresponde, sin ejecutar el entrenamiento completo de XGBoost ni requerir la base de datos de producción.
 
-Comando:
+El proceso de integración continua permite detectar errores antes de integrar cambios, mejorar la consistencia del código y conservar evidencia de las validaciones realizadas.
 
-```bash id="pe8gtp"
-python -m pytest -q tests
-```
-
-El CI utiliza datos sintéticos y no:
-
-- descarga el dataset real;
-- ejecuta tuning completo;
-- entrena modelos finales.
-
-Esto mantiene el workflow rápido y reproducible.
-
-Actualmente el CI puede ejecutarse en:
-
-```text id="hwpjvj"
-Pull Requests
-manual workflow_dispatch
-```
-
-Se recomienda también ejecutarlo después de `push` a `main`.
+El despliegue continuo de producción permanece fuera del alcance actual del proyecto.
 
 ---
 
