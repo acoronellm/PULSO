@@ -7,13 +7,10 @@ on:
       - ".github/workflows/frontend-ci.yml"
 
   pull_request:
-    paths:
-      - "frontend/**"
-      - ".github/workflows/frontend-ci.yml"
-
 jobs:
   frontend:
-    runs-on: ubuntu-latest
+    name: Frontend Validation
+    runs-on: ubuntu-24.04
 
     defaults:
       run:

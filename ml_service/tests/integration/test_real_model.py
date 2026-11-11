@@ -5,7 +5,6 @@ from ml_service.app.model_loader import load_model
 from ml_service.app.predictor import predict
 from ml_service.app.schemas import PredictionRequest
 
-
 pytestmark = pytest.mark.skipif(
     not MODEL_PATH.exists(),
     reason="El artefacto real PULSO v1 no está disponible.",

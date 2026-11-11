@@ -3,13 +3,12 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-
 from sklearn.metrics import (
     accuracy_score,
+    confusion_matrix,
+    f1_score,
     precision_score,
     recall_score,
-    f1_score,
-    confusion_matrix,
 )
 
 
@@ -36,10 +35,10 @@ def search_threshold(
             probabilities >= threshold
         ).astype(int)
 
-        tn, fp, fn, tp = confusion_matrix(
+        tn, fp, _fn, _tp = confusion_matrix(
             y_true,
             predictions,
-            labels=[0, 1]
+            labels=[0, 1],
         ).ravel()
 
         specificity = (

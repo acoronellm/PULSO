@@ -37,9 +37,10 @@ class FakePreprocessor:
 
 
 class FakePipeline:
-    named_steps = {
-        "preprocessor": FakePreprocessor(),
-    }
+    def __init__(self):
+        self.named_steps = {
+            "preprocessor": FakePreprocessor(),
+        }
 
 
 class FakeExplanation:
@@ -197,9 +198,10 @@ def test_explain_maps_transformed_feature_names(
             ])
 
     class TransformedPipeline:
-        named_steps = {
-            "preprocessor": TransformedPreprocessor(),
-        }
+        def __init__(self):
+            self.named_steps = {
+                "preprocessor": TransformedPreprocessor(),
+            }
 
     class Explanation:
         values = np.array([

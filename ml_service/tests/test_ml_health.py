@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from ml_service.app.main import app
 
-
 client = TestClient(app)
 
 

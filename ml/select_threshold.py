@@ -2,20 +2,13 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+
 import mlflow
 import yaml
 
 from ml.calibration import make_calibrated_model
-
-from ml.common import (
-    load_dataset,
-    make_pipeline,
-    sha256_file,
-    split_data
-)
-
+from ml.common import load_dataset, make_pipeline, sha256_file, split_data
 from ml.threshold import search_threshold
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
