@@ -36,60 +36,216 @@ function formatDate(date: Date): string {
 }
 
 // Tarjetas con las características que más contribuyeron a la salida del modelo (SHAP)
-function ShapFactorCards({ factors }: { factors: ShapFactor[] }) {
-  if (!factors.length) {
+
+type ShapView = "cards" | "podium";
+
+function ShapFactorCard({
+  factor,
+  index,
+}: {
+  factor: ShapFactor;
+  index: number;
+}) {
+  const up = factor.direction === "increase";
+
+  const influenceLabel =
+    index === 0
+      ? "Mayor influencia"
+      : index === 1
+        ? "Segunda mayor influencia"
+        : "Tercera mayor influencia";
+
+  return (
+    <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between h-full">
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-space-sm">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary-fixed text-primary">
+            <span
+              className="material-symbols-outlined text-[24px]"
+              aria-hidden="true"
+            >
+              {featureIcon(factor.feature)}
+            </span>
+          </div>
+
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-label-sm font-semibold ${up
+              ? "bg-amber-100 text-amber-800"
+              : "bg-teal-100 text-teal-800"
+              }`}
+          >
+            <span
+              className="material-symbols-outlined text-[20px]"
+              aria-hidden="true"
+            >
+              {up ? "trending_up" : "trending_down"}
+            </span>
+            {up ? "Aumentó el resultado" : "Disminuyó el resultado"}
+          </span>
+        </div>
+
+        <div className="flex flex-wrap items-baseline gap-2 mb-1">
+          <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">
+            {featureName(factor.feature)}
+          </h3>
+
+          <span className="font-label-md font-bold text-primary">
+            {featureValue(factor.feature, factor.value)}
+          </span>
+        </div>
+
+        <p className="font-body-md text-body-md text-on-surface-variant mt-2 leading-relaxed">
+          Este valor contribuyó a que PULSO obtuviera un resultado{" "}
+          {up ? "más alto" : "más bajo"}.
+        </p>
+      </div>
+
+      <div className="mt-space-md pt-space-sm border-t border-surface-container flex items-center justify-between gap-2 text-on-surface font-label-sm">
+        <span className="text-on-surface-variant">
+          Influencia en el resultado:
+        </span>
+
+        <span className="text-primary font-semibold text-right">
+          {influenceLabel}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function ShapFactorCards({
+  factors,
+  podium,
+}: {
+  factors: ShapFactor[];
+  podium: boolean;
+}) {
+  const topFactors = factors.slice(0, 3);
+
+  if (topFactors.length === 0) {
     return (
-      <p className="font-body-md text-body-md text-on-surface-variant md:col-span-3">
+      <p className="font-body-md text-body-md text-on-surface-variant">
         El modelo no devolvió factores explicativos para este perfil.
       </p>
     );
   }
 
-  return factors.slice(0, 3).map((factor, index) => {
-    const up = factor.direction === "increase";
+  if (!podium) {
     return (
-      <div className="bg-surface-container-lowest rounded-xl p-space-lg shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between" key={`${factor.feature}-${index}`}>
-        <div>
-          <div className="flex items-center justify-between mb-space-sm">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary-fixed text-primary">
-              <span className="material-symbols-outlined text-[24px]">
-                {featureIcon(factor.feature)}
-              </span>
-            </div>
-            <span className="px-2.5 py-1 rounded-full font-label-sm font-semibold bg-surface-container text-primary">
-              {up ? "Aumentó la salida del modelo" : "Disminuyó la salida del modelo"}
-            </span>
-          </div>
-          <div className="flex items-baseline gap-2 mb-1">
-            <h3 className="font-headline-sm text-headline-sm font-bold text-on-surface">
-              {featureName(factor.feature)}
-            </h3>
-            <span className="font-label-md font-bold text-primary">
-              {featureValue(factor.feature, factor.value)}
-            </span>
-          </div>
-
-          <p className="font-body-md text-body-md text-on-surface-variant mt-2 leading-relaxed">
-            Este valor contribuyó a que PULSO obtuviera una estimación{" "}
-            {up ? "mayor" : "menor"}. No implica una relación causal médica.
-          </p>
-
-        </div>
-        <div className="mt-space-md pt-space-sm border-t border-surface-container flex items-center justify-between text-on-surface font-label-sm">
-          <span className="text-on-surface-variant">
-            Contribución en el modelo:
-          </span>
-          <span className="text-primary font-semibold flex items-center gap-1">
-            <span className="material-symbols-outlined text-[16px]">
-              {up ? "trending_up" : "trending_down"}
-            </span>
-            {index === 0 ? "Mayor contribución" : `Posición ${index + 1}`}
-          </span>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+        {topFactors.map((factor, index) => (
+          <ShapFactorCard
+            key={`${factor.feature}-${index}`}
+            factor={factor}
+            index={index}
+          />
+        ))}
       </div>
     );
-  });
+  }
+
+  // En escritorio: segundo, primero, tercero.
+  // En móvil: orden natural de importancia.
+  const podiumOrder = [
+    { index: 1, desktopOrder: "md:order-1", height: "h-28" },
+    { index: 0, desktopOrder: "md:order-2", height: "h-44" },
+    { index: 2, desktopOrder: "md:order-3", height: "h-20" },
+  ];
+
+  return (
+    <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 md:items-end">
+        {podiumOrder.map(({ index, desktopOrder, height }) => {
+          const factor = topFactors[index];
+
+          if (!factor) {
+            return null;
+          }
+
+          return (
+            <div
+              key={`${factor.feature}-${index}`}
+              className={`flex flex-col min-w-0 ${index === 0 ? "order-1" : index === 1 ? "order-2" : "order-3"
+                } ${desktopOrder}`}
+            >
+              <div className="mb-3 flex justify-center">
+                <span className="bg-primary-fixed text-primary font-semibold text-sm rounded-full px-4 py-1.5">
+                  {index === 0
+                    ? "1.ª influencia"
+                    : index === 1
+                      ? "2.ª influencia"
+                      : "3.ª influencia"}
+                </span>
+              </div>
+
+              <div className="md:min-h-[260px]">
+                <ShapFactorCard factor={factor} index={index} />
+              </div>
+
+              {/* Pedestal solo en escritorio */}
+              <div
+                className={`hidden md:flex relative ${height} items-start justify-center overflow-hidden rounded-t-xl bg-gradient-to-b from-primary/25 via-primary/10 to-transparent mt-2`}
+                aria-hidden="true"
+              >
+                <span className="text-primary/40 text-5xl font-bold mt-4">
+                  {index + 1}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-center text-on-surface-variant text-sm mt-4">
+        Las posiciones indican la influencia de cada factor en este
+        resultado del modelo, no su importancia médica.
+      </p>
+    </div>
+  );
 }
+
+function ShapVisualization({ factors }: { factors: ShapFactor[] }) {
+  const [view, setView] = useState<ShapView>("cards");
+
+  return (
+    <div>
+      <div className="flex justify-end mb-4">
+        <div
+          className="inline-flex gap-1 rounded-xl bg-surface-container-low p-1"
+          role="group"
+          aria-label="Presentación de los factores"
+        >
+          <button
+            type="button"
+            aria-pressed={view === "cards"}
+            onClick={() => setView("cards")}
+            className={`rounded-lg px-4 py-2 font-label-sm font-semibold transition-colors ${view === "cards"
+              ? "bg-surface-container-lowest text-primary shadow-sm"
+              : "text-on-surface-variant hover:text-on-surface"
+              }`}
+          >
+            Tarjetas
+          </button>
+
+          <button
+            type="button"
+            aria-pressed={view === "podium"}
+            onClick={() => setView("podium")}
+            className={`rounded-lg px-4 py-2 font-label-sm font-semibold transition-colors ${view === "podium"
+              ? "bg-surface-container-lowest text-primary shadow-sm"
+              : "text-on-surface-variant hover:text-on-surface"
+              }`}
+          >
+            Podio
+          </button>
+        </div>
+      </div>
+
+      <ShapFactorCards factors={factors} podium={view === "podium"} />
+    </div>
+  );
+}
+
 
 interface ResultPageProps {
   analysis: AnalysisResponse;
@@ -404,24 +560,24 @@ export default function ResultPage({
           </section>
         </div>
 
+
         <section className="mt-space-xl">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 mb-space-md">
-            <div>
-              <span className="font-label-sm uppercase font-semibold text-primary tracking-wider">
-                Explicación SHAP
-              </span>
-              <h2 className="font-headline-md text-headline-md text-on-surface font-semibold">
-                ¿Qué pesó en tu resultado?
-              </h2>
-            </div>
-            <p className="font-body-md text-on-surface-variant text-sm max-w-md">
-              Estos son los tres factores que más influyeron en el cálculo de PULSO. Cada uno contribuyó a aumentar o disminuir la estimación del modelo.
+          <div className="mb-space-md">
+            <h2 className="font-headline-md text-headline-md text-on-surface font-semibold">
+              ¿Qué pesó en tu resultado?
+            </h2>
+
+            <p className="fonnpm run lintt-body-md text-on-surface-variant mt-2">
+              Los 3 factores que más influyeron en tu estimación.
+              Muestran cómo los usó el modelo, no una causa médica.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-gutter">
-            <ShapFactorCards factors={analysis.shap?.top_factors || []} />
-          </div>
+
+          <ShapVisualization
+            factors={analysis.shap?.top_factors || []}
+          />
         </section>
+
 
         <section className="mt-space-xl scroll-mt-28" ref={planRef}>
           <div className="mb-space-md">

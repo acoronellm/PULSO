@@ -169,8 +169,28 @@ describe("interpretación del resultado", () => {
   it("describe SHAP como contribución al modelo, sin causalidad", async () => {
     await analyze({ probability: 0.6, classification: 1, threshold: 0.38 });
 
-    expect(screen.getByText("Aumentó la salida del modelo")).toBeInTheDocument();
-    expect(screen.getAllByText(/No implica una relación causal médica/)).toHaveLength(2);
+
+    expect(
+      screen.getByText("Aumentó el resultado")
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole("heading", {
+        name: "¿Qué pesó en tu resultado?",
+      })
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByText(
+        /Los 3 factores que más influyeron en tu estimación/
+      )
+    ).toHaveTextContent(
+      "Muestran cómo los usó el modelo, no una causa médica."
+    );
+
+    expect(
+      screen.queryByText(/No implica una relación causal médica/)
+    ).not.toBeInTheDocument();
   });
 });
 
