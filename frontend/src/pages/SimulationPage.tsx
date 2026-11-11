@@ -260,14 +260,22 @@ function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorksp
 
   useEffect(() => () => simulationRequest.current?.abort(), []);
 
+
   const ranges: Record<SliderKey, [number, number]> = {
-    ap_hi: [Math.min(90, profile.ap_hi), Math.max(200, profile.ap_hi)],
-    ap_lo: [Math.min(50, profile.ap_lo), Math.max(130, profile.ap_lo)],
+    ap_hi: [
+      Math.max(70, Math.min(90, profile.ap_hi)),
+      Math.min(250, Math.max(200, profile.ap_hi)),
+    ],
+    ap_lo: [
+      Math.max(40, Math.min(50, profile.ap_lo)),
+      Math.min(150, Math.max(130, profile.ap_lo)),
+    ],
     weight: [
       Math.max(30, Math.min(40, Math.floor(profile.weight))),
       Math.min(200, Math.max(150, Math.ceil(profile.weight))),
     ],
   };
+
   const bmi = calculateBmi(profile.height, scenario.weight).toFixed(1);
   const threshold = formatThreshold(result?.threshold ?? analysis.prediction.threshold);
 
@@ -291,6 +299,26 @@ function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorksp
   }
 
   async function handleProject() {
+
+    const limits = [
+      { label: "Presión sistólica", value: scenario.ap_hi, min: 70, max: 250 },
+      { label: "Presión diastólica", value: scenario.ap_lo, min: 40, max: 150 },
+      { label: "Peso", value: scenario.weight, min: 30, max: 200 },
+    ];
+
+    for (const field of limits) {
+      if (
+        !Number.isFinite(field.value) ||
+        field.value < field.min ||
+        field.value > field.max
+      ) {
+        setProjectionError(
+          `${field.label} debe estar entre ${field.min} y ${field.max}.`
+        );
+        return;
+      }
+    }
+
     if (scenario.ap_hi <= scenario.ap_lo) {
       setProjectionError("La presión sistólica debe ser mayor que la diastólica.");
       return;
