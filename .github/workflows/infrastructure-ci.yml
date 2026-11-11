@@ -3,17 +3,6 @@ name: Infrastructure CI
 
 on:
   pull_request:
-    paths:
-      - "docker-compose.yml"
-      - ".dockerignore"
-      - "frontend/**"
-      - "backend/Dockerfile"
-      - "backend/requirements.txt"
-      - "ml_service/Dockerfile"
-      - "ml_service/requirements.txt"
-      - "infrastructure/**"
-      - ".github/workflows/infrastructure-ci.yml"
-
   push:
     branches:
       - main
@@ -32,7 +21,7 @@ on:
 
 jobs:
   infrastructure:
-    name: Docker and NGINX validation
+    name: Infrastructure Validation
     runs-on: ubuntu-24.04
 
     env:
