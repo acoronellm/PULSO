@@ -33,14 +33,14 @@ on:
 jobs:
   infrastructure:
     name: Docker and NGINX validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
       RAG_SERVICE_URL: http://localhost:5678/webhook/pulso-rag
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Validate Docker Compose
         run: docker compose config --quiet
