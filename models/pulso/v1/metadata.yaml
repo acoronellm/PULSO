@@ -61,8 +61,10 @@ confusion_matrix:
   fn: 1009
   tp: 4082
 
+
 artifacts:
   serialized_model: artifacts/final/model/pulso_xgboost.joblib
+  serialized_model_sha256: 142fc3debfd8a87f7bf037175a30071048ce82647357e979d2d717b7b7c434b1
   final_metrics: artifacts/final/test_metrics.csv
 
 mlflow:

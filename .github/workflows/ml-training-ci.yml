@@ -1,29 +1,44 @@
-
 name: ML training checks
+
 on:
   pull_request:
-    paths:
-      - 'ml/**'
-      - 'tests/**'
-      - 'requirements-ml.txt'
-      - '.github/workflows/ml-training-ci.yml'
   push:
     branches:
       - main
     paths:
-      - 'ml/**'
-      - 'tests/**'
-      - 'requirements-ml.txt'
-      - '.github/workflows/ml-training-ci.yml'
+      - "ml/**"
+      - "tests/**"
+      - "requirements-ml.txt"
+      - ".github/workflows/ml-training-ci.yml"
   workflow_dispatch:
+
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: ML Training Validation
+
+    runs-on: ubuntu-24.04
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - run: python -m pip install -r requirements-ml.txt
-      - run: python -m pytest -q tests
-# Este CI usa datos sintéticos: NO descarga datasets privados ni entrena modelos completos.
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: requirements-ml.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-ml.txt
+          python -m pip install ruff==0.17.1
+
+      - name: Lint ML training and tests
+        run: python -m ruff check ml/ tests/
+
+      - name: Run ML training tests
+        run: python -m pytest -q tests
+
+# Usa datos sintéticos. No ejecuta entrenamiento completo.

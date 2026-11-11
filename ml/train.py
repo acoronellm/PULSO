@@ -9,14 +9,13 @@ import tempfile
 from pathlib import Path
 
 import joblib
+import matplotlib
 import mlflow
 import pandas as pd
 import yaml
 
-import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
 from sklearn.metrics import ConfusionMatrixDisplay, RocCurveDisplay
 
 from ml.common import (
@@ -27,9 +26,7 @@ from ml.common import (
     sha256_file,
     split_data,
 )
-
 from ml.evaluate import evaluate
-
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIGS = ROOT / "ml" / "configs"
@@ -526,18 +523,7 @@ def run(
 
                 plt.close()
 
-            elif config["model_type"] == "xgboost":
-                pd.DataFrame({
-                    "feature": names,
-                    "importance": estimator.feature_importances_
-                }).sort_values(
-                    "importance",
-                    ascending=False
-                ).to_csv(
-                    output / "feature_importances.csv",
-                    index=False
-                )
-            elif config["model_type"] == "gradient_boosting":
+            elif config["model_type"] == "xgboost" or config["model_type"] == "gradient_boosting":
                 pd.DataFrame({
                     "feature": names,
                     "importance": estimator.feature_importances_

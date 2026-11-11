@@ -1,10 +1,12 @@
+import pytest
+from pydantic import ValidationError
+
 from ml_service.app.schemas import (
     PredictionRequest,
     SimulationChanges,
     SimulationRequest,
 )
 from ml_service.app.simulator import simulate
-import pytest
 
 
 def test_simulation_returns_expected_structure(
@@ -69,6 +71,7 @@ def test_simulation_returns_expected_structure(
     assert result.model_version == "v1"
     assert result.threshold == 0.38
 
+
 def test_simulation_recalculates_bmi(
     monkeypatch,
 ):
@@ -113,7 +116,17 @@ def test_simulation_recalculates_bmi(
 
     assert simulated_request.bmi == expected_bmi
 
-def test_simulation_rejects_invalid_blood_pressure():
+
+def test_simulation_rejects_invalid_blood_pressure(monkeypatch):
+    class FakePrediction:
+        probability = 0.5
+        classification = 1
+
+    monkeypatch.setattr(
+        "ml_service.app.simulator.predict",
+        lambda request: FakePrediction(),
+    )
+
     request = SimulationRequest(
         original=PredictionRequest(
             gender=1,
@@ -133,7 +146,7 @@ def test_simulation_rejects_invalid_blood_pressure():
     )
 
     with pytest.raises(
-        Exception,
+        ValidationError,
+        match="ap_hi debe ser mayor que ap_lo",
     ):
         simulate(request)
-

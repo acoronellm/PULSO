@@ -1,11 +1,18 @@
 from fastapi import FastAPI, HTTPException
-from .explainer import explain
+from pydantic import ValidationError
+
 from .config import MODEL_VERSION
+from .explainer import explain
 from .model_loader import load_model
 from .predictor import predict
-from .schemas import (PredictionRequest, PredictionResponse, ExplanationResponse, SimulationRequest, SimulationResponse)
+from .schemas import (
+    ExplanationResponse,
+    PredictionRequest,
+    PredictionResponse,
+    SimulationRequest,
+    SimulationResponse,
+)
 from .simulator import simulate
-from pydantic import ValidationError
 
 app = FastAPI(
     title="PULSO ML Service",
@@ -25,7 +32,7 @@ def health():
             "model_version": MODEL_VERSION,
         }
 
-    except Exception:
+    except Exception: # noqa: BLE001
         return {
             "status": "error",
             "service": "ml-service",
