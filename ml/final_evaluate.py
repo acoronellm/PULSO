@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import mlflow
 import pandas as pd
 import yaml
-
 from sklearn.calibration import calibration_curve
 from sklearn.metrics import (
     accuracy_score,
@@ -27,14 +26,12 @@ from ml.calibration import (
     expected_calibration_error,
     make_calibrated_model,
 )
-
 from ml.common import (
     load_dataset,
     make_pipeline,
     sha256_file,
     split_data,
 )
-
 
 ROOT = Path(__file__).resolve().parents[1]
 

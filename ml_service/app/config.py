@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 
-
 # Raíz del repositorio PULSO.
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 

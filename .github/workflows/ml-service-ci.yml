@@ -1,18 +1,21 @@
-name: ML Service checks
+
+name: ML training checks
 
 on:
   pull_request:
     paths:
-      - "ml_service/**"
-      - ".github/workflows/ml-service-ci.yml"
-
+      - 'ml/**'
+      - 'tests/**'
+      - 'requirements-ml.txt'
+      - '.github/workflows/ml-training-ci.yml'
   push:
     branches:
       - main
     paths:
-      - "ml_service/**"
-      - ".github/workflows/ml-service-ci.yml"
-
+      - 'ml/**'
+      - 'tests/**'
+      - 'requirements-ml.txt'
+      - '.github/workflows/ml-training-ci.yml'
   workflow_dispatch:
 
 jobs:
@@ -26,16 +29,20 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements-ml.txt
 
-      - name: Upgrade pip
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          python -m pip install -r requirements-ml.txt
+          python -m pip install ruff==0.17.1
 
-      - name: Install ML Service dependencies
-        run: |
-          python -m pip install -r ml_service/requirements.txt
+      - name: Lint ML training and tests
+        run: python -m ruff check ml/ tests/
 
-      - name: Run ML Service tests
-        run: |
-          python -m pytest -q ml_service/tests
+      - name: Run ML training tests
+        run: python -m pytest -q tests
+
+# Usa datos sintéticos. No ejecuta entrenamiento completo.

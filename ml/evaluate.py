@@ -2,10 +2,14 @@
 """Métricas comunes; no utiliza test hasta la evaluación final aprobada."""
 from __future__ import annotations
 
-import numpy as np
 from sklearn.metrics import (
-    accuracy_score, brier_score_loss, confusion_matrix, f1_score,
-    precision_score, recall_score, roc_auc_score,
+    accuracy_score,
+    brier_score_loss,
+    confusion_matrix,
+    f1_score,
+    precision_score,
+    recall_score,
+    roc_auc_score,
 )
 
 

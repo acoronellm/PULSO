@@ -12,7 +12,6 @@ import yaml
 
 from ml.common import FEATURES, load_dataset, split_data
 
-
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MODEL_PATH = ROOT / "artifacts" / "final" / "model" / "pulso_xgboost.joblib"
 DEFAULT_DATASET_PATH = ROOT / "data" / "processed" / "cardio_clean_v1.csv"

@@ -1,29 +1,44 @@
 
-name: ML training checks
+name: ML Service checks
+
 on:
   pull_request:
     paths:
-      - 'ml/**'
-      - 'tests/**'
-      - 'requirements-ml.txt'
-      - '.github/workflows/ml-training-ci.yml'
+      - "ml_service/**"
+      - ".github/workflows/ml-service-ci.yml"
+
   push:
     branches:
       - main
     paths:
-      - 'ml/**'
-      - 'tests/**'
-      - 'requirements-ml.txt'
-      - '.github/workflows/ml-training-ci.yml'
+      - "ml_service/**"
+      - ".github/workflows/ml-service-ci.yml"
+
   workflow_dispatch:
+
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - run: python -m pip install -r requirements-ml.txt
-      - run: python -m pytest -q tests
-# Este CI usa datos sintéticos: NO descarga datasets privados ni entrena modelos completos.
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: ml_service/requirements.txt
+
+      - name: Install ML Service dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r ml_service/requirements.txt
+          python -m pip install ruff==0.17.1
+
+      - name: Lint ML Service
+        run: python -m ruff check ml_service/
+
+      - name: Run ML Service tests
+        run: python -m pytest -q ml_service/tests
