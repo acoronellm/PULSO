@@ -430,7 +430,10 @@ function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorksp
                   <div className="space-y-space-xs bg-surface-container-low/70 p-space-sm rounded-xl" key={key}>
                     <div className="flex justify-between items-center">
                       <label className="font-label-md text-text-primary flex items-center gap-1.5" htmlFor={`slider-${key}`}>
-                        <span className="material-symbols-outlined text-primary text-[18px]">
+                        <span
+                          className="material-symbols-outlined text-primary text-[18px]"
+                          aria-hidden="true"
+                        >
                           {icon}
                         </span>
                         {label}

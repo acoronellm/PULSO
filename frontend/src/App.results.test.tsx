@@ -85,6 +85,101 @@ describe("acceso y alcance de PULSO v1", () => {
   });
 });
 
+describe("validación de rangos del formulario", () => {
+  const invalidCases: {
+    field: keyof typeof profile;
+    value: string;
+    expectedMessage: string;
+  }[] = [
+      { field: "edad", value: "39", expectedMessage: "Edad debe estar entre 40 y 64." },
+      { field: "edad", value: "65", expectedMessage: "Edad debe estar entre 40 y 64." },
+      { field: "estatura", value: "119", expectedMessage: "Estatura debe estar entre 120 y 210." },
+      { field: "estatura", value: "211", expectedMessage: "Estatura debe estar entre 120 y 210." },
+      { field: "peso", value: "29", expectedMessage: "Peso debe estar entre 30 y 200." },
+      { field: "peso", value: "201", expectedMessage: "Peso debe estar entre 30 y 200." },
+      { field: "sistolica", value: "69", expectedMessage: "Presión sistólica debe estar entre 70 y 250." },
+      { field: "sistolica", value: "251", expectedMessage: "Presión sistólica debe estar entre 70 y 250." },
+      { field: "diastolica", value: "39", expectedMessage: "Presión diastólica debe estar entre 40 y 150." },
+      { field: "diastolica", value: "151", expectedMessage: "Presión diastólica debe estar entre 40 y 150." },
+    ];
+
+  it.each(invalidCases)(
+    "rechaza $field con valor $value",
+    ({ field, value, expectedMessage }) => {
+      render(<App />);
+
+      for (const [name, fieldValue] of Object.entries(profile)) {
+        fireEvent.change(screen.getByLabelText(labels[name as keyof typeof labels]), {
+          target: { value: fieldValue },
+        });
+      }
+
+      fireEvent.change(screen.getByLabelText(labels[field]), {
+        target: { value },
+      });
+
+      const form = screen.getByLabelText(labels.edad).closest("form");
+      expect(form).not.toBeNull();
+
+      fireEvent.submit(form!);
+
+      expect(screen.getByText(expectedMessage)).toBeInTheDocument();
+      expect(analyzeProfile).not.toHaveBeenCalled();
+    }
+  );
+
+  it("rechaza edades con decimales", () => {
+    render(<App />);
+
+    for (const [name, value] of Object.entries(profile)) {
+      fireEvent.change(screen.getByLabelText(labels[name as keyof typeof labels]), {
+        target: { value },
+      });
+    }
+
+    fireEvent.change(screen.getByLabelText(labels.edad), {
+      target: { value: "45.5" },
+    });
+
+    const form = screen.getByLabelText(labels.edad).closest("form");
+    expect(form).not.toBeNull();
+
+    fireEvent.submit(form!);
+
+    expect(screen.getByText("La edad debe expresarse en años cumplidos.")).toBeInTheDocument();
+    expect(analyzeProfile).not.toHaveBeenCalled();
+  });
+
+  it("rechaza una presión sistólica menor o igual a la diastólica", () => {
+    render(<App />);
+
+    for (const [name, value] of Object.entries(profile)) {
+      fireEvent.change(screen.getByLabelText(labels[name as keyof typeof labels]), {
+        target: { value },
+      });
+    }
+
+    fireEvent.change(screen.getByLabelText(labels.sistolica), {
+      target: { value: "80" },
+    });
+
+    fireEvent.change(screen.getByLabelText(labels.diastolica), {
+      target: { value: "80" },
+    });
+
+    const form = screen.getByLabelText(labels.edad).closest("form");
+    expect(form).not.toBeNull();
+
+    fireEvent.submit(form!);
+
+    expect(
+      screen.getByText("La presión sistólica debe ser mayor que la diastólica.")
+    ).toBeInTheDocument();
+
+    expect(analyzeProfile).not.toHaveBeenCalled();
+  });
+});
+
 describe("interpretación del resultado", () => {
 
   it("explica en lenguaje sencillo un resultado por debajo del umbral", async () => {
@@ -100,7 +195,7 @@ describe("interpretación del resultado", () => {
 
 
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
-      "Este valor está por debajo del nivel de atención establecido en PULSO (50 %)"
+      "Este valor está por debajo del umbral de clasificación establecido en PULSO (50 %)"
     );
 
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
@@ -145,7 +240,7 @@ describe("interpretación del resultado", () => {
 
 
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
-      "Este valor alcanza o supera el nivel de atención establecido en PULSO (38 %)"
+      "Este valor alcanza o supera el umbral de clasificación establecido en PULSO (38 %)"
     );
 
     expect(screen.getByTestId("result-meaning")).toHaveTextContent(
@@ -263,6 +358,96 @@ describe("recomendaciones RAG", () => {
 });
 
 describe("simulación de escenarios", () => {
+
+  it("mantiene los controles dentro de los límites permitidos", async () => {
+    await analyze({
+      probability: 0.6,
+      classification: 1,
+      threshold: 0.38,
+    });
+
+    fireEvent.click(screen.getByRole("link", { name: "Simulación" }));
+
+    const limits = [
+      { label: /Presión sistólica/i, min: 70, max: 250 },
+      { label: /Presión diastólica/i, min: 40, max: 150 },
+      { label: /Peso/i, min: 30, max: 200 },
+    ];
+
+    for (const { label, min, max } of limits) {
+      const slider = screen.getByRole("slider", { name: label });
+
+      const sliderMin = Number(slider.getAttribute("min"));
+      const sliderMax = Number(slider.getAttribute("max"));
+
+      expect(sliderMin).toBeGreaterThanOrEqual(min);
+      expect(sliderMax).toBeLessThanOrEqual(max);
+      expect(sliderMin).toBeLessThan(sliderMax);
+    }
+  });
+
+  it("rechaza presiones simuladas incoherentes sin llamar al backend", async () => {
+    await analyze({
+      probability: 0.6,
+      classification: 1,
+      threshold: 0.38,
+    });
+
+    fireEvent.click(screen.getByRole("link", { name: "Simulación" }));
+
+    fireEvent.change(
+      screen.getByRole("slider", { name: /Presión sistólica/i }),
+      { target: { value: "90" } }
+    );
+
+    fireEvent.change(
+      screen.getByRole("slider", { name: /Presión diastólica/i }),
+      { target: { value: "100" } }
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /calcular escenario/i })
+    );
+
+    expect(
+      screen.getByText("La presión sistólica debe ser mayor que la diastólica.")
+    ).toBeInTheDocument();
+
+    expect(simulateScenario).not.toHaveBeenCalled();
+  });
+
+  it("restablece los valores originales del escenario", async () => {
+    await analyze({
+      probability: 0.6,
+      classification: 1,
+      threshold: 0.38,
+    });
+
+    fireEvent.click(screen.getByRole("link", { name: "Simulación" }));
+
+    const systolic = screen.getByRole("slider", {
+      name: /Presión sistólica/i,
+    });
+
+    const weight = screen.getByRole("slider", {
+      name: /Peso/i,
+    });
+
+    fireEvent.change(systolic, { target: { value: "145" } });
+    fireEvent.change(weight, { target: { value: "90" } });
+
+    expect(systolic).toHaveValue("145");
+    expect(weight).toHaveValue("90");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /restablecer/i })
+    );
+
+    expect(systolic).toHaveValue("128");
+    expect(weight).toHaveValue("80");
+    expect(simulateScenario).not.toHaveBeenCalled();
+  });
+
   it("pide calcular primero un resultado si no hay análisis", () => {
     render(<App />);
 

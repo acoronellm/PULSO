@@ -31,10 +31,13 @@ export function groupExplanation(prediction: Prediction): string {
   const threshold = formatThreshold(prediction.threshold);
 
   if (isAboveThreshold(prediction)) {
-    return `Este valor alcanza o supera el nivel de atención establecido en PULSO (${threshold} %). Esto indica que tus datos presentan características que el modelo relaciona más con personas con enfermedad cardiovascular.`;
-  }
+    //return `Este valor alcanza o supera el nivel de atención establecido en PULSO (${threshold} %). Esto indica que tus datos presentan características que el modelo relaciona más con personas con enfermedad cardiovascular.`;
 
-  return `Este valor está por debajo del nivel de atención establecido en PULSO (${threshold} %). Esto indica que tus datos presentan características que el modelo relaciona más con personas sin enfermedad cardiovascular.`;
+    return `Este valor alcanza o supera el umbral de clasificación establecido en PULSO (${threshold} %). Esto indica que tus datos presentan características que el modelo relaciona más con personas con enfermedad cardiovascular.`;
+  }
+  //return `Este valor está por debajo del nivel de atención establecido en PULSO (${threshold} %). Esto indica que tus datos presentan características que el modelo relaciona más con personas sin enfermedad cardiovascular.`;
+
+  return `Este valor está por debajo del umbral de clasificación establecido en PULSO (${threshold} %). Esto indica que tus datos presentan características que el modelo relaciona más con personas sin enfermedad cardiovascular.`;
 }
 
 export function resultGuidance(prediction: Prediction): string {
