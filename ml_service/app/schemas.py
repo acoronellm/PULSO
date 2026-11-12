@@ -1,6 +1,6 @@
-from pydantic import BaseModel, Field, model_validator
 from typing import Literal
-from typing import Optional
+
+from pydantic import BaseModel, Field, model_validator
 
 
 class PredictionRequest(BaseModel):
@@ -51,37 +51,37 @@ class ExplanationResponse(BaseModel):
     top_factors: list[ShapFactor]   
 
 class SimulationChanges(BaseModel):
-    weight: Optional[float] = Field(
+    weight: float | None = Field(
         default=None,
         ge=30,
         le=200,
     )
 
-    ap_hi: Optional[float] = Field(
+    ap_hi: float | None = Field(
         default=None,
         ge=70,
         le=250,
     )
 
-    ap_lo: Optional[float] = Field(
+    ap_lo: float | None = Field(
         default=None,
         ge=40,
         le=150,
     )
 
-    smoke: Optional[int] = Field(
+    smoke: int | None = Field(
         default=None,
         ge=0,
         le=1,
     )
 
-    alco: Optional[int] = Field(
+    alco: int | None = Field(
         default=None,
         ge=0,
         le=1,
     )
 
-    active: Optional[int] = Field(
+    active: int | None = Field(
         default=None,
         ge=0,
         le=1,

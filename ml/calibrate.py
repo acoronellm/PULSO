@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import mlflow
 import pandas as pd
 import yaml
-
 from sklearn.calibration import calibration_curve
 
 from ml.calibration import (
@@ -22,7 +21,6 @@ from ml.common import (
     sha256_file,
     split_data,
 )
-
 
 ROOT = Path(__file__).resolve().parents[1]
 

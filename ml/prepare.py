@@ -6,7 +6,6 @@ from pathlib import Path
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_INPUT = ROOT / "data" / "raw" / "cardio_train.csv"
 DEFAULT_OUTPUT = ROOT / "data" / "processed" / "cardio_clean_v1.csv"

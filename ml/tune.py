@@ -4,16 +4,18 @@ from __future__ import annotations
 import argparse
 import json
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
+import joblib
 import mlflow
 import pandas as pd
 import yaml
-
 from sklearn.model_selection import (
     GridSearchCV,
     ParameterGrid,
 )
+from tqdm.auto import tqdm
 
 from ml.common import (
     load_dataset,
@@ -21,11 +23,6 @@ from ml.common import (
     sha256_file,
     split_data,
 )
-
-from contextlib import contextmanager
-
-import joblib
-from tqdm.auto import tqdm
 
 ROOT = Path(__file__).resolve().parents[1]
 

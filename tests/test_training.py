@@ -2,14 +2,20 @@
 
 from pathlib import Path
 
+import mlflow
 import numpy as np
 import pandas as pd
 import pytest
 import yaml
-
 from sklearn.model_selection import GridSearchCV
 
-from ml.threshold import search_threshold
+import ml.final_evaluate as final_evaluate_module
+import ml.select_threshold as select_threshold_module
+from ml.calibration import (
+    evaluate_probabilities,
+    expected_calibration_error,
+    make_calibrated_model,
+)
 from ml.common import (
     FEATURES,
     load_dataset,
@@ -17,26 +23,13 @@ from ml.common import (
     split_data,
 )
 from ml.evaluate import evaluate
-
-from ml.calibration import (
-    evaluate_probabilities,
-    expected_calibration_error,
-    make_calibrated_model,
-)
-
-from ml.select_threshold import run_threshold_selection
-
-import mlflow
-
-import ml.select_threshold as select_threshold_module
-
-import ml.final_evaluate as final_evaluate_module
-
 from ml.final_evaluate import (
     build_final_model,
     calculate_final_metrics,
     run_final_evaluation,
 )
+from ml.select_threshold import run_threshold_selection
+from ml.threshold import search_threshold
 
 shap = pytest.importorskip("shap")
 
