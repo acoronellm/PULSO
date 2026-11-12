@@ -134,16 +134,51 @@ export default function EvaluationPage({ form, onChange, onFillExample, onSubmit
     onChange(event.target.name as NumericField, event.target.value);
   }
 
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (Number(form.sistolica) <= Number(form.diastolica)) {
-      setValidationError("La presión sistólica debe ser mayor que la diastólica.");
+
+    const limites = [
+      { nombre: "Edad", valor: form.edad, min: 40, max: 64 },
+      { nombre: "Estatura", valor: form.estatura, min: 120, max: 210 },
+      { nombre: "Peso", valor: form.peso, min: 30, max: 200 },
+      { nombre: "Presión sistólica", valor: form.sistolica, min: 70, max: 250 },
+      { nombre: "Presión diastólica", valor: form.diastolica, min: 40, max: 150 },
+    ];
+
+    for (const campo of limites) {
+      const valor = Number(campo.valor);
+
+      if (
+        campo.valor.trim() === "" ||
+        !Number.isFinite(valor) ||
+        valor < campo.min ||
+        valor > campo.max
+      ) {
+        setValidationError(
+          `${campo.nombre} debe estar entre ${campo.min} y ${campo.max}.`
+        );
+        return;
+      }
+    }
+
+    if (!Number.isInteger(Number(form.edad))) {
+      setValidationError("La edad debe expresarse en años cumplidos.");
       return;
     }
+
+    if (Number(form.sistolica) <= Number(form.diastolica)) {
+      setValidationError(
+        "La presión sistólica debe ser mayor que la diastólica."
+      );
+      return;
+    }
+
     setValidationError("");
     showToast("Calculando la estimación del modelo...");
     onSubmit(showToast);
   }
+
 
   function fillExample() {
     setValidationError("");
@@ -202,8 +237,7 @@ export default function EvaluationPage({ form, onChange, onFillExample, onSubmit
               <section className="flex flex-col gap-space-md">
                 <SectionTitle number="01" title="Datos personales" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
-                  <NumberField help="Edad en años cumplidos" id="inputEdad" label="Edad actual" max="110" min="18" name="edad" onChange={handleInput} unit="años" value={form.edad} />
-                  <div className="flex flex-col gap-1.5">
+                  <NumberField help="Edad en años cumplidos" id="inputEdad" label="Edad actual" max="64" min="40" name="edad" onChange={handleInput} unit="años" value={form.edad} />                  <div className="flex flex-col gap-1.5">
                     <span className="font-label-md text-on-surface font-medium">
                       Sexo
                     </span>
@@ -237,8 +271,7 @@ export default function EvaluationPage({ form, onChange, onFillExample, onSubmit
               <section className="flex flex-col gap-space-md">
                 <SectionTitle number="02" subtitle="El IMC se calcula automáticamente con tu estatura y peso" title="Medidas físicas" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-space-md">
-                  <NumberField id="inputEstatura" label="Estatura" max="220" min="120" name="estatura" onChange={handleInput} unit="cm" value={form.estatura} />
-                  <NumberField id="inputPeso" label="Peso" max="200" min="30" name="peso" onChange={handleInput} step="0.1" unit="kg" value={form.peso} />
+                  <NumberField id="inputEstatura" label="Estatura" max="210" min="120" name="estatura" onChange={handleInput} unit="cm" value={form.estatura} />                  <NumberField id="inputPeso" label="Peso" max="200" min="30" name="peso" onChange={handleInput} step="0.1" unit="kg" value={form.peso} />
                 </div>
                 <div className="bg-surface-container-low rounded-xl p-space-md flex items-start gap-space-sm">
                   <div className="w-12 h-12 rounded-xl bg-surface-container-lowest flex items-center justify-center text-primary shadow-sm shrink-0">

@@ -12,7 +12,10 @@ import {
 } from "../utils/health";
 import { IMAGES } from "../utils/images";
 import { thresholdLabel } from "../utils/interpretation";
-
+import {
+  differenceText,
+  formatDifference,
+} from "../utils/simulationInterpretation";
 // Variables que el usuario puede cambiar en el escenario
 interface Scenario {
   ap_hi: number;
@@ -83,15 +86,9 @@ const HABIT_TOGGLES: { key: HabitKey; icon: string; title: string; hint: string 
   { key: "alco", icon: "local_bar", title: "Consumo de alcohol", hint: "Variable del modelo: consume alcohol (sí/no)" },
 ];
 
-function differenceText(points: number): string {
-  if (points < 0) {
-    return `En este escenario hipotético la probabilidad estimada por el modelo disminuye ${Math.abs(points).toFixed(1).replace(".", ",")} puntos porcentuales.`;
-  }
-  if (points > 0) {
-    return `En este escenario hipotético la probabilidad estimada por el modelo aumenta ${points.toFixed(1).replace(".", ",")} puntos porcentuales.`;
-  }
-  return "En este escenario hipotético la probabilidad estimada por el modelo no cambia.";
-}
+
+
+
 
 function EmptyState({ onNavigate }: { onNavigate: Navigate }) {
   return (
@@ -134,16 +131,17 @@ interface ProbabilityCardProps {
 
 function ProbabilityCard({ label, probability, classification, highlight = false }: ProbabilityCardProps) {
   return (
-    <div className={`md:col-span-5 rounded-xl p-space-md flex flex-col items-center text-center space-y-space-sm relative overflow-hidden ${highlight ? "bg-gradient-to-b from-mint-vitality-subtle/70 to-surface-card shadow-sm" : "bg-surface-container-low"}`}>
+
+    <div className={`md:col-span-5 rounded-xl min-h-[250px] px-space-md pt-12 pb-6 flex flex-col items-center justify-center text-center gap-3 relative overflow-hidden ${highlight ? "bg-gradient-to-b from-mint-vitality-subtle/70 to-surface-card shadow-sm" : "bg-surface-container-low"}`}>
       {highlight && (
         <div className="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-secondary-container/40 blur-xl"></div>
       )}
-      <div className={`absolute top-2 left-2 px-2 py-0.5 rounded font-label-sm ${highlight ? "bg-mint-vitality text-on-secondary font-semibold" : "bg-surface-card text-text-secondary"}`}>
+
+      <div className={`absolute top-3 left-3 px-3 py-1 rounded-md font-label-sm z-10 ${highlight ? "bg-mint-vitality text-on-secondary font-semibold" : "bg-surface-card text-text-secondary"}`}>
         {label}
       </div>
       {highlight ? (
-        <div className="w-28 h-28 rounded-full bg-secondary-container/30 flex items-center justify-center relative mt-3 shadow-inner">
-          <div className="absolute inset-0 rounded-full bg-mint-vitality/20 animate-ping opacity-75"></div>
+        <div className="w-28 h-28 rounded-full bg-secondary-container/30 flex items-center justify-center relative shadow-inner">          <div className="absolute inset-0 rounded-full bg-mint-vitality/20 animate-ping opacity-75"></div>
           <div className="w-24 h-24 rounded-full bg-mint-vitality-subtle flex items-center justify-center relative z-10">
             <svg aria-hidden="true" className="w-14 h-14 text-mint-vitality animate-pulse" fill="currentColor" viewBox="0 0 24 24">
               <path d={HEART_PATH}></path>
@@ -151,12 +149,11 @@ function ProbabilityCard({ label, probability, classification, highlight = false
           </div>
         </div>
       ) : (
-        <div className="w-28 h-28 rounded-full bg-primary-fixed/40 flex items-center justify-center relative mt-3">
-          <div className="w-24 h-24 rounded-full bg-indigo-metric-subtle flex items-center justify-center">
-            <svg aria-hidden="true" className="w-14 h-14 text-primary animate-pulse" fill="currentColor" viewBox="0 0 24 24">
-              <path d={HEART_PATH}></path>
-            </svg>
-          </div>
+        <div className="w-28 h-28 rounded-full bg-primary-fixed/40 flex items-center justify-center relative">          <div className="w-24 h-24 rounded-full bg-indigo-metric-subtle flex items-center justify-center">
+          <svg aria-hidden="true" className="w-14 h-14 text-primary animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+            <path d={HEART_PATH}></path>
+          </svg>
+        </div>
         </div>
       )}
       <div>
@@ -263,14 +260,22 @@ function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorksp
 
   useEffect(() => () => simulationRequest.current?.abort(), []);
 
+
   const ranges: Record<SliderKey, [number, number]> = {
-    ap_hi: [Math.min(90, profile.ap_hi), Math.max(200, profile.ap_hi)],
-    ap_lo: [Math.min(50, profile.ap_lo), Math.max(130, profile.ap_lo)],
+    ap_hi: [
+      Math.max(70, Math.min(90, profile.ap_hi)),
+      Math.min(250, Math.max(200, profile.ap_hi)),
+    ],
+    ap_lo: [
+      Math.max(40, Math.min(50, profile.ap_lo)),
+      Math.min(150, Math.max(130, profile.ap_lo)),
+    ],
     weight: [
       Math.max(30, Math.min(40, Math.floor(profile.weight))),
       Math.min(200, Math.max(150, Math.ceil(profile.weight))),
     ],
   };
+
   const bmi = calculateBmi(profile.height, scenario.weight).toFixed(1);
   const threshold = formatThreshold(result?.threshold ?? analysis.prediction.threshold);
 
@@ -294,6 +299,26 @@ function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorksp
   }
 
   async function handleProject() {
+
+    const limits = [
+      { label: "Presión sistólica", value: scenario.ap_hi, min: 70, max: 250 },
+      { label: "Presión diastólica", value: scenario.ap_lo, min: 40, max: 150 },
+      { label: "Peso", value: scenario.weight, min: 30, max: 200 },
+    ];
+
+    for (const field of limits) {
+      if (
+        !Number.isFinite(field.value) ||
+        field.value < field.min ||
+        field.value > field.max
+      ) {
+        setProjectionError(
+          `${field.label} debe estar entre ${field.min} y ${field.max}.`
+        );
+        return;
+      }
+    }
+
     if (scenario.ap_hi <= scenario.ap_lo) {
       setProjectionError("La presión sistólica debe ser mayor que la diastólica.");
       return;
@@ -349,7 +374,7 @@ function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorksp
                 Escenario hipotético
               </span>
               <h1 className="font-headline-lg text-headline-lg text-text-primary tracking-tight">
-                Simulación de escenarios con PULSO v1
+                ¿Qué pasaría si cambian tus factores?
               </h1>
               <p className="font-body-md text-text-secondary flex items-start gap-1.5">
                 <span className="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">
@@ -405,7 +430,10 @@ function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorksp
                   <div className="space-y-space-xs bg-surface-container-low/70 p-space-sm rounded-xl" key={key}>
                     <div className="flex justify-between items-center">
                       <label className="font-label-md text-text-primary flex items-center gap-1.5" htmlFor={`slider-${key}`}>
-                        <span className="material-symbols-outlined text-primary text-[18px]">
+                        <span
+                          className="material-symbols-outlined text-primary text-[18px]"
+                          aria-hidden="true"
+                        >
                           {icon}
                         </span>
                         {label}
@@ -521,8 +549,7 @@ function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorksp
                     </span>
                   </div>
                   <span className="font-label-sm text-primary font-bold whitespace-nowrap" data-testid="simulation-difference">
-                    {result ? `${result.probability_difference > 0 ? "+" : ""}${(result.probability_difference * 100).toFixed(1).replace(".", ",")} pp` : "--"}
-                  </span>
+                    {result ? formatDifference(result.probability_difference) : "--"}                  </span>
                 </div>
                 <ProbabilityCard
                   classification={result ? result.simulated.classification : null}
@@ -541,7 +568,7 @@ function SimulationWorkspace({ analysis, profile, onNavigate }: SimulationWorksp
                 <div className="space-y-1">
                   <p className={projectionError ? "font-body-md text-error" : "font-body-md text-text-primary"} data-testid="simulation-description" role={projectionError ? "alert" : undefined}>
                     {projectionError || (result
-                      ? differenceText(result.probability_difference * 100)
+                      ? differenceText(result)
                       : "Ajusta los valores y pulsa «Calcular escenario» para obtener la salida del modelo con el servicio ML.")}
                   </p>
                   <p className="font-label-sm text-text-secondary">
