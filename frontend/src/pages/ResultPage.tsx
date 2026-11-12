@@ -498,34 +498,29 @@ export default function ResultPage({
               </div>
 
 
-              <div className="mt-space-md bg-surface-container-high/60 rounded-xl p-3.5 flex items-start gap-2.5 text-on-surface-variant">
-                <span className="material-symbols-outlined text-primary text-[18px] shrink-0 mt-0.5">
-                  verified_user
+
+              <div className="mt-space-md bg-primary-fixed/40 border border-primary/20 rounded-xl p-5 flex items-start gap-3">
+                <span
+                  className="material-symbols-outlined text-primary text-[26px] shrink-0"
+                  aria-hidden="true"
+                >
+                  info
                 </span>
 
-                <div className="mt-space-md bg-primary-fixed/40 border border-primary/20 rounded-xl p-5 flex items-start gap-3">
-                  <span
-                    className="material-symbols-outlined text-primary text-[26px] shrink-0"
-                    aria-hidden="true"
+                <div>
+                  <p className="font-title-md text-title-md font-bold text-on-surface mb-2">
+                    Importante
+                  </p>
+
+                  <p
+                    className="font-body-lg text-body-lg font-semibold text-on-surface leading-relaxed"
+                    data-testid="result-important"
                   >
-                    info
-                  </span>
-
-                  <div>
-                    <p className="font-title-md text-title-md font-bold text-on-surface mb-2">
-                      Importante
-                    </p>
-
-                    <p
-                      className="font-body-lg text-body-lg font-semibold text-on-surface leading-relaxed"
-                      data-testid="result-important"
-                    >
-                      {importantNote(prediction)}
-                    </p>
-                  </div>
+                    {importantNote(prediction)}
+                  </p>
                 </div>
-
               </div>
+
               <details className="mt-space-sm group" data-testid="technical-details">
                 <summary className="cursor-pointer font-label-sm text-on-surface-variant hover:text-primary">
                   Detalles técnicos del modelo
@@ -590,8 +585,7 @@ export default function ResultPage({
               ¿Qué pesó en tu resultado?
             </h2>
 
-            <p className="fonnpm run lintt-body-md text-on-surface-variant mt-2">
-              Los 3 factores que más influyeron en tu estimación.
+            <p className="font-body-md text-on-surface-variant mt-2">              Los 3 factores que más influyeron en tu estimación.
               Muestran cómo los usó el modelo, no una causa médica.
             </p>
           </div>
