@@ -54,7 +54,7 @@ Los informes de PULSO describen la necesidad, la población objetivo, las limita
 **Decisiones de alcance validadas por el equipo de origen:** [Completar.]  
 **Enlace a grabación y evidencias:** [Completar en el informe de evidencias.]
 
-PULSO se presenta como el proyecto desarrollado por el equipo. La pauta se utiliza como referencia para organizar este informe; sus referencias específicas a CLENA y a los proyectos enumerados no se trasladan a PULSO, pues no corresponden al contexto documentado del proyecto.
+PULSO se presenta como el proyecto desarrollado por el equipo. La pauta se utiliza como referencia para organizar este informe; sus referencias específicas a CLENA y a los proyecto enumerados no se trasladan a PULSO, pues no corresponden al contexto documentado del proyecto.
 
 ## 4. E2. Historias de usuario propuestas
 
