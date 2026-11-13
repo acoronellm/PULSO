@@ -72,6 +72,7 @@ function App() {
       setUser(null);
       setAnalysis(null);
       setOriginalProfile(null);
+      setForm(EMPTY_FORM);
       setRecommendations(null);
       setLoading(false);
       setRecommendationsLoading(false);
@@ -101,6 +102,7 @@ function App() {
     setUser(null);
     setAnalysis(null);
     setOriginalProfile(null);
+    setForm(EMPTY_FORM);
     setRecommendations(null);
     setLoading(false);
     setRecommendationsLoading(false);

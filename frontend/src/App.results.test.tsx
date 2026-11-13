@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./services/api", () => ({
@@ -19,6 +19,7 @@ import {
   getAnalysisHistory as getAnalysisHistoryApi,
   getAccessToken as getAccessTokenApi,
   getCurrentUser as getCurrentUserApi,
+  login as loginApi,
   requestRecommendations as requestRecommendationsApi,
   simulateScenario as simulateScenarioApi,
 } from "./services/api";
@@ -28,6 +29,7 @@ const analyzeProfile = vi.mocked(analyzeProfileApi);
 const getAnalysisHistory = vi.mocked(getAnalysisHistoryApi);
 const getAccessToken = vi.mocked(getAccessTokenApi);
 const getCurrentUser = vi.mocked(getCurrentUserApi);
+const login = vi.mocked(loginApi);
 const requestRecommendations = vi.mocked(requestRecommendationsApi);
 const simulateScenario = vi.mocked(simulateScenarioApi);
 
@@ -107,6 +109,45 @@ describe("autenticación", () => {
     fireEvent.click(screen.getByRole("button", { name: /cerrar sesión/i }));
     expect(await screen.findByRole("heading", { name: /bienvenido a pulso/i })).toBeInTheDocument();
   });
+
+  it.each(["logout", "unauthorized"] as const)(
+    "limpia el formulario al terminar la sesión por %s",
+    async (sessionEnd) => {
+      login.mockResolvedValue({
+        access_token: "new-access-token",
+        token_type: "bearer",
+        expires_in: 3600,
+        user: { id: "user-2", email: "other@example.com" },
+      });
+      render(<App />);
+      await screen.findByRole("heading", { name: /completa tu evaluación/i });
+
+      (Object.entries(profile) as [keyof typeof labels, string][]).forEach(([name, value]) => {
+        fireEvent.change(screen.getByLabelText(labels[name]), { target: { value } });
+      });
+
+      if (sessionEnd === "logout") {
+        fireEvent.click(screen.getByRole("button", { name: /cerrar sesión/i }));
+      } else {
+        act(() => window.dispatchEvent(new Event("pulso:unauthorized")));
+      }
+
+      await screen.findByRole("heading", { name: /bienvenido a pulso/i });
+      fireEvent.change(screen.getByLabelText("Correo electrónico"), {
+        target: { value: "other@example.com" },
+      });
+      fireEvent.change(screen.getByLabelText("Contraseña"), {
+        target: { value: "password-for-test" },
+      });
+      const loginButtons = screen.getAllByRole("button", { name: "Iniciar sesión" });
+      fireEvent.click(loginButtons[loginButtons.length - 1]);
+
+      await screen.findByRole("heading", { name: /completa tu evaluación/i });
+      Object.values(labels).forEach((label) => {
+        expect(screen.getByLabelText(label)).toHaveValue(null);
+      });
+    }
+  );
 
   describe("historial de análisis", () => {
     it("muestra solo fecha y resultado y permite paginar", async () => {
