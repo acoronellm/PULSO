@@ -236,15 +236,41 @@ class SimulationRequest(BaseModel):
     original: UserData
     changes: SimulationChanges
 
+
     @model_validator(mode="after")
-    def validate_simulated_bmi(self):
+    def validate_simulated_profile(self):
         simulated_weight = (
             self.changes.weight
             if self.changes.weight is not None
             else self.original.weight
         )
-        _apply_rule(rules.validate_simulated_weight, simulated_weight, self.original.height)
+
+        simulated_ap_hi = (
+            self.changes.ap_hi
+            if self.changes.ap_hi is not None
+            else self.original.ap_hi
+        )
+
+        simulated_ap_lo = (
+            self.changes.ap_lo
+            if self.changes.ap_lo is not None
+            else self.original.ap_lo
+        )
+
+        _apply_rule(
+            rules.validate_blood_pressure,
+            simulated_ap_hi,
+            simulated_ap_lo,
+        )
+
+        _apply_rule(
+            rules.validate_simulated_weight,
+            simulated_weight,
+            self.original.height,
+        )
+
         return self
+
 
 
 class SimulationResult(BaseModel):
