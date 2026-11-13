@@ -26,6 +26,7 @@ jobs:
 
     env:
       RAG_SERVICE_URL: http://localhost:5678/webhook/pulso-rag
+      JWT_SECRET_KEY: ci-only-placeholder-secret-key-32-chars-min
 
     steps:
       - name: Checkout repository
