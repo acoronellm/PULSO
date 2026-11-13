@@ -1,14 +1,31 @@
 """Pruebas de la API HTTP con los puertos reemplazados por dobles (ver conftest.client)."""
 
+from uuid import uuid4
+
 from backend.app.domain.errors import (
     InvalidScenarioError,
     ModelServiceError,
     RecommendationServiceError,
 )
+from backend.app.domain.entities import AuthUser
+from backend.app.main import create_app
+from backend.app.interfaces.http import dependencies
+from fastapi.testclient import TestClient
 
 from conftest import PROFILE_PAYLOAD
 
 SIMULATION_PAYLOAD = {"original": PROFILE_PAYLOAD, "changes": {"weight": 80}}
+
+
+def test_analysis_requires_authentication():
+    app = create_app()
+    app.dependency_overrides[dependencies.get_user_repository] = lambda: None
+    app.dependency_overrides[dependencies.get_access_token_issuer] = lambda: None
+    app.dependency_overrides[dependencies.get_analyze_profile] = lambda: None
+    response = TestClient(app).post("/api/analyze", json=PROFILE_PAYLOAD)
+
+    assert response.status_code == 401
+    assert response.headers["www-authenticate"] == "Bearer"
 
 
 def test_health(client):
@@ -58,6 +75,19 @@ def test_rag_uses_stored_analysis_without_running_the_model(client, model, recom
     assert body["recommendations"][0]["sources"][0]["lines"] == {"from": 20, "to": 26}
     assert recommendations.received.profile.ap_hi == 150
     assert model.calls == []
+
+
+def test_rag_analysis_is_scoped_to_the_authenticated_user(client):
+    analysis_id = client.post("/api/analyze", json=PROFILE_PAYLOAD).json()["analysis_id"]
+    client.app.dependency_overrides[dependencies.get_current_user] = lambda: AuthUser(
+        id=uuid4(),
+        email="other@example.com",
+        password_hash="",
+    )
+
+    response = client.post("/api/rag", json={"analysis_id": analysis_id})
+
+    assert response.status_code == 404
 
 
 def test_rag_returns_404_for_unknown_analysis(client):

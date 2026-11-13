@@ -29,7 +29,11 @@ class AnalyzeProfile:
         self._model = model
         self._repository = repository
 
-    async def execute(self, profile: CardiovascularProfile) -> AnalysisResult:
+    async def execute(
+        self,
+        profile: CardiovascularProfile,
+        owner_id: UUID | None = None,
+    ) -> AnalysisResult:
         prediction = await self._model.predict(profile)
         explanation = await self._model.explain(profile)
 
@@ -38,6 +42,7 @@ class AnalyzeProfile:
                 profile=profile,
                 prediction=prediction,
                 explanation=explanation,
+                owner_id=owner_id,
             )
         )
 

@@ -9,8 +9,18 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any, Literal, Mapping, Optional
+from uuid import UUID
 
 ShapDirection = Literal["increase", "decrease"]
+
+
+@dataclass(frozen=True)
+class AuthUser:
+    """Cuenta de usuario; las interfaces deben excluir el hash de la respuesta."""
+
+    id: UUID
+    email: str
+    password_hash: str
 
 
 @dataclass(frozen=True)
@@ -75,6 +85,7 @@ class AnalysisContext:
     profile: CardiovascularProfile
     prediction: Prediction
     explanation: Explanation
+    owner_id: UUID | None = None
 
 
 @dataclass(frozen=True)

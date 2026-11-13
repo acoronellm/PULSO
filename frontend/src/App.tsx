@@ -2,22 +2,29 @@ import { useEffect, useRef, useState } from "react";
 
 import Footer from "./components/Footer";
 import Header from "./components/Header";
+import AuthPage from "./pages/AuthPage";
 import EvaluationPage from "./pages/EvaluationPage";
 import ResultPage from "./pages/ResultPage";
 import SimulationPage from "./pages/SimulationPage";
 import {
   analyzeProfile,
+  clearAccessToken,
+  getAccessToken,
+  getCurrentUser,
+  login,
+  register,
   requestRecommendations,
 } from "./services/api";
 import type { ShowToast } from "./hooks/useToast";
 import { errorText, isAbortError, type View } from "./types/app";
-import type { AnalysisResponse, RagResponse, UserData } from "./types/pulso";
+import type { AnalysisResponse, AuthResponse, AuthUser, RagResponse, UserData } from "./types/pulso";
 import { EMPTY_FORM, formToPayload, type FormField, type FormState } from "./utils/health";
 
-// PULSO v1 no tiene cuentas ni historial: solo evaluación, resultado y simulación
 const PAGES_WITH_SCREEN: View[] = ["evaluacion", "resultado", "simulacion"];
 
 function App() {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(() => Boolean(getAccessToken()));
   const [view, setView] = useState<View>("evaluacion");
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [analysis, setAnalysis] = useState<AnalysisResponse | null>(null);
@@ -33,8 +40,71 @@ function App() {
   const recommendationsRequest = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    let active = true;
+    const savedToken = getAccessToken();
+    if (!savedToken) {
+      return;
+    }
+
+    void getCurrentUser()
+      .then((authenticatedUser) => {
+        if (active) setUser(authenticatedUser);
+      })
+      .catch(() => {
+        clearAccessToken();
+        if (active) setUser(null);
+      })
+      .finally(() => {
+        if (active) setAuthLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleUnauthorized() {
+      analysisVersion.current += 1;
+      currentAnalysisId.current = null;
+      recommendationsRequest.current?.abort();
+      setUser(null);
+      setAnalysis(null);
+      setOriginalProfile(null);
+      setRecommendations(null);
+      setLoading(false);
+      setRecommendationsLoading(false);
+      setView("evaluacion");
+    }
+    window.addEventListener("pulso:unauthorized", handleUnauthorized);
+    return () => window.removeEventListener("pulso:unauthorized", handleUnauthorized);
+  }, []);
+
+  useEffect(() => {
     window.scrollTo(0, 0);
   }, [view]);
+
+  async function handleAuth(mode: "login" | "register", email: string, password: string) {
+    const response: AuthResponse = mode === "login"
+      ? await login({ email, password })
+      : await register({ email, password });
+    setUser(response.user);
+    return response;
+  }
+
+  function handleLogout() {
+    analysisVersion.current += 1;
+    currentAnalysisId.current = null;
+    recommendationsRequest.current?.abort();
+    clearAccessToken();
+    setUser(null);
+    setAnalysis(null);
+    setOriginalProfile(null);
+    setRecommendations(null);
+    setLoading(false);
+    setRecommendationsLoading(false);
+    setView("evaluacion");
+  }
 
   function navigate(path: View) {
     if (!PAGES_WITH_SCREEN.includes(path)) {
@@ -140,12 +210,26 @@ function App() {
     }
   }
 
+  if (authLoading) {
+    return (
+      <main aria-live="polite" className="min-h-screen flex items-center justify-center bg-surface-container-lowest font-label-md text-on-surface-variant">
+        Verificando sesión...
+      </main>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage onSubmit={handleAuth} />;
+  }
+
   return (
     <>
       <Header
         active={view}
+        email={user.email}
         hasResult={Boolean(analysis)}
         onNavigate={navigate}
+        onLogout={handleLogout}
       />
 
       {view === "evaluacion" && (

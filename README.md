@@ -27,6 +27,25 @@ reiniciar el proceso. Si se usan varios workers o réplicas, debe sustituirse
 por almacenamiento compartido, como Redis. La caché contiene temporalmente
 datos relacionados con la salud y no constituye almacenamiento permanente.
 
+### Login y base de datos
+
+El backend usa PostgreSQL para las cuentas. En la raíz del proyecto, copia
+`.env.example` a `.env` si todavía no tienes un `.env`; si ya existe, agrega
+las variables de PostgreSQL y `JWT_SECRET_KEY`. Establece `JWT_SECRET_KEY` a
+la salida de este comando antes de iniciar los servicios:
+
+```powershell
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+docker compose up --build
+```
+
+La primera inicialización de PostgreSQL crea la tabla `users`. Desde la web
+puedes crear una cuenta e iniciar sesión; la contraseña se almacena con Argon2
+y las rutas de análisis requieren un JWT bearer válido. El frontend conserva el
+token en `localStorage` durante una hora por defecto y el cierre de sesión lo
+elimina. En producción, sirve todo bajo HTTPS y considera cambiar el token a
+una cookie `HttpOnly`.
+
 ### Primer informe
 
 - [Primer Informe.md](./PrimerInforme.md): Documento que presenta el planteamiento del problema, los objetivos, la solución propuesta, el estado del arte, la metodología de desarrollo y el plan de trabajo del proyecto.

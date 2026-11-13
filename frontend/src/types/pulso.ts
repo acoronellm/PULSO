@@ -16,6 +16,18 @@ export interface UserData {
   bmi: number;
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: "bearer";
+  expires_in: number;
+  user: AuthUser;
+}
+
 export type Feature = keyof UserData;
 
 export interface Prediction {

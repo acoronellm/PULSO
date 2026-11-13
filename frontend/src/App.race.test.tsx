@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
   AnalysisResponse,
@@ -35,6 +35,11 @@ vi.mock("./services/api", () => ({
     analysisRequests.push({ request, userData });
     return request.promise;
   }),
+  clearAccessToken: vi.fn(),
+  getAccessToken: vi.fn(() => "test-access-token"),
+  getCurrentUser: vi.fn(() => Promise.resolve({ id: "user-1", email: "test@example.com" })),
+  login: vi.fn(),
+  register: vi.fn(),
   requestRecommendations: vi.fn((context: RagRequest, options: RequestOptions) => {
     const request = deferred<RagResponse>();
     recommendationRequests.push({ request, context, options });
@@ -63,7 +68,8 @@ const labels = {
 
 type ProfileField = keyof typeof labels;
 
-function submitProfile(overrides: Partial<Record<ProfileField, string>> = {}) {
+async function submitProfile(overrides: Partial<Record<ProfileField, string>> = {}) {
+  await screen.findByRole("heading", { name: /completa tu evaluación/i });
   const values = { ...profile, ...overrides };
 
   (Object.entries(values) as [ProfileField, string][]).forEach(([name, value]) => {
@@ -89,10 +95,14 @@ function analysisResult(analysisId: string, probability: number): AnalysisRespon
 }
 
 describe("recommendation request consistency", () => {
+  beforeEach(() => {
+    localStorage.setItem("pulso_access_token", "test-access-token");
+  });
+
   it("does not display stale RAG results after a new analysis", async () => {
     render(<App />);
 
-    submitProfile();
+    await submitProfile();
     await waitFor(() => expect(analysisRequests).toHaveLength(1));
     analysisRequests[0].request.resolve(
       analysisResult("analysis-a", 0.35)
@@ -107,7 +117,7 @@ describe("recommendation request consistency", () => {
     await waitFor(() => expect(recommendationRequests).toHaveLength(1));
 
     fireEvent.click(screen.getByRole("link", { name: /editar mis datos/i }));
-    submitProfile({ peso: "70" });
+    await submitProfile({ peso: "70" });
     await waitFor(() => expect(analysisRequests).toHaveLength(2));
     expect(recommendationRequests[0].options.signal?.aborted).toBe(true);
     analysisRequests[1].request.resolve(

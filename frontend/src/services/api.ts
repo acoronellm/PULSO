@@ -1,4 +1,6 @@
 import type {
+  AuthResponse,
+  AuthUser,
   AnalysisResponse,
   RagRequest,
   RagResponse,
@@ -9,6 +11,24 @@ import type {
 } from "../types/pulso";
 
 const API_URL: string = import.meta.env.VITE_API_URL || "";
+const ACCESS_TOKEN_KEY = "pulso_access_token";
+
+export function getAccessToken(): string | null {
+  return localStorage.getItem(ACCESS_TOKEN_KEY);
+}
+
+export function clearAccessToken(): void {
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+}
+
+function saveAccessToken(token: string): void {
+  localStorage.setItem(ACCESS_TOKEN_KEY, token);
+}
+
+function unauthorized(): void {
+  clearAccessToken();
+  window.dispatchEvent(new Event("pulso:unauthorized"));
+}
 
 interface ValidationError {
   msg: string;
@@ -33,21 +53,66 @@ async function postJson<T>(
   fallbackError: string,
   options: RequestOptions = {}
 ): Promise<T> {
+  const token = getAccessToken();
   const response = await fetch(`${API_URL}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify(body),
     signal: options.signal,
   });
 
   if (!response.ok) {
+    if (response.status === 401 && path !== "/api/auth/login" && path !== "/api/auth/register") {
+      unauthorized();
+    }
     const errorData = (await response.json().catch(() => null)) as ErrorBody | null;
     throw new Error(errorMessage(errorData, fallbackError));
   }
 
   return response.json() as Promise<T>;
+}
+
+async function getJson<T>(path: string, fallbackError: string): Promise<T> {
+  const token = getAccessToken();
+  const response = await fetch(`${API_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!response.ok) {
+    if (response.status === 401) {
+      unauthorized();
+    }
+    const errorData = (await response.json().catch(() => null)) as ErrorBody | null;
+    throw new Error(errorMessage(errorData, fallbackError));
+  }
+  return response.json() as Promise<T>;
+}
+
+async function authenticate(
+  path: "/api/auth/login" | "/api/auth/register",
+  credentials: { email: string; password: string }
+): Promise<AuthResponse> {
+  const result = await postJson<AuthResponse>(
+    path,
+    credentials,
+    path.endsWith("login") ? "No fue posible iniciar sesión." : "No fue posible crear la cuenta."
+  );
+  saveAccessToken(result.access_token);
+  return result;
+}
+
+export function login(credentials: { email: string; password: string }): Promise<AuthResponse> {
+  return authenticate("/api/auth/login", credentials);
+}
+
+export function register(credentials: { email: string; password: string }): Promise<AuthResponse> {
+  return authenticate("/api/auth/register", credentials);
+}
+
+export function getCurrentUser(): Promise<AuthUser> {
+  return getJson<AuthUser>("/api/auth/me", "La sesión expiró. Inicia sesión de nuevo.");
 }
 
 export function analyzeProfile(userData: UserData): Promise<AnalysisResponse> {

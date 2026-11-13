@@ -3,6 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./services/api", () => ({
   analyzeProfile: vi.fn(),
+  clearAccessToken: vi.fn(),
+  getAccessToken: vi.fn(() => "test-access-token"),
+  getCurrentUser: vi.fn(() => Promise.resolve({ id: "user-1", email: "test@example.com" })),
+  login: vi.fn(),
+  register: vi.fn(),
   requestRecommendations: vi.fn(),
   simulateScenario: vi.fn(),
 }));
@@ -10,12 +15,16 @@ vi.mock("./services/api", () => ({
 import App from "./App";
 import {
   analyzeProfile as analyzeProfileApi,
+  getAccessToken as getAccessTokenApi,
+  getCurrentUser as getCurrentUserApi,
   requestRecommendations as requestRecommendationsApi,
   simulateScenario as simulateScenarioApi,
 } from "./services/api";
 import type { AnalysisResponse, Prediction, RequestOptions, SimulationResponse } from "./types/pulso";
 
 const analyzeProfile = vi.mocked(analyzeProfileApi);
+const getAccessToken = vi.mocked(getAccessTokenApi);
+const getCurrentUser = vi.mocked(getCurrentUserApi);
 const requestRecommendations = vi.mocked(requestRecommendationsApi);
 const simulateScenario = vi.mocked(simulateScenarioApi);
 
@@ -53,6 +62,7 @@ function analysis(prediction: TestPrediction): AnalysisResponse {
 async function analyze(prediction: TestPrediction) {
   analyzeProfile.mockResolvedValueOnce(analysis(prediction));
   render(<App />);
+  await screen.findByRole("heading", { name: /completa tu evaluación/i });
 
   (Object.entries(profile) as [keyof typeof labels, string][]).forEach(([name, value]) => {
     fireEvent.change(screen.getByLabelText(labels[name]), { target: { value } });
@@ -64,20 +74,34 @@ async function analyze(prediction: TestPrediction) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getAccessToken.mockReturnValue("test-access-token");
+  getCurrentUser.mockResolvedValue({ id: "user-1", email: "test@example.com" });
 });
 
-describe("acceso y alcance de PULSO v1", () => {
-  it("abre directamente la evaluación, sin login ni historial", () => {
+describe("autenticación", () => {
+  it("solicita iniciar sesión si no hay un token guardado", async () => {
+    getAccessToken.mockReturnValue(null);
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: /completa tu evaluación/i })).toBeInTheDocument();
-    expect(screen.queryByText(/iniciar sesión/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/historial/i)).not.toBeInTheDocument();
-    expect(screen.getByLabelText(labels.edad)).toHaveValue(null);
+    expect(await screen.findByRole("heading", { name: /bienvenido a pulso/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /iniciar sesión/i })).toHaveLength(2);
+    expect(getCurrentUser).not.toHaveBeenCalled();
   });
 
-  it("no permite abrir el resultado antes de un análisis real", () => {
+  it("abre la evaluación autenticada y permite cerrar sesión", async () => {
     render(<App />);
+
+    expect(await screen.findByRole("heading", { name: /completa tu evaluación/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cerrar sesión/i })).toBeInTheDocument();
+    expect(screen.queryByText(/historial/i)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /cerrar sesión/i }));
+    expect(await screen.findByRole("heading", { name: /bienvenido a pulso/i })).toBeInTheDocument();
+  });
+
+  it("no permite abrir el resultado antes de un análisis real", async () => {
+    render(<App />);
+    await screen.findByRole("heading", { name: /completa tu evaluación/i });
 
     fireEvent.click(screen.getByRole("link", { name: "Resultado" }));
 
@@ -178,8 +202,9 @@ describe("recomendaciones RAG", () => {
 });
 
 describe("simulación de escenarios", () => {
-  it("pide calcular primero un resultado si no hay análisis", () => {
+  it("pide calcular primero un resultado si no hay análisis", async () => {
     render(<App />);
+    await screen.findByRole("heading", { name: /completa tu evaluación/i });
 
     fireEvent.click(screen.getByRole("link", { name: "Simulación" }));
 
