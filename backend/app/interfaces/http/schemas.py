@@ -57,10 +57,23 @@ class UserData(BaseModel):
     alco: int = Field(..., ge=0, le=1)
     active: int = Field(..., ge=0, le=1)
     age_years: float = Field(..., gt=0)
-    bmi: float = Field(..., gt=0)
+    bmi: float | None = Field(default=None, gt=0)
+
 
     @model_validator(mode="after")
     def validate_consistency(self):
+        calculated_bmi = rules.expected_bmi(self.weight, self.height)
+
+        if self.bmi is not None:
+            _apply_rule(
+                rules.validate_bmi,
+                self.bmi,
+                self.weight,
+                self.height,
+            )
+
+        self.bmi = calculated_bmi
+
         _apply_rule(
             rules.validate_profile,
             self.ap_hi,
@@ -70,6 +83,7 @@ class UserData(BaseModel):
             self.height,
         )
         return self
+
 
     def to_domain(self) -> CardiovascularProfile:
         return CardiovascularProfile(**self.model_dump())
