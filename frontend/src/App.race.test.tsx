@@ -37,6 +37,7 @@ vi.mock("./services/api", () => ({
   }),
   clearAccessToken: vi.fn(),
   getAccessToken: vi.fn(() => "test-access-token"),
+  getAnalysisHistory: vi.fn(() => Promise.resolve({ items: [], limit: 20, offset: 0, has_more: false })),
   getCurrentUser: vi.fn(() => Promise.resolve({ id: "user-1", email: "test@example.com" })),
   login: vi.fn(),
   register: vi.fn(),

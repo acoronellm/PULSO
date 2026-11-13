@@ -4,6 +4,7 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import AuthPage from "./pages/AuthPage";
 import EvaluationPage from "./pages/EvaluationPage";
+import HistoryPage from "./pages/HistoryPage";
 import ResultPage from "./pages/ResultPage";
 import SimulationPage from "./pages/SimulationPage";
 import {
@@ -20,7 +21,7 @@ import { errorText, isAbortError, type View } from "./types/app";
 import type { AnalysisResponse, AuthResponse, AuthUser, RagResponse, UserData } from "./types/pulso";
 import { EMPTY_FORM, formToPayload, type FormField, type FormState } from "./utils/health";
 
-const PAGES_WITH_SCREEN: View[] = ["evaluacion", "resultado", "simulacion"];
+const PAGES_WITH_SCREEN: View[] = ["evaluacion", "resultado", "simulacion", "historial"];
 
 function App() {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -262,6 +263,8 @@ function App() {
           onNavigate={navigate}
         />
       )}
+
+      {view === "historial" && <HistoryPage />}
 
       <Footer />
     </>

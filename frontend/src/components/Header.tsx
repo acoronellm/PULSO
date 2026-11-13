@@ -12,6 +12,7 @@ const NAV_ITEMS: { path: View; label: string; needsResult?: boolean }[] = [
   { path: "evaluacion", label: "Evaluación" },
   { path: "resultado", label: "Resultado", needsResult: true },
   { path: "simulacion", label: "Simulación" },
+  { path: "historial", label: "Historial" },
 ];
 
 interface HeaderProps {

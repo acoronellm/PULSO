@@ -5,6 +5,7 @@ vi.mock("./services/api", () => ({
   analyzeProfile: vi.fn(),
   clearAccessToken: vi.fn(),
   getAccessToken: vi.fn(() => "test-access-token"),
+  getAnalysisHistory: vi.fn(),
   getCurrentUser: vi.fn(() => Promise.resolve({ id: "user-1", email: "test@example.com" })),
   login: vi.fn(),
   register: vi.fn(),
@@ -15,6 +16,7 @@ vi.mock("./services/api", () => ({
 import App from "./App";
 import {
   analyzeProfile as analyzeProfileApi,
+  getAnalysisHistory as getAnalysisHistoryApi,
   getAccessToken as getAccessTokenApi,
   getCurrentUser as getCurrentUserApi,
   requestRecommendations as requestRecommendationsApi,
@@ -23,6 +25,7 @@ import {
 import type { AnalysisResponse, Prediction, RequestOptions, SimulationResponse } from "./types/pulso";
 
 const analyzeProfile = vi.mocked(analyzeProfileApi);
+const getAnalysisHistory = vi.mocked(getAnalysisHistoryApi);
 const getAccessToken = vi.mocked(getAccessTokenApi);
 const getCurrentUser = vi.mocked(getCurrentUserApi);
 const requestRecommendations = vi.mocked(requestRecommendationsApi);
@@ -75,6 +78,12 @@ async function analyze(prediction: TestPrediction) {
 beforeEach(() => {
   vi.clearAllMocks();
   getAccessToken.mockReturnValue("test-access-token");
+  getAnalysisHistory.mockResolvedValue({
+    items: [],
+    limit: 20,
+    offset: 0,
+    has_more: false,
+  });
   getCurrentUser.mockResolvedValue({ id: "user-1", email: "test@example.com" });
 });
 
@@ -93,10 +102,39 @@ describe("autenticación", () => {
 
     expect(await screen.findByRole("heading", { name: /completa tu evaluación/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /cerrar sesión/i })).toBeInTheDocument();
-    expect(screen.queryByText(/historial/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Historial" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /cerrar sesión/i }));
     expect(await screen.findByRole("heading", { name: /bienvenido a pulso/i })).toBeInTheDocument();
+  });
+
+  describe("historial de análisis", () => {
+    it("muestra solo fecha y resultado y permite paginar", async () => {
+      getAnalysisHistory.mockResolvedValueOnce({
+        items: [{
+          analysis_id: "analysis-1",
+          created_at: "2026-11-12T10:00:00Z",
+          prediction: {
+            probability: 0.35,
+            classification: 0,
+            threshold: 0.38,
+            model_version: "v1",
+          },
+        }],
+        limit: 20,
+        offset: 0,
+        has_more: true,
+      });
+      render(<App />);
+      await screen.findByRole("heading", { name: /completa tu evaluación/i });
+
+      fireEvent.click(screen.getByRole("link", { name: "Historial" }));
+
+      expect(await screen.findByText("35,0%")).toBeInTheDocument();
+      expect(screen.queryByText(/Perfil evaluado/)).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: /cargar más resultados/i }));
+      await waitFor(() => expect(getAnalysisHistory).toHaveBeenLastCalledWith(20, 1));
+    });
   });
 
   it("no permite abrir el resultado antes de un análisis real", async () => {

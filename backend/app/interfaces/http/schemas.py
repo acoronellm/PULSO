@@ -7,15 +7,18 @@ coherencia del perfil se delegan en el dominio.
 from __future__ import annotations
 
 from dataclasses import asdict
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
 
 from ...application.use_cases.analyze_profile import AnalysisResult
+from ...application.use_cases.list_analysis_history import AnalysisHistoryPage
 from ...domain import rules
 from ...domain.entities import (
     CardiovascularProfile,
+    AnalysisHistoryEntry,
     Explanation,
     Prediction,
     RecommendationReport,
@@ -98,6 +101,41 @@ class AnalysisResponse(BaseModel):
             analysis_id=result.analysis_id,
             prediction=PredictionData.from_domain(result.prediction),
             shap=ShapData.from_domain(result.explanation),
+        )
+
+
+class AnalysisHistoryItem(BaseModel):
+    analysis_id: UUID
+    created_at: datetime
+    prediction: PredictionData
+
+    @classmethod
+    def from_domain(cls, entry: AnalysisHistoryEntry) -> AnalysisHistoryItem:
+        return cls(
+            analysis_id=entry.analysis_id,
+            created_at=entry.created_at,
+            prediction=PredictionData(
+                probability=entry.probability,
+                classification=entry.classification,
+                threshold=entry.threshold,
+                model_version=entry.model_version,
+            ),
+        )
+
+
+class AnalysisHistoryResponse(BaseModel):
+    items: list[AnalysisHistoryItem]
+    limit: int
+    offset: int
+    has_more: bool
+
+    @classmethod
+    def from_domain(cls, page: AnalysisHistoryPage) -> AnalysisHistoryResponse:
+        return cls(
+            items=[AnalysisHistoryItem.from_domain(entry) for entry in page.items],
+            limit=page.limit,
+            offset=page.offset,
+            has_more=page.has_more,
         )
 
 

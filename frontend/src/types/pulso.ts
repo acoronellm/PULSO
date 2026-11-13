@@ -52,6 +52,19 @@ export interface AnalysisResponse {
   };
 }
 
+export interface AnalysisHistoryItem {
+  analysis_id: string;
+  created_at: string;
+  prediction: Prediction;
+}
+
+export interface AnalysisHistoryResponse {
+  items: AnalysisHistoryItem[];
+  limit: number;
+  offset: number;
+  has_more: boolean;
+}
+
 export interface RagRequest {
   analysis_id: string;
 }

@@ -2,6 +2,7 @@ import type {
   AuthResponse,
   AuthUser,
   AnalysisResponse,
+  AnalysisHistoryResponse,
   RagRequest,
   RagResponse,
   RequestOptions,
@@ -75,10 +76,15 @@ async function postJson<T>(
   return response.json() as Promise<T>;
 }
 
-async function getJson<T>(path: string, fallbackError: string): Promise<T> {
+async function getJson<T>(
+  path: string,
+  fallbackError: string,
+  options: RequestOptions = {}
+): Promise<T> {
   const token = getAccessToken();
   const response = await fetch(`${API_URL}${path}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
+    signal: options.signal,
   });
   if (!response.ok) {
     if (response.status === 401) {
@@ -120,6 +126,19 @@ export function analyzeProfile(userData: UserData): Promise<AnalysisResponse> {
     "/api/analyze",
     userData,
     "No fue posible analizar el perfil."
+  );
+}
+
+export function getAnalysisHistory(
+  limit = 20,
+  offset = 0,
+  options: RequestOptions = {}
+): Promise<AnalysisHistoryResponse> {
+  const query = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  return getJson<AnalysisHistoryResponse>(
+    `/api/analyses?${query.toString()}`,
+    "No fue posible cargar tu historial.",
+    options
   );
 }
 

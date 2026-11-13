@@ -11,6 +11,7 @@ from uuid import UUID
 
 from .entities import (
     AnalysisContext,
+    AnalysisHistoryEntry,
     AuthUser,
     CardiovascularProfile,
     Explanation,
@@ -49,6 +50,24 @@ class AnalysisRepository(Protocol):
     def get(self, analysis_id: UUID, owner_id: UUID | None = None) -> AnalysisContext:
         """Lanza AnalysisNotFoundError si no existe o expiró."""
         ...
+
+
+class AnalysisHistoryRepository(Protocol):
+    """Persiste resultados mínimos de análisis y los consulta por propietario."""
+
+    def save(
+        self,
+        analysis_id: UUID,
+        owner_id: UUID,
+        prediction: Prediction,
+    ) -> AnalysisHistoryEntry: ...
+
+    def list_for_user(
+        self,
+        owner_id: UUID,
+        limit: int,
+        offset: int,
+    ) -> list[AnalysisHistoryEntry]: ...
 
 
 class UserRepository(Protocol):

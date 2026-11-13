@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from ...application.use_cases.authenticate_user import AuthenticateUser
 from ...application.use_cases.analyze_profile import AnalyzeProfile
+from ...application.use_cases.list_analysis_history import ListAnalysisHistory
 from ...application.use_cases.register_user import RegisterUser
 from ...application.use_cases.request_recommendations import RequestRecommendations
 from ...application.use_cases.simulate_scenario import SimulateScenario
@@ -19,6 +20,7 @@ from ...domain.entities import AuthUser
 from ...domain.ports import (
     AccessTokenIssuer,
     AnalysisRepository,
+    AnalysisHistoryRepository,
     CardiovascularModel,
     PasswordHasher,
     RecommendationGenerator,
@@ -27,6 +29,9 @@ from ...domain.ports import (
 from ...infrastructure.config import Settings
 from ...infrastructure.database import get_db_session
 from ...infrastructure.in_memory_analysis_repository import InMemoryAnalysisRepository
+from ...infrastructure.sqlalchemy_analysis_history_repository import (
+    SQLAlchemyAnalysisHistoryRepository,
+)
 from ...infrastructure.jwt_access_tokens import JWTAccessTokens
 from ...infrastructure.ml_service_client import MLServiceClient
 from ...infrastructure.n8n_rag_client import N8nRecommendationClient
@@ -45,6 +50,12 @@ def get_user_repository(
     session: Session = Depends(get_db_session),
 ) -> UserRepository:
     return SQLAlchemyUserRepository(session)
+
+
+def get_analysis_history_repository(
+    session: Session = Depends(get_db_session),
+) -> AnalysisHistoryRepository:
+    return SQLAlchemyAnalysisHistoryRepository(session)
 
 
 @lru_cache
@@ -131,8 +142,19 @@ def get_recommendation_generator() -> RecommendationGenerator:
 def get_analyze_profile(
     model: CardiovascularModel = Depends(get_cardiovascular_model),
     repository: AnalysisRepository = Depends(get_analysis_repository),
+    history_repository: AnalysisHistoryRepository = Depends(get_analysis_history_repository),
 ) -> AnalyzeProfile:
-    return AnalyzeProfile(model=model, repository=repository)
+    return AnalyzeProfile(
+        model=model,
+        repository=repository,
+        history_repository=history_repository,
+    )
+
+
+def get_list_analysis_history(
+    repository: AnalysisHistoryRepository = Depends(get_analysis_history_repository),
+) -> ListAnalysisHistory:
+    return ListAnalysisHistory(repository)
 
 
 def get_request_recommendations(

@@ -8,6 +8,7 @@ hacia sus propios formatos (JSON de la API, contratos del ML Service y n8n).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Literal, Mapping, Optional
 from uuid import UUID
 
@@ -86,6 +87,18 @@ class AnalysisContext:
     prediction: Prediction
     explanation: Explanation
     owner_id: UUID | None = None
+
+
+@dataclass(frozen=True)
+class AnalysisHistoryEntry:
+    """Resultado persistido para mostrarlo en el historial del usuario."""
+
+    analysis_id: UUID
+    probability: float
+    classification: int
+    threshold: float
+    model_version: str
+    created_at: datetime
 
 
 @dataclass(frozen=True)

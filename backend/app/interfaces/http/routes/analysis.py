@@ -3,20 +3,23 @@
 Los errores del dominio se convierten en 404, 422 o 502 en interfaces/http/errors.py.
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from ....application.use_cases.analyze_profile import AnalyzeProfile
+from ....application.use_cases.list_analysis_history import ListAnalysisHistory
 from ....application.use_cases.request_recommendations import RequestRecommendations
 from ....application.use_cases.simulate_scenario import SimulateScenario
 from ....domain.entities import AuthUser
 from ..dependencies import (
     get_analyze_profile,
     get_current_user,
+    get_list_analysis_history,
     get_request_recommendations,
     get_simulate_scenario,
 )
 from ..schemas import (
     AnalysisResponse,
+    AnalysisHistoryResponse,
     RagRequest,
     RagResponse,
     SimulationRequest,
@@ -25,6 +28,17 @@ from ..schemas import (
 )
 
 router = APIRouter()
+
+
+@router.get("/analyses", response_model=AnalysisHistoryResponse)
+def list_analysis_history(
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    use_case: ListAnalysisHistory = Depends(get_list_analysis_history),
+    user: AuthUser = Depends(get_current_user),
+) -> AnalysisHistoryResponse:
+    page = use_case.execute(user.id, limit, offset)
+    return AnalysisHistoryResponse.from_domain(page)
 
 
 @router.post("/analyze", response_model=AnalysisResponse)
