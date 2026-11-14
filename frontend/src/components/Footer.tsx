@@ -23,7 +23,7 @@ export default function Footer() {
             PULSO no realiza diagnósticos ni reemplaza una valoración médica profesional. Consulta a un profesional de la salud ante cualquier duda.
           </p>
           <div className="mt-space-xs text-on-surface-variant/80 font-label-sm">
-            Los datos ingresados no se almacenan de forma permanente.
+            Los datos del perfil no se guardan; solo el resultado se conserva en tu historial.
           </div>
         </div>
       </div>

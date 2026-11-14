@@ -20,6 +20,10 @@ class RequestRecommendations:
         self._repository = repository
         self._recommendations = recommendations
 
-    async def execute(self, analysis_id: UUID) -> RecommendationReport:
-        context = self._repository.get(analysis_id)
+    async def execute(
+        self,
+        analysis_id: UUID,
+        owner_id: UUID | None = None,
+    ) -> RecommendationReport:
+        context = self._repository.get(analysis_id, owner_id)
         return await self._recommendations.generate(context)

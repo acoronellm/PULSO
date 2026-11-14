@@ -12,15 +12,18 @@ const NAV_ITEMS: { path: View; label: string; needsResult?: boolean }[] = [
   { path: "evaluacion", label: "Evaluación" },
   { path: "resultado", label: "Resultado", needsResult: true },
   { path: "simulacion", label: "Simulación" },
+  { path: "historial", label: "Historial" },
 ];
 
 interface HeaderProps {
   active: View;
   hasResult: boolean;
   onNavigate: Navigate;
+  email: string;
+  onLogout: () => void;
 }
 
-export default function Header({ active, hasResult, onNavigate }: HeaderProps) {
+export default function Header({ active, hasResult, onNavigate, email, onLogout }: HeaderProps) {
   function handleLink(event: React.MouseEvent<HTMLAnchorElement>, path: View) {
     event.preventDefault();
     onNavigate(path);
@@ -65,6 +68,16 @@ export default function Header({ active, hasResult, onNavigate }: HeaderProps) {
               </a>
             );
           })}
+          <span className="hidden lg:block mx-space-sm font-label-sm text-on-surface-variant">
+            {email}
+          </span>
+          <button
+            className={INACTIVE_LINK}
+            onClick={onLogout}
+            type="button"
+          >
+            Cerrar sesión
+          </button>
         </nav>
       </div>
     </header>

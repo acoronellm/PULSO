@@ -8,9 +8,20 @@ hacia sus propios formatos (JSON de la API, contratos del ML Service y n8n).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Literal, Mapping, Optional
+from uuid import UUID
 
 ShapDirection = Literal["increase", "decrease"]
+
+
+@dataclass(frozen=True)
+class AuthUser:
+    """Cuenta de usuario; las interfaces deben excluir el hash de la respuesta."""
+
+    id: UUID
+    email: str
+    password_hash: str
 
 
 @dataclass(frozen=True)
@@ -75,6 +86,19 @@ class AnalysisContext:
     profile: CardiovascularProfile
     prediction: Prediction
     explanation: Explanation
+    owner_id: UUID | None = None
+
+
+@dataclass(frozen=True)
+class AnalysisHistoryEntry:
+    """Resultado persistido para mostrarlo en el historial del usuario."""
+
+    analysis_id: UUID
+    probability: float
+    classification: int
+    threshold: float
+    model_version: str
+    created_at: datetime
 
 
 @dataclass(frozen=True)
