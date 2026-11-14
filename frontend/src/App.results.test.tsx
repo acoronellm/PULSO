@@ -1,8 +1,14 @@
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("./services/api", () => ({
   analyzeProfile: vi.fn(),
+  clearAccessToken: vi.fn(),
+  getAccessToken: vi.fn(() => "test-access-token"),
+  getAnalysisHistory: vi.fn(),
+  getCurrentUser: vi.fn(() => Promise.resolve({ id: "user-1", email: "test@example.com" })),
+  login: vi.fn(),
+  register: vi.fn(),
   requestRecommendations: vi.fn(),
   simulateScenario: vi.fn(),
 }));
@@ -10,12 +16,20 @@ vi.mock("./services/api", () => ({
 import App from "./App";
 import {
   analyzeProfile as analyzeProfileApi,
+  getAnalysisHistory as getAnalysisHistoryApi,
+  getAccessToken as getAccessTokenApi,
+  getCurrentUser as getCurrentUserApi,
+  login as loginApi,
   requestRecommendations as requestRecommendationsApi,
   simulateScenario as simulateScenarioApi,
 } from "./services/api";
 import type { AnalysisResponse, Prediction, RequestOptions, SimulationResponse } from "./types/pulso";
 
 const analyzeProfile = vi.mocked(analyzeProfileApi);
+const getAnalysisHistory = vi.mocked(getAnalysisHistoryApi);
+const getAccessToken = vi.mocked(getAccessTokenApi);
+const getCurrentUser = vi.mocked(getCurrentUserApi);
+const login = vi.mocked(loginApi);
 const requestRecommendations = vi.mocked(requestRecommendationsApi);
 const simulateScenario = vi.mocked(simulateScenarioApi);
 
@@ -53,6 +67,7 @@ function analysis(prediction: TestPrediction): AnalysisResponse {
 async function analyze(prediction: TestPrediction) {
   analyzeProfile.mockResolvedValueOnce(analysis(prediction));
   render(<App />);
+  await screen.findByRole("heading", { name: /completa tu evaluación/i });
 
   (Object.entries(profile) as [keyof typeof labels, string][]).forEach(([name, value]) => {
     fireEvent.change(screen.getByLabelText(labels[name]), { target: { value } });
@@ -64,20 +79,108 @@ async function analyze(prediction: TestPrediction) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getAccessToken.mockReturnValue("test-access-token");
+  getAnalysisHistory.mockResolvedValue({
+    items: [],
+    limit: 20,
+    offset: 0,
+    has_more: false,
+  });
+  getCurrentUser.mockResolvedValue({ id: "user-1", email: "test@example.com" });
 });
 
-describe("acceso y alcance de PULSO v1", () => {
-  it("abre directamente la evaluación, sin login ni historial", () => {
+describe("autenticación", () => {
+  it("solicita iniciar sesión si no hay un token guardado", async () => {
+    getAccessToken.mockReturnValue(null);
     render(<App />);
 
-    expect(screen.getByRole("heading", { name: /completa tu evaluación/i })).toBeInTheDocument();
-    expect(screen.queryByText(/iniciar sesión/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/historial/i)).not.toBeInTheDocument();
-    expect(screen.getByLabelText(labels.edad)).toHaveValue(null);
+    expect(await screen.findByRole("heading", { name: /bienvenido a pulso/i })).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /iniciar sesión/i })).toHaveLength(2);
+    expect(getCurrentUser).not.toHaveBeenCalled();
   });
 
-  it("no permite abrir el resultado antes de un análisis real", () => {
+  it("abre la evaluación autenticada y permite cerrar sesión", async () => {
     render(<App />);
+
+    expect(await screen.findByRole("heading", { name: /completa tu evaluación/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /cerrar sesión/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Historial" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /cerrar sesión/i }));
+    expect(await screen.findByRole("heading", { name: /bienvenido a pulso/i })).toBeInTheDocument();
+  });
+
+  it.each(["logout", "unauthorized"] as const)(
+    "limpia el formulario al terminar la sesión por %s",
+    async (sessionEnd) => {
+      login.mockResolvedValue({
+        access_token: "new-access-token",
+        token_type: "bearer",
+        expires_in: 3600,
+        user: { id: "user-2", email: "other@example.com" },
+      });
+      render(<App />);
+      await screen.findByRole("heading", { name: /completa tu evaluación/i });
+
+      (Object.entries(profile) as [keyof typeof labels, string][]).forEach(([name, value]) => {
+        fireEvent.change(screen.getByLabelText(labels[name]), { target: { value } });
+      });
+
+      if (sessionEnd === "logout") {
+        fireEvent.click(screen.getByRole("button", { name: /cerrar sesión/i }));
+      } else {
+        act(() => window.dispatchEvent(new Event("pulso:unauthorized")));
+      }
+
+      await screen.findByRole("heading", { name: /bienvenido a pulso/i });
+      fireEvent.change(screen.getByLabelText("Correo electrónico"), {
+        target: { value: "other@example.com" },
+      });
+      fireEvent.change(screen.getByLabelText("Contraseña"), {
+        target: { value: "password-for-test" },
+      });
+      const loginButtons = screen.getAllByRole("button", { name: "Iniciar sesión" });
+      fireEvent.click(loginButtons[loginButtons.length - 1]);
+
+      await screen.findByRole("heading", { name: /completa tu evaluación/i });
+      Object.values(labels).forEach((label) => {
+        expect(screen.getByLabelText(label)).toHaveValue(null);
+      });
+    }
+  );
+
+  describe("historial de análisis", () => {
+    it("muestra solo fecha y resultado y permite paginar", async () => {
+      getAnalysisHistory.mockResolvedValueOnce({
+        items: [{
+          analysis_id: "analysis-1",
+          created_at: "2026-11-12T10:00:00Z",
+          prediction: {
+            probability: 0.35,
+            classification: 0,
+            threshold: 0.38,
+            model_version: "v1",
+          },
+        }],
+        limit: 20,
+        offset: 0,
+        has_more: true,
+      });
+      render(<App />);
+      await screen.findByRole("heading", { name: /completa tu evaluación/i });
+
+      fireEvent.click(screen.getByRole("link", { name: "Historial" }));
+
+      expect(await screen.findByText("35,0%")).toBeInTheDocument();
+      expect(screen.queryByText(/Perfil evaluado/)).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole("button", { name: /cargar más resultados/i }));
+      await waitFor(() => expect(getAnalysisHistory).toHaveBeenLastCalledWith(20, 1));
+    });
+  });
+
+  it("no permite abrir el resultado antes de un análisis real", async () => {
+    render(<App />);
+    await screen.findByRole("heading", { name: /completa tu evaluación/i });
 
     fireEvent.click(screen.getByRole("link", { name: "Resultado" }));
 
@@ -178,8 +281,9 @@ describe("recomendaciones RAG", () => {
 });
 
 describe("simulación de escenarios", () => {
-  it("pide calcular primero un resultado si no hay análisis", () => {
+  it("pide calcular primero un resultado si no hay análisis", async () => {
     render(<App />);
+    await screen.findByRole("heading", { name: /completa tu evaluación/i });
 
     fireEvent.click(screen.getByRole("link", { name: "Simulación" }));
 

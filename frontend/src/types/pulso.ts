@@ -16,6 +16,18 @@ export interface UserData {
   bmi: number;
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: "bearer";
+  expires_in: number;
+  user: AuthUser;
+}
+
 export type Feature = keyof UserData;
 
 export interface Prediction {
@@ -38,6 +50,19 @@ export interface AnalysisResponse {
   shap: {
     top_factors: ShapFactor[];
   };
+}
+
+export interface AnalysisHistoryItem {
+  analysis_id: string;
+  created_at: string;
+  prediction: Prediction;
+}
+
+export interface AnalysisHistoryResponse {
+  items: AnalysisHistoryItem[];
+  limit: number;
+  offset: number;
+  has_more: boolean;
 }
 
 export interface RagRequest {

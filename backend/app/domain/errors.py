@@ -30,3 +30,11 @@ class ModelServiceError(ExternalServiceError):
 
 class RecommendationServiceError(ExternalServiceError):
     """Fallo del servicio de recomendaciones educativas (RAG)."""
+
+
+class EmailAlreadyRegisteredError(DomainError):
+    """Ya existe una cuenta con ese correo electrónico."""
+
+
+class InvalidCredentialsError(DomainError):
+    """El correo o la contraseña no son válidos."""

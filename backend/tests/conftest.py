@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from uuid import UUID
+
 import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.domain.entities import (
     AnalysisContext,
+    AuthUser,
     CardiovascularProfile,
     DocumentSource,
     Explanation,
@@ -20,6 +23,9 @@ from backend.app.domain.entities import (
     SourceLines,
 )
 from backend.app.infrastructure.in_memory_analysis_repository import InMemoryAnalysisRepository
+from backend.app.infrastructure.in_memory_analysis_history_repository import (
+    InMemoryAnalysisHistoryRepository,
+)
 from backend.app.interfaces.http import dependencies
 from backend.app.main import create_app
 
@@ -135,6 +141,11 @@ def repository() -> InMemoryAnalysisRepository:
 
 
 @pytest.fixture
+def history_repository() -> InMemoryAnalysisHistoryRepository:
+    return InMemoryAnalysisHistoryRepository()
+
+
+@pytest.fixture
 def model() -> FakeModel:
     return FakeModel()
 
@@ -145,10 +156,18 @@ def recommendations() -> FakeRecommendations:
 
 
 @pytest.fixture
-def client(repository, model, recommendations):
+def client(repository, history_repository, model, recommendations):
     """API real con los puertos reemplazados por dobles de prueba."""
     app = create_app()
     app.dependency_overrides[dependencies.get_analysis_repository] = lambda: repository
+    app.dependency_overrides[dependencies.get_analysis_history_repository] = (
+        lambda: history_repository
+    )
     app.dependency_overrides[dependencies.get_cardiovascular_model] = lambda: model
     app.dependency_overrides[dependencies.get_recommendation_generator] = lambda: recommendations
+    app.dependency_overrides[dependencies.get_current_user] = lambda: AuthUser(
+        id=UUID("00000000-0000-4000-8000-000000000001"),
+        email="test@example.com",
+        password_hash="",
+    )
     return TestClient(app)

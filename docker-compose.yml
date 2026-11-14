@@ -1,5 +1,24 @@
 services:
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: pulso-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pulso}
+      POSTGRES_USER: ${POSTGRES_USER:-pulso}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pulso_dev_password}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pulso-postgres-data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   ml-service:
     build:
       context: .
@@ -37,16 +56,22 @@ services:
       ML_SERVICE_URL: http://ml-service:8001
       ML_TIMEOUT_SECONDS: 30
 
-      RAG_SERVICE_URL: ${RAG_SERVICE_URL}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-pulso}:${POSTGRES_PASSWORD:-pulso_dev_password}@postgres:5432/${POSTGRES_DB:-pulso}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-60}
+
+      RAG_SERVICE_URL: ${RAG_SERVICE_URL:-}
       RAG_TIMEOUT_SECONDS: 30
       ANALYSIS_CACHE_TTL_SECONDS: 900
       ANALYSIS_CACHE_MAX_ENTRIES: 100
 
     ports:
-        - "127.0.0.1:8000:8000"
+      - "127.0.0.1:8000:8000"
 
     depends_on:
       ml-service:
+        condition: service_healthy
+      postgres:
         condition: service_healthy
 
   frontend:
@@ -77,3 +102,6 @@ services:
       - backend
 
     restart: unless-stopped
+
+volumes:
+  pulso-postgres-data:

@@ -1,5 +1,4 @@
-// Pantallas de PULSO v1: no hay cuentas ni historial
-export type View = "evaluacion" | "resultado" | "simulacion";
+export type View = "evaluacion" | "resultado" | "simulacion" | "historial";
 
 export type Navigate = (path: View) => void;
 

@@ -1,6 +1,6 @@
 import time
 from dataclasses import replace
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import pytest
 
@@ -52,3 +52,14 @@ def test_repository_rejects_invalid_limits():
         InMemoryAnalysisRepository(ttl_seconds=0, max_entries=1)
     with pytest.raises(ValueError):
         InMemoryAnalysisRepository(ttl_seconds=1, max_entries=0)
+
+
+def test_repository_hides_analysis_from_other_users():
+    repository = InMemoryAnalysisRepository(ttl_seconds=60, max_entries=2)
+    owner_id = uuid4()
+    analysis_id = repository.save(replace(CONTEXT, owner_id=owner_id))
+
+    with pytest.raises(AnalysisNotFoundError):
+        repository.get(analysis_id, uuid4())
+
+    assert repository.get(analysis_id, owner_id).owner_id == owner_id
