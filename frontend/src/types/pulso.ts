@@ -47,13 +47,42 @@ export interface RagRequest {
 export interface RagSource {
   source_id: string;
   source: string;
-  score: number;
-  lines: {
+  author?: string | null;
+  publication_year?: number | null;
+  source_url?: string | null;
+  pdf_url?: string | null;
+  score?: number | null;
+  lines?: {
     from: number;
     to: number;
-  };
-  // Aún no lo envía el RAG; se admite para la actualización con URLs documentales
-  url?: string;
+  } | null;
+  // Compatibilidad con referencias anteriores.
+  url?: string | null;
+}
+
+export interface RagRecommendation {
+  factor: string;
+  recommendation: string;
+  source_ids?: string[];
+  sources?: RagSource[];
+}
+
+export interface RagFactorExplanation {
+  query_group: string;
+  factor: string;
+  features: string[];
+  explanation: string;
+  source_ids: string[];
+  sources: RagSource[];
+}
+
+export interface RagResponse {
+  summary: string;
+  recommendations: RagRecommendation[];
+  factor_explanations: RagFactorExplanation[];
+  considerations: string;
+  note: string;
+  insufficient_information: boolean;
 }
 
 export interface RagRecommendation {

@@ -6,11 +6,11 @@ from dataclasses import asdict
 from typing import Optional
 
 import httpx
-from pydantic import BaseModel, Field
-
+from pydantic import BaseModel, Field, model_validator
 from ..domain.entities import (
     AnalysisContext,
     DocumentSource,
+    FactorExplanation,
     Recommendation,
     RecommendationReport,
     SourceLines,
@@ -27,8 +27,29 @@ class _SourceLinesContract(BaseModel):
 class _SourceContract(BaseModel):
     source_id: str
     source: str
-    score: float
-    lines: _SourceLinesContract
+    author: str | None = None
+    publication_year: int | None = None
+    source_url: str | None = None
+    pdf_url: str | None = None
+    score: float | None = None
+    lines: _SourceLinesContract | None = None
+
+
+def _validate_source_references(
+    source_ids: list[str],
+    sources: list[_SourceContract],
+) -> None:
+    """Comprueba que las referencias citadas existan entre las fuentes adjuntas."""
+
+    available_ids = {source.source_id for source in sources}
+
+    missing_ids = set(source_ids) - available_ids
+
+    if missing_ids:
+        raise ValueError(
+            "La respuesta RAG contiene identificadores de fuentes "
+            "sin metadatos documentales asociados."
+        )
 
 
 class _RecommendationContract(BaseModel):
@@ -37,10 +58,40 @@ class _RecommendationContract(BaseModel):
     source_ids: list[str] = Field(default_factory=list)
     sources: list[_SourceContract] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def validate_sources(self):
+        _validate_source_references(
+            self.source_ids,
+            self.sources,
+        )
+        return self
+
+
+class _FactorExplanationContract(BaseModel):
+    query_group: str
+    factor: str
+    features: list[str] = Field(default_factory=list)
+    explanation: str
+    source_ids: list[str] = Field(default_factory=list)
+    sources: list[_SourceContract] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def validate_sources(self):
+        _validate_source_references(
+            self.source_ids,
+            self.sources,
+        )
+        return self
+
 
 class _ReportContract(BaseModel):
     summary: str
-    recommendations: list[_RecommendationContract] = Field(default_factory=list)
+    recommendations: list[_RecommendationContract] = Field(
+        default_factory=list,
+        max_length=3,
+    )
+    factor_explanations: list[_FactorExplanationContract] = Field(
+        default_factory=list)
     considerations: str
     note: str
     insufficient_information: bool
@@ -59,7 +110,8 @@ class N8nRecommendationClient:
 
     async def generate(self, context: AnalysisContext) -> RecommendationReport:
         if not self._url:
-            raise RecommendationServiceError("RAG_SERVICE_URL no está configurado.")
+            raise RecommendationServiceError(
+                "RAG_SERVICE_URL no está configurado.")
 
         try:
             async with httpx.AsyncClient(
@@ -110,6 +162,26 @@ def _request_payload(context: AnalysisContext) -> dict:
     }
 
 
+def _source_to_domain(source: _SourceContract) -> DocumentSource:
+    return DocumentSource(
+        source_id=source.source_id,
+        source=source.source,
+        author=source.author,
+        publication_year=source.publication_year,
+        source_url=source.source_url,
+        pdf_url=source.pdf_url,
+        score=source.score,
+        lines=(
+            SourceLines(
+                start=source.lines.from_,
+                end=source.lines.to,
+            )
+            if source.lines is not None
+            else None
+        ),
+    )
+
+
 def _to_domain(report: _ReportContract) -> RecommendationReport:
     return RecommendationReport(
         summary=report.summary,
@@ -122,15 +194,24 @@ def _to_domain(report: _ReportContract) -> RecommendationReport:
                 recommendation=item.recommendation,
                 source_ids=tuple(item.source_ids),
                 sources=tuple(
-                    DocumentSource(
-                        source_id=source.source_id,
-                        source=source.source,
-                        score=source.score,
-                        lines=SourceLines(start=source.lines.from_, end=source.lines.to),
-                    )
+                    _source_to_domain(source)
                     for source in item.sources
                 ),
             )
             for item in report.recommendations
+        ),
+        factor_explanations=tuple(
+            FactorExplanation(
+                query_group=item.query_group,
+                factor=item.factor,
+                features=tuple(item.features),
+                explanation=item.explanation,
+                source_ids=tuple(item.source_ids),
+                sources=tuple(
+                    _source_to_domain(source)
+                    for source in item.sources
+                ),
+            )
+            for item in report.factor_explanations
         ),
     )
