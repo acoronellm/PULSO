@@ -342,12 +342,12 @@ describe("recomendaciones RAG", () => {
       considerations: "",
       note: "",
       insufficient_information: true,
+      factor_explanations: [],
     });
 
-    fireEvent.click(screen.getByRole("button", { name: /solicitar recomendaciones/i }));
+    fireEvent.click(screen.getByRole("button", { name: /consultar información educativa/i }));
 
-    expect(await screen.findByText(/no fue suficiente para generar recomendaciones/)).toBeInTheDocument();
-    expect(requestRecommendations).toHaveBeenCalledWith(
+    expect(await screen.findByText(/no permitió obtener explicaciones ni recomendaciones educativas válidas/i)).toBeInTheDocument(); expect(requestRecommendations).toHaveBeenCalledWith(
       { analysis_id: "00000000-0000-0000-0000-000000000001" },
       expect.any(Object)
     );

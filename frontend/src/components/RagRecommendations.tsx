@@ -7,19 +7,57 @@ import type { RagResponse, RagSource } from "../types/pulso";
 function safeUrl(url: unknown): string | null {
   return typeof url === "string" && /^https?:\/\//i.test(url) ? url : null;
 }
+function uniqueDocuments(sources: RagSource[]): RagSource[] {
+  const seen = new Set<string>();
 
+  return sources.filter((source) => {
+    const documentKey = (
+      safeUrl(source.pdf_url) ??
+      safeUrl(source.source_url) ??
+      safeUrl(source.url) ??
+      `${source.source}|${source.author ?? ""}|${source.publication_year ?? ""}`
+    ).trim().toLowerCase();
+
+    if (seen.has(documentKey)) {
+      return false;
+    }
+
+    seen.add(documentKey);
+    return true;
+  });
+}
 function SourceItem({ source }: { source: RagSource }) {
-  const url = safeUrl(source.url);
-  const lines = source.lines ? ` · Líneas ${source.lines.from}–${source.lines.to}` : "";
+  const url =
+    safeUrl(source.pdf_url) ??
+    safeUrl(source.source_url) ??
+    safeUrl(source.url);
+
+  const metadata = [
+    source.author,
+    source.publication_year != null
+      ? String(source.publication_year)
+      : null,
+  ].filter(Boolean).join(" · ");
+
+
 
   return (
     <li className="flex items-start gap-1.5">
-      <span className="material-symbols-outlined text-primary text-[16px] shrink-0 mt-0.5">
+      <span
+        className="material-symbols-outlined text-primary text-[16px] shrink-0 mt-0.5"
+        aria-hidden="true"
+      >
         bookmark
       </span>
-      <span>
+
+      <div className="min-w-0">
         {url ? (
-          <a className="font-semibold text-primary hover:underline" href={url} rel="noopener noreferrer" target="_blank">
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold text-primary hover:underline break-words"
+          >
             {source.source}
           </a>
         ) : (
@@ -27,19 +65,36 @@ function SourceItem({ source }: { source: RagSource }) {
             {source.source}
           </span>
         )}
-        <span className="text-on-surface-variant">
-          {`${lines}`}
-        </span>
-      </span>
+
+        {metadata && (
+          <p className="text-on-surface-variant text-sm">
+            {metadata}
+          </p>
+        )}
+
+
+      </div>
     </li>
   );
 }
 
 function uniqueSources(rag: RagResponse | null): RagSource[] {
-  const sources = (rag?.recommendations || []).flatMap((item) => item.sources || []);
-  return sources.filter(
-    (source, index) => sources.findIndex((other) => other.source_id === source.source_id) === index
+  if (!rag) return [];
+
+  const recommendationSources = rag.recommendations.flatMap(
+    (item) => item.sources ?? []
   );
+
+  const explanationSources = (
+    rag.factor_explanations ?? []
+  ).flatMap(
+    (item) => item.sources ?? []
+  );
+
+  return uniqueDocuments([
+    ...explanationSources,
+    ...recommendationSources,
+  ]);
 }
 
 export function RagSources({ rag }: { rag: RagResponse | null }) {
@@ -64,6 +119,85 @@ export function RagSources({ rag }: { rag: RagResponse | null }) {
   );
 }
 
+export function RagFactorExplanations({
+  rag,
+}: {
+  rag: RagResponse | null;
+}) {
+  const explanations = rag?.factor_explanations ?? [];
+
+  if (explanations.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      className="mt-space-xl"
+      aria-labelledby="rag-explanations-title"
+      data-testid="rag-factor-explanations"
+    >
+      <div className="mb-space-md">
+        <span className="font-label-sm uppercase font-semibold text-secondary tracking-wider">
+          Información educativa
+        </span>
+
+        <h2
+          id="rag-explanations-title"
+          className="font-headline-md text-headline-md text-on-surface font-semibold"
+        >
+          Comprende los factores de tu resultado
+        </h2>
+
+        <p className="font-body-md text-on-surface-variant mt-2">
+          Estas explicaciones describen la relación general
+          de los factores con la salud cardiovascular.
+          No representan causas individuales de enfermedad.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+        {explanations.map((item) => (
+          <article
+            key={item.query_group}
+            className="bg-surface-container-lowest rounded-xl shadow-sm p-space-lg flex flex-col gap-space-md"
+          >
+            <div>
+              <h3 className="font-headline-sm text-on-surface font-semibold">
+                {item.factor}
+              </h3>
+
+              <p className="font-body-md text-on-surface-variant mt-space-sm leading-relaxed whitespace-pre-line">
+                {item.explanation}
+              </p>
+            </div>
+
+            <div className="border-t border-surface-container pt-space-sm mt-auto">
+              <h4 className="font-label-sm text-on-surface font-semibold mb-space-sm">
+                Fuentes de esta explicación
+              </h4>
+
+              {item.sources.length > 0 ? (
+                <ul className="flex flex-col gap-2 font-label-sm">
+                  {uniqueDocuments(item.sources).map((source) => (
+                    <SourceItem
+                      key={source.source_id}
+                      source={source}
+                    />
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-on-surface-variant text-sm">
+                  No se adjuntaron fuentes documentales.
+                </p>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 interface RagRecommendationsProps {
   rag: RagResponse | null;
   loading: boolean;
@@ -83,11 +217,10 @@ export default function RagRecommendations({ rag, loading, error, onRequest }: R
           </div>
           <div>
             <h3 className="font-headline-sm text-headline-sm text-on-surface font-semibold">
-              Información preventiva para este análisis
+              Información educativa personalizada
             </h3>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-              Solicita recomendaciones educativas basadas en este análisis, sus factores explicativos y la documentación disponible.
-            </p>
+              Consulta explicaciones sobre los factores de tu resultado y recomendaciones preventivas basadas en fuentes documentales.            </p>
             {error && (
               <p className="font-label-md text-error mt-2" role="alert">
                 {error}
@@ -100,8 +233,7 @@ export default function RagRecommendations({ rag, loading, error, onRequest }: R
             {loading ? "hourglass_top" : "auto_awesome"}
           </span>
           <span>
-            {loading ? "Consultando recomendaciones..." : "Solicitar recomendaciones"}
-          </span>
+            {loading ? "Consultando información educativa..." : "Consultar información educativa"}          </span>
         </button>
       </div>
     );
@@ -115,20 +247,13 @@ export default function RagRecommendations({ rag, loading, error, onRequest }: R
             info
           </span>
           <p className="font-body-md text-body-md text-on-surface">
-            La documentación disponible no fue suficiente para generar recomendaciones específicas para este perfil. Se muestra la información general que pudo recuperarse.
+            La información documental disponible no permitió obtener
+            explicaciones ni recomendaciones educativas válidas
+            para este análisis.
           </p>
         </div>
       )}
-      {rag.summary && (
-        <div className="md:col-span-3 bg-surface-container-lowest rounded-xl shadow-sm p-space-md">
-          <span className="font-label-sm uppercase font-semibold text-secondary tracking-wider">
-            Resumen
-          </span>
-          <p className="font-body-lg text-body-lg text-on-surface mt-1">
-            {rag.summary}
-          </p>
-        </div>
-      )}
+
       {rag.recommendations?.map((item, index) => (
         <div className="bg-surface-container-lowest rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col" key={index}>
           <div className="p-space-md flex-1 flex flex-col justify-between">
@@ -146,7 +271,7 @@ export default function RagRecommendations({ rag, loading, error, onRequest }: R
             <div className="mt-space-md bg-surface-container-low p-2.5 rounded-lg font-label-sm">
               {item.sources?.length ? (
                 <ul className="flex flex-col gap-1">
-                  {item.sources.map((source) => (
+                  {uniqueDocuments(item.sources).map((source) => (
                     <SourceItem key={source.source_id} source={source} />
                   ))}
                 </ul>

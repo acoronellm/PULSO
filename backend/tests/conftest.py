@@ -47,7 +47,8 @@ PREDICTION = Prediction(
 
 EXPLANATION = Explanation(
     top_factors=(
-        ShapFactor(feature="ap_hi", value=150, shap_value=0.44, direction="increase"),
+        ShapFactor(feature="ap_hi", value=150,
+                   shap_value=0.44, direction="increase"),
     )
 )
 
@@ -89,7 +90,8 @@ class FakeModel:
     def __init__(self, error: Exception | None = None):
         self.error = error
         self.calls: list[str] = []
-        self.simulated_with: tuple[CardiovascularProfile, ScenarioChanges] | None = None
+        self.simulated_with: tuple[CardiovascularProfile,
+                                   ScenarioChanges] | None = None
 
     async def predict(self, profile: CardiovascularProfile) -> Prediction:
         self.calls.append("predict")
@@ -118,15 +120,22 @@ class FakeModel:
 class FakeRecommendations:
     """Implementación en memoria del puerto RecommendationGenerator."""
 
-    def __init__(self, error: Exception | None = None):
+    def __init__(
+        self,
+        error: Exception | None = None,
+        report: RecommendationReport | None = None,
+    ):
         self.error = error
+        self.report = report if report is not None else REPORT
         self.received: AnalysisContext | None = None
 
     async def generate(self, context: AnalysisContext) -> RecommendationReport:
         self.received = context
+
         if self.error:
             raise self.error
-        return REPORT
+
+        return self.report
 
 
 @pytest.fixture
