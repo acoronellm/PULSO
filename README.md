@@ -13,37 +13,38 @@ PULSO está desarrollado como un Producto Mínimo Viable (MVP) de carácter acad
 
 ---
 
+
 ## 1. Versión de entrega académica
 
-La versión correspondiente a esta entrega se encuentra en la rama:
-
-**`Informe_Backend`**
+La versión correspondiente a esta entrega académica se encuentra en la rama principal `main` del repositorio PULSO.
 
 Repositorio:
 
 https://github.com/acoronellm/PULSO
 
-Rama de entrega:
+La versión específica evaluada se identifica mediante el tag `entrega-1`, que permite consultar el estado exacto del código y la documentación correspondiente a la entrega.
 
-https://github.com/acoronellm/PULSO/tree/Informe_Backend
-
-Esta rama contiene las funcionalidades y los documentos preparados para la evaluación académica.
-
-La rama `main` se mantiene separada y no debe confundirse con esta versión de entrega.
-
-Para descargar directamente la versión correcta:
+Para descargar el repositorio:
 
 ```powershell
-git clone --branch Informe_Backend --single-branch https://github.com/acoronellm/PULSO.git
+git clone https://github.com/acoronellm/PULSO.git
 ```
 
-Ingresar al directorio:
+Ingresar al directorio del proyecto:
 
 ```powershell
 cd PULSO
 ```
 
-**Importante:** todos los procedimientos de instalación descritos a continuación deben ejecutarse desde la raíz del proyecto.
+Para consultar específicamente la versión etiquetada de la entrega, una vez publicado el tag:
+
+```powershell
+git fetch --tags
+git switch --detach entrega-1
+```
+
+El tag conserva la referencia a la versión evaluada, incluso cuando posteriormente se introduzcan nuevos cambios en `main`.
+
 
 ---
 
@@ -187,19 +188,31 @@ Si alguno de estos puertos ya está ocupado, será necesario liberar el puerto o
 
 ## 5. Instalación desde cero
 
-### Paso 1. Clonar la rama correcta
 
-Abrir PowerShell:
+### Paso 1. Clonar el repositorio
+
+Abrir PowerShell y ejecutar:
 
 ```powershell
-git clone --branch Informe_Backend --single-branch https://github.com/acoronellm/PULSO.git
+git clone https://github.com/acoronellm/PULSO.git
 ```
 
-Ingresar al proyecto:
+Ingresar al directorio:
 
 ```powershell
 cd PULSO
 ```
+
+Por defecto, se utilizará la rama principal configurada en GitHub (`main`).
+
+Si se requiere reproducir exactamente la versión de la Entrega 1, ejecutar:
+
+```powershell
+git fetch --tags
+git switch --detach entrega-1
+```
+
+Los pasos siguientes de configuración y ejecución mediante Docker Compose se realizan desde la raíz del repositorio.
 
 ### Paso 2. Crear el archivo de configuración
 
@@ -319,7 +332,7 @@ Archivo:
 artifacts/final/model/pulso_xgboost.joblib
 ```
 
-Este archivo está incluido en la rama `Informe_Backend` del repositorio.
+Este archivo está incluido en el repositorio PULSO y se distribuye junto con el código fuente de la aplicación.
 
 **No es necesario volver a entrenar el modelo para ejecutar la aplicación.**
 
@@ -720,7 +733,7 @@ Verificar que exista:
 artifacts/final/model/pulso_xgboost.joblib
 ```
 
-El modelo está incluido en la rama `Informe_Backend`.
+El modelo XGBoost entrenado está incluido en el repositorio y no necesita descargarse ni entrenarse nuevamente.
 
 Comprobar también el montaje de `artifacts/` en Docker Compose.
 
@@ -832,6 +845,14 @@ Esta versión de PULSO incluye:
 
 Para una demostración completa deben estar operativos los contenedores y el servicio RAG externo.
 
-**Rama de evaluación académica: `Informe_Backend`.**
 
-**Repositorio: https://github.com/acoronellm/PULSO**
+La versión correspondiente a la Entrega 1 se integra en la rama principal `main` mediante Pull Request.
+
+El tag `entrega-1` identifica el commit seleccionado para la evaluación académica y permite consultar posteriormente esa versión sin alterar el historial de Git.
+
+**Repositorio:** https://github.com/acoronellm/PULSO
+
+**Rama principal:** `main`
+
+**Referencia de entrega:** `entrega-1`
+
