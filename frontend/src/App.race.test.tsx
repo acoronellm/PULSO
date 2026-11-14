@@ -101,7 +101,7 @@ describe("recommendation request consistency", () => {
     await screen.findByText("Tu resultado: 35,0 %");
     fireEvent.click(
       screen.getByRole("button", {
-        name: /solicitar recomendaciones/i,
+        name: /consultar información educativa/i,
       })
     );
     await waitFor(() => expect(recommendationRequests).toHaveLength(1));
@@ -121,6 +121,7 @@ describe("recommendation request consistency", () => {
       considerations: "",
       note: "",
       insufficient_information: false,
+      factor_explanations: [],
     });
 
     await waitFor(() => {
@@ -129,7 +130,7 @@ describe("recommendation request consistency", () => {
       ).not.toBeInTheDocument();
     });
     expect(
-      screen.getByRole("button", { name: /solicitar recomendaciones/i })
+      screen.getByRole("button", { name: /consultar información educativa/i })
     ).toBeInTheDocument();
   });
 });

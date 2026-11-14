@@ -5,7 +5,11 @@ from backend.app.domain.errors import (
     ModelServiceError,
     RecommendationServiceError,
 )
-
+from backend.app.domain.entities import (
+    DocumentSource,
+    FactorExplanation,
+    RecommendationReport,
+)
 from conftest import PROFILE_PAYLOAD
 
 SIMULATION_PAYLOAD = {"original": PROFILE_PAYLOAD, "changes": {"weight": 80}}
@@ -31,7 +35,8 @@ def test_analyze_returns_prediction_and_shap_without_rag(client):
 
 
 def test_analyze_returns_422_for_inconsistent_profile(client):
-    response = client.post("/api/analyze", json={**PROFILE_PAYLOAD, "ap_hi": 80, "ap_lo": 90})
+    response = client.post(
+        "/api/analyze", json={**PROFILE_PAYLOAD, "ap_hi": 80, "ap_lo": 90})
 
     assert response.status_code == 422
     assert "ap_hi debe ser mayor que ap_lo" in response.text
@@ -47,7 +52,8 @@ def test_analyze_returns_502_on_model_error(client, model):
 
 
 def test_rag_uses_stored_analysis_without_running_the_model(client, model, recommendations):
-    analysis_id = client.post("/api/analyze", json=PROFILE_PAYLOAD).json()["analysis_id"]
+    analysis_id = client.post(
+        "/api/analyze", json=PROFILE_PAYLOAD).json()["analysis_id"]
     model.calls.clear()
 
     response = client.post("/api/rag", json={"analysis_id": analysis_id})
@@ -55,10 +61,98 @@ def test_rag_uses_stored_analysis_without_running_the_model(client, model, recom
     assert response.status_code == 200
     body = response.json()
     assert body["summary"] == "Resumen de prueba."
-    assert body["recommendations"][0]["sources"][0]["lines"] == {"from": 20, "to": 26}
+    assert body["recommendations"][0]["sources"][0]["lines"] == {
+        "from": 20, "to": 26}
     assert recommendations.received.profile.ap_hi == 150
     assert model.calls == []
 
+def test_rag_exposes_factor_explanations_and_public_sources(client, recommendations):
+    source = DocumentSource(
+        source_id="SOURCE_3",
+        source="Documento sobre presión arterial",
+        author="American Heart Association",
+        publication_year=2025,
+        source_url="https://example.org/documento",
+        pdf_url=None,
+        score=None,
+        lines=None,
+    )
+
+    recommendations.report = RecommendationReport(
+        summary="Resumen de prueba.",
+        considerations="Una medición aislada no confirma un diagnóstico.",
+        note="PULSO ofrece información educativa y preventiva.",
+        insufficient_information=False,
+        recommendations=(),
+        factor_explanations=(
+            FactorExplanation(
+                query_group="blood_pressure",
+                factor="presión arterial",
+                features=("ap_hi", "ap_lo"),
+                explanation="La presión arterial está relacionada con la salud cardiovascular.",
+                source_ids=("SOURCE_3",),
+                sources=(source,),
+            ),
+        ),
+    )
+
+    analysis_id = client.post(
+        "/api/analyze",
+        json=PROFILE_PAYLOAD,
+    ).json()["analysis_id"]
+
+    response = client.post(
+        "/api/rag",
+        json={"analysis_id": analysis_id},
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+
+    assert set(body) == {
+        "summary",
+        "recommendations",
+        "factor_explanations",
+        "considerations",
+        "note",
+        "insufficient_information",
+    }
+
+    assert body["recommendations"] == []
+    assert body["insufficient_information"] is False
+
+    assert len(body["factor_explanations"]) == 1
+
+    explanation = body["factor_explanations"][0]
+
+    assert explanation["query_group"] == "blood_pressure"
+    assert explanation["factor"] == "presión arterial"
+    assert explanation["features"] == ["ap_hi", "ap_lo"]
+    assert explanation["source_ids"] == ["SOURCE_3"]
+    assert explanation["explanation"] == (
+        "La presión arterial está relacionada con la salud cardiovascular."
+    )
+
+    assert explanation["sources"] == [
+        {
+            "source_id": "SOURCE_3",
+            "source": "Documento sobre presión arterial",
+            "author": "American Heart Association",
+            "publication_year": 2025,
+            "source_url": "https://example.org/documento",
+            "pdf_url": None,
+            "score": None,
+            "lines": None,
+        }
+    ]
+
+    assert body["considerations"] == (
+        "Una medición aislada no confirma un diagnóstico."
+    )
+
+    assert "retrieval_evaluation" not in body
+    assert "validation_audit" not in body
 
 def test_rag_returns_404_for_unknown_analysis(client):
     response = client.post(
@@ -71,7 +165,8 @@ def test_rag_returns_404_for_unknown_analysis(client):
 
 
 def test_rag_returns_502_on_rag_error(client, recommendations):
-    analysis_id = client.post("/api/analyze", json=PROFILE_PAYLOAD).json()["analysis_id"]
+    analysis_id = client.post(
+        "/api/analyze", json=PROFILE_PAYLOAD).json()["analysis_id"]
     recommendations.error = RecommendationServiceError(
         "No fue posible comunicarse con el servicio RAG."
     )
@@ -79,7 +174,8 @@ def test_rag_returns_502_on_rag_error(client, recommendations):
     response = client.post("/api/rag", json={"analysis_id": analysis_id})
 
     assert response.status_code == 502
-    assert response.json()["detail"] == "No fue posible comunicarse con el servicio RAG."
+    assert response.json()[
+        "detail"] == "No fue posible comunicarse con el servicio RAG."
 
 
 def test_simulate_returns_model_outcome(client, model):
@@ -98,19 +194,22 @@ def test_simulate_returns_model_outcome(client, model):
 def test_simulate_rejects_invalid_payload(client):
     response = client.post(
         "/api/simulate",
-        json={"original": {**PROFILE_PAYLOAD, "ap_hi": 80, "ap_lo": 90}, "changes": {"weight": 80}},
+        json={"original": {**PROFILE_PAYLOAD, "ap_hi": 80,
+                           "ap_lo": 90}, "changes": {"weight": 80}},
     )
 
     assert response.status_code == 422
 
 
 def test_simulate_returns_422_on_invalid_scenario(client, model):
-    model.error = InvalidScenarioError("El escenario de simulación no es válido.")
+    model.error = InvalidScenarioError(
+        "El escenario de simulación no es válido.")
 
     response = client.post("/api/simulate", json=SIMULATION_PAYLOAD)
 
     assert response.status_code == 422
-    assert response.json()["detail"] == "El escenario de simulación no es válido."
+    assert response.json()[
+        "detail"] == "El escenario de simulación no es válido."
 
 
 def test_simulate_returns_502_on_model_error(client, model):

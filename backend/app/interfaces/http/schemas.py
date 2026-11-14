@@ -119,8 +119,12 @@ class RagSourceLines(BaseModel):
 class RagSource(BaseModel):
     source_id: str
     source: str
-    score: float
-    lines: RagSourceLines
+    author: str | None = None
+    publication_year: int | None = None
+    source_url: str | None = None
+    pdf_url: str | None = None
+    score: float | None = None
+    lines: RagSourceLines | None = None
 
 
 class RagRecommendation(BaseModel):
@@ -129,16 +133,43 @@ class RagRecommendation(BaseModel):
     source_ids: list[str] = Field(default_factory=list)
     sources: list[RagSource] = Field(default_factory=list)
 
+class RagFactorExplanation(BaseModel):
+    query_group: str
+    factor: str
+    features: list[str] = Field(default_factory=list)
+    explanation: str
+    source_ids: list[str] = Field(default_factory=list)
+    sources: list[RagSource] = Field(default_factory=list)
 
 class RagResponse(BaseModel):
     summary: str
     recommendations: list[RagRecommendation] = Field(default_factory=list)
+    factor_explanations: list[RagFactorExplanation] = Field(default_factory=list)
     considerations: str
     note: str
     insufficient_information: bool
 
     @classmethod
-    def from_domain(cls, report: RecommendationReport) -> RagResponse:
+    def from_domain(cls, report: RecommendationReport) -> "RagResponse":
+        def map_source(source) -> RagSource:
+            return RagSource(
+                source_id=source.source_id,
+                source=source.source,
+                author=source.author,
+                publication_year=source.publication_year,
+                source_url=source.source_url,
+                pdf_url=source.pdf_url,
+                score=source.score,
+                lines=(
+                    RagSourceLines(
+                        from_=source.lines.start,
+                        to=source.lines.end,
+                    )
+                    if source.lines is not None
+                    else None
+                ),
+            )
+
         return cls(
             summary=report.summary,
             considerations=report.considerations,
@@ -149,20 +180,22 @@ class RagResponse(BaseModel):
                     factor=item.factor,
                     recommendation=item.recommendation,
                     source_ids=list(item.source_ids),
-                    sources=[
-                        RagSource(
-                            source_id=source.source_id,
-                            source=source.source,
-                            score=source.score,
-                            lines=RagSourceLines(from_=source.lines.start, to=source.lines.end),
-                        )
-                        for source in item.sources
-                    ],
+                    sources=[map_source(source) for source in item.sources],
                 )
                 for item in report.recommendations
             ],
+            factor_explanations=[
+                RagFactorExplanation(
+                    query_group=item.query_group,
+                    factor=item.factor,
+                    features=list(item.features),
+                    explanation=item.explanation,
+                    source_ids=list(item.source_ids),
+                    sources=[map_source(source) for source in item.sources],
+                )
+                for item in report.factor_explanations
+            ],
         )
-
 
 # -------------------------
 # Simulación
