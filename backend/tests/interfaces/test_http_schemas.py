@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from backend.app.interfaces.http.schemas import RagResponse, UserData
+from backend.app.interfaces.http.schemas import RagResponse, UserData, SimulationRequest
 
 from conftest import PROFILE, PROFILE_PAYLOAD, REPORT
 
@@ -26,3 +26,11 @@ def test_rag_response_keeps_the_frontend_contract():
     source = body["recommendations"][0]["sources"][0]
     assert source["lines"] == {"from": 20, "to": 26}
     assert body["recommendations"][0]["source_ids"] == ["SOURCE_1"]
+
+
+def test_simulation_rejects_inconsistent_blood_pressure():
+    with pytest.raises(ValidationError, match="ap_hi debe ser mayor que ap_lo"):
+        SimulationRequest(
+            original=PROFILE_PAYLOAD,
+            changes={"ap_hi": 80, "ap_lo": 90},
+        )
