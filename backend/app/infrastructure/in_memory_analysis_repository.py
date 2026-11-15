@@ -42,11 +42,7 @@ class InMemoryAnalysisRepository:
 
         return analysis_id
 
-    def get(
-        self,
-        analysis_id: UUID,
-        owner_id: UUID | None = None,
-    ) -> AnalysisContext:
+    def get(self, analysis_id: UUID) -> AnalysisContext:
         key = str(analysis_id)
 
         with self._lock:
@@ -57,9 +53,6 @@ class InMemoryAnalysisRepository:
             context, expires_at = entry
             if expires_at <= monotonic():
                 del self._entries[key]
-                raise AnalysisNotFoundError
-
-            if owner_id is not None and context.owner_id != owner_id:
                 raise AnalysisNotFoundError
 
             self._entries.move_to_end(key)
