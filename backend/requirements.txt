@@ -2,10 +2,5 @@ fastapi
 uvicorn[standard]
 httpx
 pydantic-settings
-sqlalchemy
-psycopg[binary]
-pwdlib[argon2]
-PyJWT
-email-validator
 pytest
 pytest-asyncio
