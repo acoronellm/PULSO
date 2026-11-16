@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     # RAG
     rag_service_url: str = ""
-    rag_timeout_seconds: float = 30.0
+    rag_timeout_seconds: float = 90.0
 
     # In-memory analysis context cache
     analysis_cache_ttl_seconds: float = 900.0

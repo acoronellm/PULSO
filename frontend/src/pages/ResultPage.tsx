@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 
-import RagRecommendations, { RagSources } from "../components/RagRecommendations";
+import RagRecommendations, { RagFactorExplanations, RagSources } from "../components/RagRecommendations";
 import WellnessPlan, { type WellnessTab } from "../components/WellnessPlan";
 import type { Navigate, View } from "../types/app";
 import type { AnalysisResponse, RagResponse, ShapFactor, UserData } from "../types/pulso";
@@ -595,15 +595,14 @@ export default function ResultPage({
           />
         </section>
 
-
+        <RagFactorExplanations rag={recommendations} />
         <section className="mt-space-xl scroll-mt-28" ref={planRef}>
           <div className="mb-space-md">
             <span className="font-label-sm uppercase font-semibold text-secondary tracking-wider">
               Información preventiva
             </span>
             <h2 className="font-headline-md text-headline-md text-on-surface font-semibold">
-              Recomendaciones educativas
-            </h2>
+              Información educativa personalizada            </h2>
             <p className="font-body-lg text-body-lg text-on-surface-variant mt-1">
               Información preventiva respaldada por documentación. No reemplaza la orientación de un profesional de la salud.
             </p>
