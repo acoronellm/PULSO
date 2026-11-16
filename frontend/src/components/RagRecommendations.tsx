@@ -220,7 +220,8 @@ export default function RagRecommendations({ rag, loading, error, onRequest }: R
               Información educativa personalizada
             </h3>
             <p className="font-body-md text-body-md text-on-surface-variant mt-1">
-              Consulta explicaciones sobre los factores de tu resultado y recomendaciones preventivas basadas en fuentes documentales.            </p>
+              Consulta explicaciones sobre los factores de tu resultado y recomendaciones preventivas basadas en fuentes documentales.
+            </p>
             {error && (
               <p className="font-label-md text-error mt-2" role="alert">
                 {error}
@@ -233,7 +234,8 @@ export default function RagRecommendations({ rag, loading, error, onRequest }: R
             {loading ? "hourglass_top" : "auto_awesome"}
           </span>
           <span>
-            {loading ? "Consultando información educativa..." : "Consultar información educativa"}          </span>
+            {loading ? "Consultando información educativa..." : "Consultar información educativa"}
+          </span>
         </button>
       </div>
     );

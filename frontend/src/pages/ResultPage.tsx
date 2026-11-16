@@ -585,7 +585,8 @@ export default function ResultPage({
               ¿Qué pesó en tu resultado?
             </h2>
 
-            <p className="font-body-md text-on-surface-variant mt-2">              Los 3 factores que más influyeron en tu estimación.
+            <p className="font-body-md text-on-surface-variant mt-2">
+              Los 3 factores que más influyeron en tu estimación.
               Muestran cómo los usó el modelo, no una causa médica.
             </p>
           </div>

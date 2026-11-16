@@ -84,22 +84,6 @@ export interface RagResponse {
   note: string;
   insufficient_information: boolean;
 }
-
-export interface RagRecommendation {
-  factor: string;
-  recommendation: string;
-  source_ids?: string[];
-  sources?: RagSource[];
-}
-
-export interface RagResponse {
-  summary: string;
-  recommendations: RagRecommendation[];
-  considerations: string;
-  note: string;
-  insufficient_information: boolean;
-}
-
 // Variables que /api/simulate permite cambiar (SimulationChanges)
 export interface SimulationChanges {
   weight?: number;
