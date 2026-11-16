@@ -1,0 +1,184 @@
+name: Continuous Delivery
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Etiqueta manual opcional para la entrega"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  prepare-metadata:
+    name: Prepare delivery metadata
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      commit: ${{ github.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version/tag
+        id: version
+        shell: bash
+        run: |
+          RAW="${{ github.event.inputs.release_tag || github.ref_name }}"
+
+          if [ -z "$RAW" ] || [ "$RAW" = "main" ]; then
+            RAW="$(git describe --tags --always --dirty 2>/dev/null || echo "main")"
+          fi
+
+          TAG="$(printf '%s' "$RAW" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -E 's#^refs/tags/##; s#^refs/heads/##; s#[^a-z0-9._-]#-#g; s#-+#-#g; s#^-##; s#-$##')"
+
+          echo "version=${RAW}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+  build-and-publish:
+    name: Build and publish Docker images
+    needs: prepare-metadata
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+            image: ghcr.io/${{ github.repository_owner }}/pulso-frontend
+          - name: backend
+            context: .
+            dockerfile: ./backend/Dockerfile
+            image: ghcr.io/${{ github.repository_owner }}/pulso-backend
+          - name: ml-service
+            context: .
+            dockerfile: ./ml_service/Dockerfile
+            image: ghcr.io/${{ github.repository_owner }}/pulso-ml-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: |
+            type=raw,value=${{ needs.prepare-metadata.outputs.tag }}
+            type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and push ${{ matrix.name }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+
+  verify-published-images:
+    name: Verify published artifacts
+    needs:
+      - prepare-metadata
+      - build-and-publish
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Pull published images
+        shell: bash
+        run: |
+          docker pull ghcr.io/${{ github.repository_owner }}/pulso-frontend:${{ needs.prepare-metadata.outputs.tag }}
+          docker pull ghcr.io/${{ github.repository_owner }}/pulso-backend:${{ needs.prepare-metadata.outputs.tag }}
+          docker pull ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }}
+
+      - name: Inspect published metadata
+        shell: bash
+        run: |
+          docker image inspect ghcr.io/${{ github.repository_owner }}/pulso-frontend:${{ needs.prepare-metadata.outputs.tag }} --format '{{json .Config.Labels}}'
+          docker image inspect ghcr.io/${{ github.repository_owner }}/pulso-backend:${{ needs.prepare-metadata.outputs.tag }} --format '{{json .Config.Labels}}'
+          docker image inspect ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }} --format '{{json .Config.Labels}}'
+
+      - name: Smoke test frontend image
+        shell: bash
+        run: |
+          docker run -d --rm --name pulso-cd-frontend -p 8080:80 ghcr.io/${{ github.repository_owner }}/pulso-frontend:${{ needs.prepare-metadata.outputs.tag }}
+          sleep 10
+          curl --fail --silent --show-error http://127.0.0.1:8080/ | grep -F "<html"
+          docker rm -f pulso-cd-frontend
+
+      - name: Smoke test ML Service image
+        shell: bash
+        run: |
+          docker run -d --rm --name pulso-cd-ml -p 8001:8001 ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }}
+          sleep 15
+          curl --fail --silent --show-error http://127.0.0.1:8001/health | grep -F '"status": "ok"'
+          docker rm -f pulso-cd-ml
+
+      - name: Smoke test backend image with ML Service dependency
+        shell: bash
+        run: |
+          docker network create pulso-cd-network
+          docker run -d --rm --network pulso-cd-network --name pulso-cd-ml-helper -p 8001:8001 ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }}
+          docker run -d --rm --network pulso-cd-network --name pulso-cd-backend -e ML_SERVICE_URL=http://pulso-cd-ml-helper:8001 -p 8000:8000 ghcr.io/${{ github.repository_owner }}/pulso-backend:${{ needs.prepare-metadata.outputs.tag }}
+          sleep 20
+          curl --fail --silent --show-error http://127.0.0.1:8000/api/health | grep -F '"status": "ok"'
+          docker rm -f pulso-cd-backend pulso-cd-ml-helper
+          docker network rm pulso-cd-network
+
+  publish-summary:
+    name: Publish CD evidence
+    needs:
+      - prepare-metadata
+      - build-and-publish
+      - verify-published-images
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Generate release summary
+        shell: bash
+        run: |
+          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
+          # PULSO Continuous Delivery
+
+          - Versión: ${{ needs.prepare-metadata.outputs.version }}
+          - Tag publicado: ${{ needs.prepare-metadata.outputs.tag }}
+          - Commit: ${{ needs.prepare-metadata.outputs.commit }}
+          - Fecha: $(date -u)
+
+          ## Imágenes publicadas
+          - Frontend: ghcr.io/${{ github.repository_owner }}/pulso-frontend:${{ needs.prepare-metadata.outputs.tag }}
+          - Backend: ghcr.io/${{ github.repository_owner }}/pulso-backend:${{ needs.prepare-metadata.outputs.tag }}
+          - ML Service: ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }}
+
+          ## Verificación
+          - Pull de artefactos desde GHCR completado.
+          - Smoke tests del frontend, backend y ML Service ejecutados correctamente.
+          - Generación de evidencia disponible en los logs del workflow.
+          EOF
