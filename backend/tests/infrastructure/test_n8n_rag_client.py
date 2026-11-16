@@ -323,3 +323,50 @@ async def test_generate_does_not_retry_other_http_errors():
             await rag_client(handler).generate(CONTEXT)
 
         assert len(requests) == 1
+
+@pytest.mark.asyncio
+async def test_generate_sends_webhook_api_key():
+    requests = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, json=RAG_RESPONSE)
+
+    client = N8nRecommendationClient(
+        url="http://fake-rag",
+        timeout_seconds=5,
+        transport=httpx.MockTransport(handler),
+        retry_503_delay_seconds=0,
+        api_key="clave-de-prueba",
+    )
+
+    report = await client.generate(CONTEXT)
+
+    assert len(requests) == 1
+    assert requests[0].headers["X-PULSO-RAG-Key"] == "clave-de-prueba"
+    assert report.summary == "Resumen de prueba."
+
+
+@pytest.mark.asyncio
+async def test_generate_does_not_retry_unauthorized_request():
+    requests = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(401)
+
+    client = N8nRecommendationClient(
+        url="http://fake-rag",
+        timeout_seconds=5,
+        transport=httpx.MockTransport(handler),
+        retry_503_delay_seconds=0,
+        api_key="clave-de-prueba",
+    )
+
+    with pytest.raises(
+        RecommendationServiceError,
+        match="HTTP 401",
+    ):
+        await client.generate(CONTEXT)
+
+    assert len(requests) == 1
