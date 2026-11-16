@@ -9,7 +9,8 @@ from backend.app.infrastructure.n8n_rag_client import N8nRecommendationClient
 
 from conftest import EXPLANATION, PREDICTION, PROFILE, PROFILE_PAYLOAD
 
-CONTEXT = AnalysisContext(profile=PROFILE, prediction=PREDICTION, explanation=EXPLANATION)
+CONTEXT = AnalysisContext(
+    profile=PROFILE, prediction=PREDICTION, explanation=EXPLANATION)
 
 RAG_RESPONSE = {
     "summary": "Resumen de prueba.",
@@ -35,7 +36,12 @@ RAG_RESPONSE = {
 
 
 def rag_client(handler, url: str = "http://fake-rag") -> N8nRecommendationClient:
-    return N8nRecommendationClient(url, 5, transport=httpx.MockTransport(handler))
+    return N8nRecommendationClient(
+        url,
+        5,
+        transport=httpx.MockTransport(handler),
+        retry_503_delay_seconds=0,
+    )
 
 
 @pytest.mark.asyncio
@@ -93,6 +99,8 @@ async def test_generate_rejects_response_outside_contract():
 async def test_generate_maps_http_errors():
     with pytest.raises(RecommendationServiceError, match="HTTP 503"):
         await rag_client(lambda request: httpx.Response(503)).generate(CONTEXT)
+
+
 @pytest.mark.asyncio
 async def test_generate_preserves_factor_explanations_and_source_metadata():
     response_data = {
@@ -148,6 +156,7 @@ async def test_generate_preserves_factor_explanations_and_source_metadata():
     assert report.summary == "Resumen de prueba."
     assert len(report.recommendations) == 1
 
+
 @pytest.mark.asyncio
 async def test_generate_handles_rag_timeout():
     def handler(request: httpx.Request) -> httpx.Response:
@@ -158,6 +167,8 @@ async def test_generate_handles_rag_timeout():
         match="No fue posible comunicarse con el servicio RAG",
     ):
         await rag_client(handler).generate(CONTEXT)
+
+
 @pytest.mark.asyncio
 async def test_generate_rejects_invalid_factor_explanation():
     response_data = {
@@ -181,6 +192,8 @@ async def test_generate_rejects_invalid_factor_explanation():
         await rag_client(
             lambda request: httpx.Response(200, json=response_data)
         ).generate(CONTEXT)
+
+
 @pytest.mark.asyncio
 async def test_generate_rejects_more_than_three_recommendations():
     response_data = {
@@ -195,6 +208,7 @@ async def test_generate_rejects_more_than_three_recommendations():
         await rag_client(
             lambda request: httpx.Response(200, json=response_data)
         ).generate(CONTEXT)
+
 
 @pytest.mark.asyncio
 async def test_generate_rejects_missing_source_references():
@@ -215,6 +229,8 @@ async def test_generate_rejects_missing_source_references():
         await rag_client(
             lambda request: httpx.Response(200, json=response_data)
         ).generate(CONTEXT)
+
+
 @pytest.mark.asyncio
 async def test_generate_accepts_explanations_without_recommendations():
     response_data = {
@@ -252,3 +268,58 @@ async def test_generate_accepts_explanations_without_recommendations():
     assert len(report.factor_explanations) == 1
     assert report.factor_explanations[0].factor == "edad"
     assert report.insufficient_information is False
+
+
+@pytest.mark.asyncio
+async def test_generate_retries_once_after_http_503():
+    requests = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+
+        if len(requests) == 1:
+            return httpx.Response(503)
+
+        return httpx.Response(200, json=RAG_RESPONSE)
+
+    report = await rag_client(handler).generate(CONTEXT)
+
+    assert len(requests) == 2
+    assert requests[0].content == requests[1].content
+    assert report.summary == "Resumen de prueba."
+    assert len(report.recommendations) == 1
+
+
+@pytest.mark.asyncio
+async def test_generate_stops_after_second_http_503():
+    requests = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(503)
+
+    with pytest.raises(
+        RecommendationServiceError,
+        match="HTTP 503",
+    ):
+        await rag_client(handler).generate(CONTEXT)
+
+    assert len(requests) == 2
+
+
+@pytest.mark.asyncio
+async def test_generate_does_not_retry_other_http_errors():
+    for status_code in (400, 401, 404, 500, 502):
+        requests = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            requests.append(request)
+            return httpx.Response(status_code)
+
+        with pytest.raises(
+            RecommendationServiceError,
+            match=f"HTTP {status_code}",
+        ):
+            await rag_client(handler).generate(CONTEXT)
+
+        assert len(requests) == 1
