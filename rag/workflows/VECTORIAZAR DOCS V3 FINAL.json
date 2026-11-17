@@ -1,0 +1,1261 @@
+{
+  "name": "VECTORIAZAR DOCS V3 FINAL",
+  "nodes": [
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -704,
+        416
+      ],
+      "id": "a69611be-efbb-4e39-a56e-f6f2da0cb93c",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ATxSNR5CqCM10FFR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents_pulso_test",
+          "mode": "list",
+          "cachedResultName": "documents_pulso_test"
+        },
+        "embeddingBatchSize": 10,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -704,
+        192
+      ],
+      "id": "b9c3886c-cc62-40a0-930b-51324e8d42dd",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "vgolZwLFRr8x9nIZ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.source }}"
+              },
+              {
+                "name": "source_file",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.source_file }}"
+              },
+              {
+                "name": "pdf_url",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.pdf_url }}"
+              },
+              {
+                "name": "publication_year",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.publication_year }}"
+              },
+              {
+                "name": "language",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.language }}"
+              },
+              {
+                "name": "document_id",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.document_id }}"
+              },
+              {
+                "name": "topic",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.topic }}"
+              },
+              {
+                "name": "document_type",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.document_type }}"
+              },
+              {
+                "name": "source_url",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.source_url }}"
+              },
+              {
+                "name": "author",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.author }}"
+              },
+              {
+                "name": "content_derivation",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.content_derivation ?? null }}"
+              },
+              {
+                "name": "original_file",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.original_file ?? null }}"
+              },
+              {
+                "name": "original_language",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.original_language ?? null }}"
+              },
+              {
+                "name": "topics",
+                "value": "={{ JSON.stringify($('Catálogo bibliográfico PULSO').item.json.bibliografia.topics) }}"
+              },
+              {
+                "name": "clinical_scope",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.clinical_scope }}"
+              },
+              {
+                "name": "doi",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.doi ?? '' }}"
+              },
+              {
+                "name": "drive_file_id",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.drive_file_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        592
+      ],
+      "id": "ba25a1e3-d532-4721-9011-6ccfa682b5c7",
+      "name": "Default Data Loader1"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1280,
+        496
+      ],
+      "id": "22e14921-bc85-41bc-aa32-689449735aa7",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "WKORXwQbmiTeqN06",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chunkSize": 800,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        176,
+        688
+      ],
+      "id": "28145925-9d9a-4900-8a1a-eba0941c2ee1",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// PULSO - Catalogo de 15 archivos Markdown APROBADOS.\n// n8n Code node: Run Once for Each Item.\n// No incluye SRC-08, SRC-09 ni SRC-10.\n// La lista blanca bloquea archivos ajenos.\n\nconst catalogo = {\n  \"SRC-02_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-02\",\n    title: \"¿Cómo puedo perder peso?\",\n    author: \"American Heart Association\",\n    publication_year: 2023,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/health-topics/consumer-healthcare/answers-by-heart-fact-sheets/respuestas-del-corazon\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Files/Health-Topics/Answers-by-Heart/Answers-by-Heart-SPANISH/How-Can-I-Lose-Weight.pdf?sc_lang=en\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"lifestyle\",\n    original_file: \"How-Can-I-Lose-Weight.pdf\",\n    topics: [\"weight_bmi\", \"cardiovascular_risk\"],\n  },\n\n  \"SRC-03_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-03\",\n    title: \"¿Cómo puedo dejar de fumar?\",\n    author: \"American Heart Association\",\n    publication_year: 2024,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/health-topics/consumer-healthcare/answers-by-heart-fact-sheets/respuestas-del-corazon\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Files/Health-Topics/Answers-by-Heart/Answers-by-Heart-SPANISH/How-Can-I-Quit-Smoking_Span.pdf\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"lifestyle\",\n    original_file: \"How-Can-I-Quit-Smoking_Span.pdf\",\n    topics: [\"smoking\", \"cardiovascular_risk\"],\n  },\n\n  \"SRC-04_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-04\",\n    title: \"¿Cómo puedo seguir un patrón de alimentación saludable?\",\n    author: \"American Heart Association\",\n    publication_year: 2024,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/health-topics/consumer-healthcare/answers-by-heart-fact-sheets/respuestas-del-corazon\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Files/Health-Topics/Answers-by-Heart/Answers-by-Heart-SPANISH/How-Do-I-Follow-Healthy-Diet_Span.pdf\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"lifestyle\",\n    original_file: \"How-Do-I-Follow-Healthy-Diet_Span.pdf\",\n    topics: [\"nutrition\", \"cardiovascular_risk\"],\n  },\n\n  \"SRC-05_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-05\",\n    title: \"¿Beber alcohol es parte de un estilo de vida saludable?\",\n    author: \"American Heart Association\",\n    publication_year: null,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/affiliates/hard-hats-tobacco-alcohol-control\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Files/Affiliates/WSA/Oregon/OR-Hard-Hats-Alcohol-Tobacco/Is-Drinking-Alcohol-Part-of-a-Healthy-Lifestyle-Spanish.pdf?sc_lang=en\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"lifestyle\",\n    original_file: \"Is-Drinking-Alcohol-Part-of-a-Healthy-Lifestyle-Spanish.pdf\",\n    topics: [\"alcohol\", \"blood_pressure\", \"weight_bmi\"],\n  },\n\n  \"SRC-06_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-06\",\n    title: \"CÓMO CONTROLAR LA PRESIÓN ARTERIAL\",\n    author: \"American Heart Association\",\n    publication_year: 2025,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/healthy-living/healthy-lifestyle/lifes-essential-8/how-to-manage-blood-pressure-fact-sheet\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Healthy-Living-Files/LE8-Fact-Sheets/LE8_Blood_Pressure_Spanish.pdf?sc_lang=en\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"prevention\",\n    original_file: \"LE8_Blood_Pressure_Spanish.pdf\",\n    topics: [\"blood_pressure\", \"lifestyle\"],\n  },\n\n  \"SRC-07_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-07\",\n    title: \"CÓMO ALIMENTARSE MEJOR\",\n    author: \"American Heart Association\",\n    publication_year: 2024,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/healthy-living/healthy-lifestyle/lifes-essential-8/how-to-eat-better-fact-sheet\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Healthy-Living-Files/LE8-Fact-Sheets/LE8_Eat_Better_Fact_Sheet_Spanish_Updated.pdf?sc_lang=en\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"lifestyle\",\n    original_file: \"LE8_Eat_Better_Fact_Sheet_Spanish_Updated.pdf\",\n    topics: [\"nutrition\", \"lifestyle\"],\n  },\n\n  \"SRC-11_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-11\",\n    title: \"CÓMO MANTENER UN PESO SALUDABLE\",\n    author: \"American Heart Association\",\n    publication_year: 2025,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/healthy-living/healthy-lifestyle/lifes-essential-8/how-to-manage-weight-fact-sheet\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Healthy-Living-Files/LE8-Fact-Sheets/LE8_How_to_Manage_Weight_Spanish_Updated.pdf?sc_lang=en\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"lifestyle\",\n    original_file: \"LE8_How_to_Manage_Weight_Spanish_Updated.pdf\",\n    topics: [\"weight_bmi\", \"lifestyle\"],\n  },\n\n  \"SRC-12_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-12\",\n    title: \"CÓMO SER MÁS ACTIVO\",\n    author: \"American Heart Association\",\n    publication_year: 2025,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/healthy-living/healthy-lifestyle/lifes-essential-8/how-to-be-more-active-fact-sheet\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Healthy-Living-Files/LE8-Fact-Sheets/LE8_How_to_be_More_Active_Spanish_Updated.pdf?sc_lang=en\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"lifestyle\",\n    original_file: \"LE8_How_to_be_More_Active_Spanish_Updated.pdf\",\n    topics: [\"physical_activity\", \"lifestyle\"],\n  },\n\n  \"SRC-13_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-13\",\n    title: \"CÓMO DEJAR EL TABACO Y LOS PRODUCTOS DE NICOTINA\",\n    author: \"American Heart Association\",\n    publication_year: 2025,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/healthy-living/healthy-lifestyle/lifes-essential-8/how-to-quit-tobacco-fact-sheet\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Healthy-Living-Files/LE8-Fact-Sheets/Lifes_Essential_8_Fact_Sheet_Spanish_Updated.pdf?sc_lang=en\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"lifestyle\",\n    original_file: \"Lifes_Essential_8_Fact_Sheet_Spanish_Updated.pdf\",\n    topics: [\"smoking\", \"lifestyle\"],\n  },\n\n  \"SRC-14_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-14\",\n    title: \"EL ALCOHOL Y LAS ENFERMEDADES CARDIOVASCULARES\",\n    author: \"Organización Panamericana de la Salud\",\n    publication_year: 2021,\n    language: \"es\",\n    source_url:\n      \"https://www.paho.org/es/documentos/serie-alcohol-alcohol-enfermedades-cardiovasculares\",\n    pdf_url:\n      \"https://iris.paho.org/server/api/core/bitstreams/311cd0d0-a37a-44c5-9700-9a5e72539244/content\",\n    doi: null,\n    document_type: \"public_health_report\",\n    clinical_scope: \"prevention\",\n    original_file: \"OPSNMHMH210032_spa.pdf\",\n    topics: [\"alcohol\", \"cardiovascular_risk\", \"blood_pressure\"],\n  },\n\n  \"SRC-15_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-15\",\n    title:\n      \"HEARTS en las Américas: Compendio de herramientas clínicas esenciales 2023\",\n    author:\n      \"Andrés Rosende, Pedro Orduñez et al. / Organización Panamericana de la Salud\",\n    publication_year: 2024,\n    language: \"es\",\n    source_url:\n      \"https://www.paho.org/es/documentos/hearts-americas-compendio-herramientas-clinicas-esenciales-2023\",\n    pdf_url:\n      \"https://iris.paho.org/server/api/core/bitstreams/acaf5e15-6622-4c16-a23b-86ba2c159b9d/content\",\n    doi: null,\n    document_type: \"clinical_tools\",\n    clinical_scope: \"clinical_treatment\",\n    original_file: \"OPSNMHNV240002_spa.pdf\",\n    topics: [\"blood_pressure\", \"clinical_treatment\", \"cardiovascular_risk\"],\n  },\n\n  \"SRC-16_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-16\",\n    title: \"¿Qué es la presión arterial alta?\",\n    author: \"American Heart Association\",\n    publication_year: 2025,\n    language: \"es\",\n    source_url:\n      \"https://www.heart.org/en/health-topics/consumer-healthcare/answers-by-heart-fact-sheets/respuestas-del-corazon\",\n    pdf_url:\n      \"https://www.heart.org/-/media/Files/Health-Topics/Answers-by-Heart/Answers-by-Heart-SPANISH/What-Is-HighBloodPressure_Span.pdf\",\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope: \"lifestyle\",\n    original_file: \"What-Is-HighBloodPressure_Span.pdf\",\n    topics: [\"blood_pressure\", \"cardiovascular_risk\", \"lifestyle\"],\n  },\n\n  \"SRC-17_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-17\",\n    title:\n      \"Alcohol Use and Cardiovascular Disease: A Scientific Statement From the American Heart Association\",\n    author:\n      \"Mariann R. Piano, Gregory M. Marcus, Dawn M. Aycock, Jennifer Buckman, Chueh-Lung Hwang, Susanna C. Larsson, Kenneth J. Mukamal, Michael Roerecke\",\n    publication_year: 2025,\n    language: \"en\",\n    source_url: \"https://doi.org/10.1161/CIR.0000000000001341\",\n    pdf_url:\n      \"https://www.ahajournals.org/doi/epub/10.1161/CIR.0000000000001341\",\n    doi: \"10.1161/CIR.0000000000001341\",\n    document_type: \"scientific_review\",\n    clinical_scope: \"prevention\",\n    original_file:\n      \"piano-et-al-2025-alcohol-use-and-cardiovascular-disease-a-scientific-statement-from-the-american-heart-association.pdf\",\n    topics: [\"alcohol\", \"blood_pressure\", \"cardiovascular_risk\"],\n  },\n\n  \"SRC-18_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-18\",\n    title: \"La salud del corazón y el envejecimiento\",\n    author: \"National Institute on Aging (NIH)\",\n    publication_year: 2024,\n    language: \"es\",\n    source_url:\n      \"https://www.nia.nih.gov/espanol/corazon/salud-corazon-envejecimiento\",\n    pdf_url: null,\n    doi: null,\n    document_type: \"patient_education\",\n    clinical_scope:\n      \"educación cardiovascular general con enfoque en envejecimiento\",\n    topics: [\"age\"],\n    content_derivation:\n      \"extracto literal seleccionado de la página web institucional, revisada 2024-12-02\",\n    original_file:\n      \"La salud del corazón y el envejecimiento _ National Institute on Aging.pdf\",\n  },\n\n  \"SRC-19_NORMALIZADO_RAG_FINAL.md\": {\n    catalog_id: \"SRC-19\",\n    title:\n      \"Gender medicine: effects of sex and gender on cardiovascular disease manifestation and outcomes\",\n    author: \"Vera Regitz-Zagrosek; Catherine Gebhard\",\n    publication_year: 2023,\n    language: \"en\",\n    original_language: \"en\",\n    source_url: \"https://doi.org/10.1038/s41569-022-00797-4\",\n    pdf_url: null,\n    doi: \"10.1038/s41569-022-00797-4\",\n    document_type: \"scientific_review\",\n    clinical_scope:\n      \"revisión general sobre sexo y género en enfermedad coronaria e insuficiencia cardíaca\",\n    topics: [\"sex\"],\n    content_derivation:\n      \"extracto literal seleccionado del artículo científico original en inglés\",\n    original_file: \"41569_2022_Article_797.pdf\",\n  },\n};\n\nconst fileName = $json.name;\nconst fileId = $json.id;\n\nif (!fileName || !fileId) {\n  throw new Error(\"Faltan name o id del archivo de Google Drive.\");\n}\n\nconst ref = catalogo[fileName];\n\nif (!ref) {\n  throw new Error(`Archivo no aprobado o nombre inesperado: ${fileName}`);\n}\n\nconst approvedIds = new Set([\n  \"SRC-02\",\n  \"SRC-03\",\n  \"SRC-04\",\n  \"SRC-05\",\n  \"SRC-06\",\n  \"SRC-07\",\n  \"SRC-11\",\n  \"SRC-12\",\n  \"SRC-13\",\n  \"SRC-14\",\n  \"SRC-15\",\n  \"SRC-16\",\n  \"SRC-17\",\n  \"SRC-18\",\n  \"SRC-19\",\n]);\n\nif (!approvedIds.has(ref.catalog_id)) {\n  throw new Error(`Documento excluido del RAG: ${ref.catalog_id}`);\n}\n\nreturn {\n  json: {\n    ...$json,\n    bibliografia: {\n      source: ref.title,\n      source_file: fileName,\n      source_url: ref.source_url,\n      pdf_url: ref.pdf_url ?? null,\n      author: ref.author,\n      publication_year: ref.publication_year,\n      language: ref.language,\n      document_id: ref.catalog_id,\n      drive_file_id: fileId,\n      topic: ref.topics?.[0] ?? \"general_cardiovascular\",\n      topics: ref.topics ?? [],\n      document_type: ref.document_type,\n      clinical_scope: ref.clinical_scope,\n      doi: ref.doi ?? null,\n      content_derivation:\n        ref.content_derivation ??\n        \"extracto normalizado fiel del documento original\",\n      original_file: ref.original_file ?? null,\n      original_language: ref.original_language ?? ref.language,\n    },\n  },\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        336
+      ],
+      "id": "b781c02a-563b-45a6-bcdd-ad612b2a3695",
+      "name": "Catálogo bibliográfico PULSO"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1472,
+        336
+      ],
+      "id": "dae297a5-96c3-4d6e-be36-994b832d7e38",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "searchMethod": "query",
+        "queryString": "name contains 'NORMALIZADO_RAG_FINAL.md' and trashed = false",
+        "returnAll": true,
+        "filter": {
+          "whatToSearch": "files"
+        },
+        "options": {
+          "fields": [
+            "id",
+            "name",
+            "mimeType"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -1856,
+        336
+      ],
+      "id": "5df55473-878d-41b4-9fe0-6eb2f9bf3171",
+      "name": "Search files and folders",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "WKORXwQbmiTeqN06",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst items = $input.all();\nconst resultados = [];\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n\n  if (!item.binary?.data) {\n    throw new Error(`No existe binary.data en el elemento ${i}`);\n  }\n\n  const buffer = await this.helpers.getBinaryDataBuffer(i, 'data');\n  const texto = buffer.toString('utf8').replace(/^\\uFEFF/, '');\n\n  const lineas = texto.split(/\\r?\\n/);\n  const secciones = [];\n\n  let tituloActual = \"Sin encabezado\";\n  let contenidoActual = [];\n\n  function guardarSeccion() {\n    const contenido = contenidoActual.join(\"\\n\").trim();\n\n    if (!contenido && tituloActual === \"Sin encabezado\") {\n      return;\n    }\n\n    const longitud = (tituloActual + \"\\n\" + contenido).length;\n\n    secciones.push({\n      titulo: tituloActual,\n      caracteres: longitud,\n      supera_500: longitud > 500,\n      supera_800: longitud > 800,\n      texto: contenido\n    });\n  }\n\n  for (const linea of lineas) {\n    if (/^#{1,6}\\s+/.test(linea)) {\n      if (tituloActual !== \"Sin encabezado\" || contenidoActual.length) {\n        guardarSeccion();\n      }\n\n      tituloActual = linea;\n      contenidoActual = [];\n    } else {\n      contenidoActual.push(linea);\n    }\n  }\n\n  guardarSeccion();\n\n  resultados.push({\n    json: {\n      archivo: item.binary.data.fileName,\n      chunk_size_actual: 500,\n      chunk_overlap_actual: 20,\n      total_secciones: secciones.length,\n      secciones_mayores_500:\n        secciones.filter(s => s.supera_500).length,\n      secciones: secciones.map(s => ({\n        titulo: s.titulo,\n        caracteres: s.caracteres,\n        supera_500: s.supera_500,\n        supera_800: s.supera_800\n      }))\n    }\n  });\n}\n\nreturn resultados;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        304,
+        32
+      ],
+      "id": "f5d1f5b4-ee24-4a85-bd4b-03319aff7f83",
+      "name": "Validar contenido Markdown"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst items = $input.all();\nconst salida = [];\n\nconst CHUNK_SIZE = 500;\nconst OVERLAP = 20;\n\nfunction dividirTexto(texto, maximo, overlap) {\n  const separadores = [\"\\n\\n\", \"\\n\", \" \", \"\"];\n  const fragmentos = [];\n\n  function segmentar(textoActual, nivel) {\n    if (textoActual.length <= maximo) {\n      return [textoActual];\n    }\n\n    const separador = separadores[nivel];\n\n    if (!separador) {\n      const partes = [];\n      for (let i = 0; i < textoActual.length; i += maximo) {\n        partes.push(textoActual.slice(i, i + maximo));\n      }\n      return partes;\n    }\n\n    const partes = textoActual.split(separador);\n    const grupos = [];\n    let actual = \"\";\n\n    for (const parte of partes) {\n      const candidato = actual\n        ? actual + separador + parte\n        : parte;\n\n      if (candidato.length <= maximo) {\n        actual = candidato;\n      } else {\n        if (actual) grupos.push(actual);\n        actual = parte;\n      }\n    }\n\n    if (actual) grupos.push(actual);\n\n    return grupos.flatMap(grupo =>\n      grupo.length > maximo\n        ? segmentar(grupo, nivel + 1)\n        : [grupo]\n    );\n  }\n\n  const bloques = segmentar(texto, 0);\n\n  for (let i = 0; i < bloques.length; i++) {\n    const anterior = fragmentos.length\n      ? fragmentos[fragmentos.length - 1].slice(-overlap)\n      : \"\";\n\n    fragmentos.push(anterior + bloques[i]);\n  }\n\n  return fragmentos;\n}\n\nfor (let i = 0; i < items.length; i++) {\n  const buffer = await this.helpers.getBinaryDataBuffer(i, \"data\");\n  const texto = buffer.toString(\"utf8\").replace(/^\\uFEFF/, \"\");\n\n  const chunks = dividirTexto(texto, CHUNK_SIZE, OVERLAP);\n\n  salida.push({\n    json: {\n      archivo: items[i].binary.data.fileName,\n      total_chunks: chunks.length,\n      chunks: chunks.map((contenido, indice) => ({\n        indice: indice + 1,\n        caracteres: contenido.length,\n        contiene_150: /150\\s+MINUTOS/i.test(contenido),\n        contiene_75: /75\\s+MINUTOS/i.test(contenido),\n        contenido\n      }))\n    }\n  });\n}\n\nreturn salida;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        496
+      ],
+      "id": "61053eea-edac-4be1-b66a-fba2a663af99",
+      "name": "Inspeccionar chunks SRC-12"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "pulso_src02_structural_v1_3",
+          "mode": "id"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        928
+      ],
+      "id": "5e1793a8-e9f4-4e22-8d75-77f4ae58855a",
+      "name": "Simple Vector Store"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        1264
+      ],
+      "id": "499ccd0a-f137-47ce-8efa-353f72ab8a2a",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ATxSNR5CqCM10FFR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1424,
+        912
+      ],
+      "id": "2e7b8901-3adc-407d-93bf-6c0ef7d05f81",
+      "name": "Embeddings Google Gemini2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ATxSNR5CqCM10FFR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.pageContent }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.source }}"
+              },
+              {
+                "name": "source_file",
+                "value": "={{ $json.metadata.source_file }}"
+              },
+              {
+                "name": "pdf_url",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.pdf_url }}"
+              },
+              {
+                "name": "publication_year",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.publication_year }}"
+              },
+              {
+                "name": "language",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.language }}"
+              },
+              {
+                "name": "document_id",
+                "value": "={{ $json.metadata.document_id }}"
+              },
+              {
+                "name": "topic",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.topic }}"
+              },
+              {
+                "name": "document_type",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.document_type }}"
+              },
+              {
+                "name": "source_url",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.source_url }}"
+              },
+              {
+                "name": "author",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.author }}"
+              },
+              {
+                "name": "content_derivation",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.content_derivation ?? '' }}"
+              },
+              {
+                "name": "original_file",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.original_file ?? '' }}"
+              },
+              {
+                "name": "original_language",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.original_language ?? '' }}"
+              },
+              {
+                "name": "topics",
+                "value": "={{ JSON.stringify($('Catálogo bibliográfico PULSO').first().json.bibliografia.topics ?? []) }}"
+              },
+              {
+                "name": "clinical_scope",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.clinical_scope ?? ''}}"
+              },
+              {
+                "name": "doi",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.doi ?? '' }}"
+              },
+              {
+                "name": "drive_file_id",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.drive_file_id ?? ''}}"
+              },
+              {
+                "name": "section_index",
+                "value": "={{ $json.metadata.section_index }}"
+              },
+              {
+                "name": "section_path",
+                "value": "={{ $json.metadata.section_path }}"
+              },
+              {
+                "name": "chunk_index",
+                "value": "={{ $json.metadata.chunk_index }}"
+              },
+              {
+                "name": "chunking_version",
+                "value": "={{ $json.metadata.chunking_version }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -464,
+        1216
+      ],
+      "id": "351cfd7f-4ca4-4b2f-97b6-cdc1fb9ab166",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 2000,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        1520
+      ],
+      "id": "2457282f-7ece-4c8b-baef-4261a633738c",
+      "name": "Recursive Character Text Splitter1"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "memoryKey": {
+          "__rl": true,
+          "value": "pulso_src02_structural_v1_3",
+          "mode": "id"
+        },
+        "prompt": "¿Qué cambios alimentarios recomienda el documento para perder peso, especialmente respecto a verduras, proteínas saludables, grasas saturadas, azúcar agregada y sodio?",
+        "topK": 5
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        -208,
+        784
+      ],
+      "id": "e17a4d0a-426f-4ad4-980f-ba6b3515da8d",
+      "name": "Simple Vector Store1"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        960
+      ],
+      "id": "527d692a-4417-4408-b45e-91c84af9289e",
+      "name": "Embeddings Google Gemini3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ATxSNR5CqCM10FFR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2048,
+        336
+      ],
+      "id": "3deff896-b1cb-49d4-9321-9dc53a4cb290",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// PULSO - Chunking estructural Markdown v1.1\n// n8n Code - Run Once for All Items\n// Corrección: encabezados Markdown seguidos de contenido\n// en el mismo bloque, sin perder información.\n//\n// Uso experimental. NO escribe en Supabase.\n\nconst CONFIG = {\n  targetSize: 650,\n  warningSize: 1200,\n  version: \"markdown_structural_v1_1\"\n};\n\nconst inputs = $input.all();\nconst resultados = [];\n\nfunction normalizar(texto) {\n  return texto.replace(/\\s+/g, \" \").trim();\n}\n\nfunction obtenerEncabezado(texto) {\n  // Solo acepta una línea que sea un encabezado.\n  const match = texto.match(\n    /^(#{1,6})[ \\t]+([^\\n]+)$/\n  );\n\n  if (!match) return null;\n\n  return {\n    nivel: match[1].length,\n    titulo: match[2].trim(),\n    original: texto\n  };\n}\n\nfunction esNotaComplementaria(texto) {\n  return /^(?:\\\\?\\*+\\s*|Nota\\s*:|Advertencia\\s*:|Precauci[oó]n\\s*:)/i\n    .test(texto);\n}\n\n// Separar líneas de encabezado del contenido\n// aunque estén dentro del mismo párrafo Markdown.\nfunction obtenerBloques(texto) {\n  const bloques = [];\n  const lineas = texto.split(\"\\n\");\n\n  let acumulado = [];\n\n  function guardarBloque() {\n    const contenido = acumulado.join(\"\\n\").trim();\n\n    if (contenido) {\n      bloques.push(contenido);\n    }\n\n    acumulado = [];\n  }\n\n  for (const linea of lineas) {\n    const limpia = linea.trim();\n\n    if (!limpia) {\n      guardarBloque();\n      continue;\n    }\n\n    if (obtenerEncabezado(limpia)) {\n      guardarBloque();\n      bloques.push(limpia);\n    } else {\n      acumulado.push(linea);\n    }\n  }\n\n  guardarBloque();\n\n  return bloques;\n}\n\nfunction construirSecciones(bloques) {\n  const secciones = [];\n  const jerarquia = [];\n\n  let actual = {\n    encabezados: [],\n    ruta: [],\n    bloques: []\n  };\n\n  function guardarSeccion() {\n    if (\n      actual.encabezados.length > 0 ||\n      actual.bloques.length > 0\n    ) {\n      secciones.push(actual);\n    }\n  }\n\n  for (const bloque of bloques) {\n    const encabezado = obtenerEncabezado(bloque);\n\n    if (encabezado !== null) {\n      if (actual.bloques.length > 0) {\n        guardarSeccion();\n\n        actual = {\n          encabezados: [],\n          ruta: [],\n          bloques: []\n        };\n      }\n\n      while (\n        jerarquia.length > 0 &&\n        jerarquia[jerarquia.length - 1].nivel >=\n          encabezado.nivel\n      ) {\n        jerarquia.pop();\n      }\n\n      jerarquia.push(encabezado);\n      actual.encabezados.push(encabezado.original);\n      actual.ruta = jerarquia.map(h => h.titulo);\n\n    } else {\n      actual.bloques.push(bloque);\n    }\n  }\n\n  guardarSeccion();\n\n  return secciones;\n}\n\n\nfunction construirUnidades(seccion) {\n  const unidades = [];\n\n  function agregarUnidad(texto) {\n    const limpio = texto.trim();\n\n    if (!limpio) return;\n\n    if (\n      esNotaComplementaria(limpio) &&\n      unidades.length > 0\n    ) {\n      unidades[unidades.length - 1] +=\n        \"\\n\\n\" + limpio;\n    } else {\n      unidades.push(limpio);\n    }\n  }\n\n  for (const bloque of seccion.bloques) {\n    const lineas = bloque.split(\"\\n\");\n    let acumulado = \"\";\n\n    for (const linea of lineas) {\n      // Reconocer elementos de listas Markdown.\n      // Admite -, *, +, 1. y 1)\n      const esElementoLista =\n        /^\\s*(?:[-*+]\\s+|\\d+[.)]\\s+)/.test(linea);\n\n      if (esElementoLista) {\n        // Finalizar el elemento anterior antes\n        // de comenzar una nueva recomendación.\n        if (acumulado.trim()) {\n          agregarUnidad(acumulado);\n        }\n\n        acumulado = linea;\n\n      } else {\n        // Mantener las líneas continuadas\n        // dentro del elemento correspondiente.\n        acumulado +=\n          (acumulado ? \"\\n\" : \"\") + linea;\n      }\n    }\n\n    if (acumulado.trim()) {\n      agregarUnidad(acumulado);\n    }\n  }\n\n  // Asociar encabezados con el primer\n  // bloque real de su sección.\n  const encabezados =\n    seccion.encabezados.join(\"\\n\\n\");\n\n  if (encabezados) {\n    if (unidades.length > 0) {\n      unidades[0] =\n        encabezados + \"\\n\\n\" + unidades[0];\n    } else {\n      unidades.push(encabezados);\n    }\n  }\n\n  return unidades;\n}\n\nfunction fragmentarSeccion(seccion, indiceSeccion) {\n  const unidades = construirUnidades(seccion);\n  const fragmentos = [];\n\n  let acumulado = \"\";\n\n  function guardar() {\n    if (!acumulado) return;\n\n    fragmentos.push({\n      pageContent: acumulado,\n      metadata: {\n        section_index: indiceSeccion,\n        section_path: seccion.ruta.join(\" > \"),\n        chunking_version: CONFIG.version\n      }\n    });\n\n    acumulado = \"\";\n  }\n\n  for (const unidad of unidades) {\n    const candidato = acumulado\n      ? acumulado + \"\\n\\n\" + unidad\n      : unidad;\n\n    if (\n      acumulado &&\n      candidato.length > CONFIG.targetSize\n    ) {\n      guardar();\n      acumulado = unidad;\n    } else {\n      acumulado = candidato;\n    }\n  }\n\n  guardar();\n\n  return fragmentos;\n}\n\nfunction esSoloEncabezados(texto) {\n  const lineas = texto\n    .split(\"\\n\")\n    .map(l => l.trim())\n    .filter(Boolean);\n\n  return lineas.length > 0 &&\n    lineas.every(l => obtenerEncabezado(l) !== null);\n}\n\nfor (\n  let inputIndex = 0;\n  inputIndex < inputs.length;\n  inputIndex++\n) {\n  const item = inputs[inputIndex];\n\n  if (!item.binary?.data) {\n    throw new Error(\n      `Item ${inputIndex}: falta binary.data. ` +\n      \"Conecta el nodo Download file.\"\n    );\n  }\n\n  const buffer =\n    await this.helpers.getBinaryDataBuffer(\n      inputIndex,\n      \"data\"\n    );\n\n  const textoOriginal = buffer\n    .toString(\"utf8\")\n    .replace(/^\\uFEFF/, \"\")\n    .replace(/\\r\\n?/g, \"\\n\")\n    .trim();\n\n  const archivo =\n    item.binary.data.fileName ||\n    item.json?.name ||\n    \"archivo_sin_nombre.md\";\n\n  const bloques = obtenerBloques(textoOriginal);\n  const secciones = construirSecciones(bloques);\n\n  const chunks = secciones.flatMap(\n    (seccion, i) =>\n      fragmentarSeccion(seccion, i + 1)\n  );\n\n  const reconstruido = chunks\n    .map(c => c.pageContent)\n    .join(\"\\n\\n\");\n\n  const integridadContenido =\n    normalizar(reconstruido) ===\n    normalizar(textoOriginal);\n\n  const detalle = chunks.map((chunk, i) => {\n    const contenido = chunk.pageContent;\n\n    return {\n      indice: i + 1,\n      caracteres: contenido.length,\n      supera_objetivo:\n        contenido.length > CONFIG.targetSize,\n      supera_advertencia:\n        contenido.length > CONFIG.warningSize,\n      encabezado_aislado:\n        esSoloEncabezados(contenido),\n      section_path:\n        chunk.metadata.section_path,\n      pageContent: contenido,\n      metadata: {\n        ...chunk.metadata,\n        chunk_index: i + 1,\n        source_file: archivo\n      }\n    };\n  });\n\n  const largos = detalle.filter(\n    c => c.supera_advertencia\n  ).length;\n\n  const aislados = detalle.filter(\n    c => c.encabezado_aislado\n  ).length;\n\n  const advertencias = [];\n\n  if (!integridadContenido) {\n    advertencias.push(\n      \"ERROR: reconstrucción distinta del texto original.\"\n    );\n  }\n\n  if (largos > 0) {\n    advertencias.push(\n      `${largos} chunks superan ${CONFIG.warningSize} caracteres.`\n    );\n  }\n\n  if (aislados > 0) {\n    advertencias.push(\n      `${aislados} chunks contienen solamente encabezados.`\n    );\n  }\n\n  resultados.push({\n    json: {\n      archivo,\n      estrategia: CONFIG.version,\n      target_size: CONFIG.targetSize,\n      warning_size: CONFIG.warningSize,\n      caracteres_originales: textoOriginal.length,\n      total_bloques: bloques.length,\n      total_secciones: secciones.length,\n      total_chunks: detalle.length,\n      integridad_contenido: integridadContenido,\n      chunks_mayores_650:\n        detalle.filter(c => c.supera_objetivo).length,\n      chunks_mayores_1200: largos,\n      encabezados_aislados: aislados,\n      advertencias,\n      chunks: detalle\n    }\n  });\n}\n\nreturn resultados;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        368,
+        -112
+      ],
+      "id": "d651fde9-8a75-42c1-a8e0-b8a18472fb39",
+      "name": "Chunking estructural PULSO v"
+    },
+    {
+      "parameters": {
+        "jsCode": "// PULSO - Chunking estructural Markdown v1.3\n// n8n Code - Run Once for All Items\n// Prototipo experimental: NO escribe en Supabase.\n//\n// Estrategia:\n// 1. Respetar secciones y encabezados Markdown.\n// 2. Separar elementos de listas.\n// 3. Conservar notas complementarias.\n// 4. Dividir párrafos extensos por oraciones.\n// 5. Auditar la conservación textual.\n\nconst CONFIG = {\n  targetSize: 650,\n  warningSize: 1200,\n  version: \"markdown_structural_v1_3\",\n};\n\nconst inputs = $input.all();\nconst resultados = [];\n\nfunction normalizar(texto) {\n  return texto.replace(/\\s+/g, \" \").trim();\n}\n\nfunction obtenerEncabezado(texto) {\n  const m = texto.match(/^(#{1,6})[ \\t]+([^\\n]+)$/);\n  if (!m) return null;\n\n  return {\n    nivel: m[1].length,\n    titulo: m[2].trim(),\n    original: texto,\n  };\n}\n\nfunction esNota(texto) {\n  return /^(?:\\\\?\\*+\\s*|Nota\\s*:|Advertencia\\s*:|Precauci[oó]n\\s*:)/i.test(\n    texto,\n  );\n}\n\nfunction esElementoLista(linea) {\n  return /^\\s*(?:[-*+]\\s+|\\d+[.)]\\s+)/.test(linea);\n}\n\n// Convierte el documento en bloques.\n// Identifica encabezados incluso si están\n// inmediatamente seguidos de contenido.\nfunction obtenerBloques(texto) {\n  const bloques = [];\n  let acumulado = [];\n\n  function guardar() {\n    const b = acumulado.join(\"\\n\").trim();\n    if (b) bloques.push(b);\n    acumulado = [];\n  }\n\n  for (const linea of texto.split(\"\\n\")) {\n    if (!linea.trim()) {\n      guardar();\n      continue;\n    }\n\n    if (obtenerEncabezado(linea.trim())) {\n      guardar();\n      bloques.push(linea.trim());\n    } else {\n      acumulado.push(linea);\n    }\n  }\n\n  guardar();\n  return bloques;\n}\n\n// Construye secciones y registra su jerarquía.\nfunction construirSecciones(bloques) {\n  const secciones = [];\n  const jerarquia = [];\n\n  let actual = {\n    encabezados: [],\n    ruta: [],\n    bloques: [],\n  };\n\n  function guardar() {\n    if (actual.encabezados.length || actual.bloques.length) {\n      secciones.push(actual);\n    }\n  }\n\n  for (const bloque of bloques) {\n    const h = obtenerEncabezado(bloque);\n\n    if (h) {\n      if (actual.bloques.length) {\n        guardar();\n        actual = {\n          encabezados: [],\n          ruta: [],\n          bloques: [],\n        };\n      }\n\n      while (\n        jerarquia.length &&\n        jerarquia[jerarquia.length - 1].nivel >= h.nivel\n      ) {\n        jerarquia.pop();\n      }\n\n      jerarquia.push(h);\n      actual.encabezados.push(h.original);\n      actual.ruta = jerarquia.map((x) => x.titulo);\n    } else {\n      actual.bloques.push(bloque);\n    }\n  }\n\n  guardar();\n  return secciones;\n}\n\n// Segmentador conservador de oraciones.\n// NO divide por cada punto: busca puntuación\n// final seguida de una posible oración nueva.\n//\n// No constituye un analizador lingüístico\n// perfecto. Las abreviaturas y referencias\n// científicas requieren revisión.\nfunction separarOraciones(texto) {\n  const resultado = [];\n\n  const patron = /[.!?](?:[\"”’)\\]]*)\\s+(?=[A-ZÁÉÍÓÚÜÑ“‘(])/g;\n\n  let inicio = 0;\n  let m;\n\n  while ((m = patron.exec(texto)) !== null) {\n    const fin = m.index + m[0].length - (m[0].match(/\\s+$/)?.[0].length || 0);\n\n    const parte = texto.slice(inicio, fin).trim();\n\n    if (parte) resultado.push(parte);\n\n    inicio = m.index + m[0].length;\n  }\n\n  const resto = texto.slice(inicio).trim();\n  if (resto) resultado.push(resto);\n\n  return resultado;\n}\n\n// Agrupa oraciones consecutivas hasta\n// el objetivo. Conserva su orden.\nfunction dividirParrafoLargo(texto) {\n  if (texto.length <= CONFIG.targetSize) {\n    return [texto];\n  }\n\n  const oraciones = separarOraciones(texto);\n\n  if (oraciones.length <= 1) {\n    return [texto];\n  }\n\n  const partes = [];\n  let actual = \"\";\n\n  for (const oracion of oraciones) {\n    const candidato = actual ? actual + \" \" + oracion : oracion;\n\n    if (actual && candidato.length > CONFIG.targetSize) {\n      partes.push(actual);\n      actual = oracion;\n    } else {\n      actual = candidato;\n    }\n  }\n\n  if (actual) partes.push(actual);\n\n  // No permitir alteraciones de palabras.\n  if (normalizar(partes.join(\" \")) !== normalizar(texto)) {\n    throw new Error(\"La segmentación de oraciones alteró el texto.\");\n  }\n\n  return partes;\n}\n\n// Identifica unidades estructurales.\n// Los elementos de lista se conservan completos.\n// Los párrafos científicos largos pueden dividirse.\nfunction construirUnidades(seccion) {\n  const unidades = [];\n\n  function agregar(texto, protegido = false) {\n    const limpio = texto.trim();\n    if (!limpio) return;\n\n    if (esNota(limpio) && unidades.length) {\n      const ultima = unidades[unidades.length - 1];\n      ultima.texto += \"\\n\\n\" + limpio;\n      ultima.protegido = true;\n      return;\n    }\n\n    if (protegido || limpio.length <= CONFIG.targetSize) {\n      unidades.push({\n        texto: limpio,\n        protegido,\n      });\n      return;\n    }\n\n    for (const parte of dividirParrafoLargo(limpio)) {\n      unidades.push({\n        texto: parte,\n        protegido: false,\n      });\n    }\n  }\n\n  for (const bloque of seccion.bloques) {\n    const lineas = bloque.split(\"\\n\");\n\n    // Si es una lista, separar por elementos.\n    if (lineas.some(esElementoLista)) {\n      let acumulado = \"\";\n      let enLista = false;\n\n      function guardarElemento() {\n        if (acumulado.trim()) {\n          agregar(acumulado, enLista);\n        }\n        acumulado = \"\";\n      }\n\n      for (const linea of lineas) {\n        if (esElementoLista(linea)) {\n          guardarElemento();\n          acumulado = linea;\n          enLista = true;\n        } else {\n          acumulado += (acumulado ? \"\\n\" : \"\") + linea;\n        }\n      }\n\n      guardarElemento();\n    } else {\n      agregar(bloque);\n    }\n  }\n\n  const encabezados = seccion.encabezados.join(\"\\n\\n\");\n\n  if (encabezados) {\n    if (unidades.length) {\n      unidades[0].texto = encabezados + \"\\n\\n\" + unidades[0].texto;\n    } else {\n      unidades.push({\n        texto: encabezados,\n        protegido: true,\n      });\n    }\n  }\n\n  return unidades;\n}\n\nfunction crearChunks(seccion, numeroSeccion) {\n  const unidades = construirUnidades(seccion);\n  const chunks = [];\n\n  let actual = \"\";\n\n  function guardar() {\n    if (!actual) return;\n\n    chunks.push({\n      pageContent: actual,\n      metadata: {\n        section_index: numeroSeccion,\n        section_path: seccion.ruta.join(\" > \"),\n        chunking_version: CONFIG.version,\n      },\n    });\n\n    actual = \"\";\n  }\n\n  for (const unidad of unidades) {\n    const candidato = actual ? actual + \"\\n\\n\" + unidad.texto : unidad.texto;\n\n    if (actual && candidato.length > CONFIG.targetSize) {\n      guardar();\n      actual = unidad.texto;\n    } else {\n      actual = candidato;\n    }\n  }\n\n  guardar();\n  return chunks;\n}\n\nfunction esSoloEncabezados(texto) {\n  const lineas = texto\n    .split(\"\\n\")\n    .map((x) => x.trim())\n    .filter(Boolean);\n\n  return lineas.length > 0 && lineas.every((x) => obtenerEncabezado(x));\n}\n\n// Procesar cada archivo recibido.\nfor (let i = 0; i < inputs.length; i++) {\n  const item = inputs[i];\n\n  if (!item.binary?.data) {\n    throw new Error(`Item ${i}: falta binary.data`);\n  }\n\n  const buffer = await this.helpers.getBinaryDataBuffer(i, \"data\");\n\n  const textoOriginal = buffer\n    .toString(\"utf8\")\n    .replace(/^\\uFEFF/, \"\")\n    .replace(/\\r\\n?/g, \"\\n\")\n    .trim();\n\n  const archivo =\n    item.binary.data.fileName || item.json?.name || \"archivo_sin_nombre.md\";\n\n  const bloques = obtenerBloques(textoOriginal);\n  const secciones = construirSecciones(bloques);\n\n  const chunks = secciones.flatMap((s, indice) => crearChunks(s, indice + 1));\n\n  const textoReconstruido = chunks.map((c) => c.pageContent).join(\"\\n\\n\");\n\n  const integridad =\n    normalizar(textoReconstruido) === normalizar(textoOriginal);\n\n  const detalle = chunks.map((c, indice) => ({\n    indice: indice + 1,\n    caracteres: c.pageContent.length,\n    supera_objetivo: c.pageContent.length > CONFIG.targetSize,\n    supera_advertencia: c.pageContent.length > CONFIG.warningSize,\n    encabezado_aislado: esSoloEncabezados(c.pageContent),\n    section_path: c.metadata.section_path,\n    pageContent: c.pageContent,\n    metadata: {\n      ...c.metadata,\n      chunk_index: indice + 1,\n      source_file: archivo,\n    },\n  }));\n\n  const largos = detalle.filter((c) => c.supera_advertencia).length;\n\n  const aislados = detalle.filter((c) => c.encabezado_aislado).length;\n\n  const advertencias = [];\n\n  if (!integridad) {\n    advertencias.push(\"ERROR: el texto reconstruido no coincide.\");\n  }\n\n  if (largos) {\n    advertencias.push(`${largos} chunks superan 1200 caracteres.`);\n  }\n\n  if (aislados) {\n    advertencias.push(`${aislados} chunks contienen solo encabezados.`);\n  }\n\n  resultados.push({\n    json: {\n      archivo,\n      bibliografia: item.json?.bibliografia ?? null,\n      estrategia: CONFIG.version,\n      target_size: CONFIG.targetSize,\n      warning_size: CONFIG.warningSize,\n      caracteres_originales: textoOriginal.length,\n      total_bloques: bloques.length,\n      total_secciones: secciones.length,\n      total_chunks: detalle.length,\n      integridad_contenido: integridad,\n      chunks_mayores_650: detalle.filter((c) => c.supera_objetivo).length,\n      chunks_mayores_1200: largos,\n      encabezados_aislados: aislados,\n      advertencias,\n      chunks: detalle,\n    },\n  });\n}\n\nreturn resultados;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        704
+      ],
+      "id": "4e38a60e-b2cc-4523-b8d9-33872dfd2374",
+      "name": "Chunking estructural PULSO v1.3"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n/*\n PULSO - Preparar chunks para embeddings v1.3\n n8n Code: Run Once for All Items\n\n Convierte documentos auditados en items individuales.\n Conserva y valida metadatos bibliográficos.\n No genera embeddings ni escribe en Supabase.\n*/\n\nconst entradas = $input.all();\nconst salida = [];\nconst claves = new Set();\n\nfor (const entrada of entradas) {\n  const documento = entrada.json;\n\n  if (documento.integridad_contenido !== true) {\n    throw new Error(\n      `Integridad no aprobada: ${documento.archivo}`\n    );\n  }\n\n  if (!Array.isArray(documento.chunks)) {\n    throw new Error(\n      `El documento ${documento.archivo} no contiene chunks.`\n    );\n  }\n\n  const archivo = documento.archivo || \"\";\n\n  const coincidencia = archivo.match(\n    /^(SRC-\\d+)_NORMALIZADO_RAG_FINAL\\.md$/i\n  );\n\n  if (!coincidencia) {\n    throw new Error(\n      `Nombre de archivo no reconocido: ${archivo}`\n    );\n  }\n\n  const documentId = coincidencia[1].toUpperCase();\n  const bibliografia = documento.bibliografia;\n\n  if (!bibliografia || typeof bibliografia !== \"object\") {\n    throw new Error(\n      `Falta bibliografía en ${archivo}`\n    );\n  }\n\n  if (\n    bibliografia.document_id !== documentId ||\n    bibliografia.source_file !== archivo\n  ) {\n    throw new Error(\n      `Bibliografía incorrecta para ${archivo}. ` +\n      `Recibido: ${bibliografia.document_id}`\n    );\n  }\n\n  const obligatorios = [\n    \"source\",\n    \"source_url\",\n    \"author\",\n    \"language\",\n    \"document_type\",\n    \"drive_file_id\"\n  ];\n\n  for (const campo of obligatorios) {\n    if (\n      typeof bibliografia[campo] !== \"string\" ||\n      !bibliografia[campo].trim()\n    ) {\n      throw new Error(\n        `Falta metadata ${campo} en ${archivo}`\n      );\n    }\n  }\n\n  if (\n    documento.total_chunks !== documento.chunks.length\n  ) {\n    throw new Error(\n      `Conteo de chunks inconsistente en ${archivo}`\n    );\n  }\n\n  if (documento.chunks.length === 0) {\n    throw new Error(\n      `Documento sin chunks: ${archivo}`\n    );\n  }\n\n  for (const chunk of documento.chunks) {\n    const contenido = chunk.pageContent;\n\n    if (\n      typeof contenido !== \"string\" ||\n      !contenido.trim()\n    ) {\n      throw new Error(\n        `Chunk vacío o inválido en ${archivo}`\n      );\n    }\n\n    if (chunk.supera_advertencia) {\n      throw new Error(\n        `Chunk ${chunk.indice} supera 1200 caracteres en ${archivo}`\n      );\n    }\n\n    if (chunk.encabezado_aislado) {\n      throw new Error(\n        `Encabezado aislado en ${archivo}, chunk ${chunk.indice}`\n      );\n    }\n\n    if (\n      !Number.isInteger(chunk.indice) ||\n      chunk.indice < 1 ||\n      chunk.indice > documento.total_chunks\n    ) {\n      throw new Error(\n        `Índice de chunk inválido en ${archivo}`\n      );\n    }\n\n    if (\n      chunk.metadata?.source_file !== archivo ||\n      chunk.metadata?.chunk_index !== chunk.indice ||\n      chunk.metadata?.chunking_version !==\n        \"markdown_structural_v1_3\"\n    ) {\n      throw new Error(\n        `Metadatos estructurales incorrectos en ${archivo}, ` +\n        `chunk ${chunk.indice}`\n      );\n    }\n\n    const clave = `${documentId}:${chunk.indice}`;\n\n    if (claves.has(clave)) {\n      throw new Error(\n        `Chunk duplicado: ${clave}`\n      );\n    }\n\n    claves.add(clave);\n\n    const metadata = {\n      ...bibliografia,\n      document_id: documentId,\n      source_file: archivo,\n      topics: JSON.stringify(\n        bibliografia.topics ?? []\n      ),\n      section_index: chunk.metadata.section_index,\n      section_path: chunk.metadata.section_path,\n      chunk_index: chunk.indice,\n      chunking_version: \"markdown_structural_v1_3\"\n    };\n\n    salida.push({\n      json: {\n        pageContent: contenido,\n        metadata\n      }\n    });\n  }\n}\n\nreturn salida;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1280,
+        192
+      ],
+      "id": "b02645d4-8507-43d0-9386-c4c338d87e8b",
+      "name": "Preparar chunks para embeddings"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -928,
+        192
+      ],
+      "id": "b85ad36b-e775-4c3b-9b65-01573ecf9d68",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "memoryKey": {
+          "__rl": true,
+          "value": "pulso_src16_test_500_20",
+          "mode": "id"
+        },
+        "clearStore": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        1040
+      ],
+      "id": "0a9182cf-50ce-43bf-9209-31006b38ebdd",
+      "name": "Simple Vector Store2"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        1200
+      ],
+      "id": "61e28a53-3725-4759-88d8-7f98f74cc765",
+      "name": "Embeddings Google Gemini4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ATxSNR5CqCM10FFR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.source }}"
+              },
+              {
+                "name": "source_file",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.source_file }}"
+              },
+              {
+                "name": "pdf_url",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.pdf_url }}"
+              },
+              {
+                "name": "publication_year",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.publication_year }}"
+              },
+              {
+                "name": "language",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.language }}"
+              },
+              {
+                "name": "document_id",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.document_id }}"
+              },
+              {
+                "name": "topic",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.topic }}"
+              },
+              {
+                "name": "document_type",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.document_type }}"
+              },
+              {
+                "name": "source_url",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.source_url }}"
+              },
+              {
+                "name": "author",
+                "value": "={{ $('Catálogo bibliográfico PULSO').first().json.bibliografia.author }}"
+              },
+              {
+                "name": "content_derivation",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.content_derivation ?? null }}"
+              },
+              {
+                "name": "original_file",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.original_file ?? null }}"
+              },
+              {
+                "name": "original_language",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.original_language ?? null }}"
+              },
+              {
+                "name": "topics",
+                "value": "={{ JSON.stringify($('Catálogo bibliográfico PULSO').item.json.bibliografia.topics) }}"
+              },
+              {
+                "name": "clinical_scope",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.clinical_scope }}"
+              },
+              {
+                "name": "doi",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.doi ?? '' }}"
+              },
+              {
+                "name": "drive_file_id",
+                "value": "={{ $('Catálogo bibliográfico PULSO').item.json.bibliografia.drive_file_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        80,
+        1216
+      ],
+      "id": "a57d2381-c713-4f77-bfbc-8b28a8f17a83",
+      "name": "Default Data Loader2"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 20,
+        "options": {
+          "splitCode": "markdown"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        176,
+        1408
+      ],
+      "id": "eba2190b-80ef-47e0-b5f8-0a7ae71bb8af",
+      "name": "Recursive Character Text Splitter2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const permitidos = new Set([\n  \"SRC-02\", \"SRC-03\", \"SRC-04\",\n  \"SRC-05\", \"SRC-06\", \"SRC-07\",\n  \"SRC-11\", \"SRC-12\", \"SRC-13\",\n  \"SRC-14\", \"SRC-15\", \"SRC-16\",\n  \"SRC-17\", \"SRC-18\", \"SRC-19\"\n]);\n\nconst archivos = $input.all();\n\nconst filtrados = archivos.filter(item => {\n  const nombre = item.json.name ?? \"\";\n\n  const match = nombre.match(\n    /^(SRC-\\d+)_NORMALIZADO_RAG_FINAL\\.md$/i\n  );\n\n  return match && permitidos.has(match[1].toUpperCase());\n});\n\nconst encontrados = filtrados.map(\n  item => item.json.name.match(/^SRC-\\d+/i)[0].toUpperCase()\n);\n\nconst duplicados = encontrados.filter(\n  (id, i) => encontrados.indexOf(id) !== i\n);\n\nconst faltantes = [...permitidos].filter(\n  id => !encontrados.includes(id)\n);\n\nif (\n  filtrados.length !== 15 ||\n  duplicados.length > 0 ||\n  faltantes.length > 0\n) {\n  throw new Error(\n    `Corpus incompleto o duplicado. ` +\n    `Encontrados: ${filtrados.length}. ` +\n    `Faltantes: ${faltantes.join(\", \") || \"ninguno\"}. ` +\n    `Duplicados: ${duplicados.join(\", \") || \"ninguno\"}.`\n  );\n}\n\nreturn filtrados;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1648,
+        336
+      ],
+      "id": "ccbd857b-bd23-4ec2-8256-17476ca41da4",
+      "name": "Filtrar corpus PULSO"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst items = $input.all();\nconst documentos = items.map(item => item.json);\n\nconst esperados = [\n  \"SRC-02\", \"SRC-03\", \"SRC-04\", \"SRC-05\",\n  \"SRC-06\", \"SRC-07\", \"SRC-11\", \"SRC-12\",\n  \"SRC-13\", \"SRC-14\", \"SRC-15\", \"SRC-16\",\n  \"SRC-17\", \"SRC-18\", \"SRC-19\"\n];\n\nconst reporte = documentos.map(doc => {\n  const chunks = doc.chunks ?? [];\n  const match = (doc.archivo ?? \"\").match(/^SRC-\\d+/i);\n  const documentId = match ? match[0].toUpperCase() : null;\n\n  const indices = chunks.map(c => c.indice);\n  const duplicadosIndice = indices.length - new Set(indices).size;\n\n  const vacios = chunks.filter(\n    c => !c.pageContent || !c.pageContent.trim()\n  ).length;\n\n  const metadatosInvalidos = chunks.filter(c =>\n    !c.metadata?.section_path ||\n    c.metadata?.chunk_index !== c.indice ||\n    c.metadata?.chunking_version !== \"markdown_structural_v1_3\" ||\n    c.metadata?.source_file !== doc.archivo\n  ).length;\n\n  const problemas = [];\n\n  if (!doc.integridad_contenido)\n    problemas.push(\"Integridad textual incorrecta\");\n\n  if (vacios)\n    problemas.push(`${vacios} chunks vacíos`);\n\n  if (doc.chunks_mayores_1200)\n    problemas.push(`${doc.chunks_mayores_1200} chunks >1200`);\n\n  if (doc.encabezados_aislados)\n    problemas.push(`${doc.encabezados_aislados} encabezados aislados`);\n\n  if (duplicadosIndice)\n    problemas.push(`${duplicadosIndice} índices duplicados`);\n\n  if (metadatosInvalidos)\n    problemas.push(`${metadatosInvalidos} metadatos inválidos`);\n\n  if (chunks.length !== doc.total_chunks)\n    problemas.push(\"Recuento de chunks inconsistente\");\n\n  return {\n    document_id: documentId,\n    archivo: doc.archivo,\n    total_chunks: chunks.length,\n    caracteres_originales: doc.caracteres_originales,\n    integridad_contenido: doc.integridad_contenido,\n    chunks_mayores_650: doc.chunks_mayores_650 ?? 0,\n    chunks_mayores_1200: doc.chunks_mayores_1200 ?? 0,\n    encabezados_aislados: doc.encabezados_aislados ?? 0,\n    chunks_vacios: vacios,\n    metadatos_invalidos: metadatosInvalidos,\n    problemas,\n    estado: problemas.length ? \"REVISAR\" : \"OK\"\n  };\n});\n\nconst ids = reporte.map(r => r.document_id);\nconst faltantes = esperados.filter(id => !ids.includes(id));\n\nconst repetidos = ids.filter(\n  (id, indice) => ids.indexOf(id) !== indice\n);\n\nconst totalChunks = reporte.reduce(\n  (suma, doc) => suma + doc.total_chunks, 0\n);\n\nconst documentosConProblemas = reporte.filter(\n  doc => doc.estado !== \"OK\"\n).length;\n\nconst corpusValido =\n  reporte.length === 15 &&\n  faltantes.length === 0 &&\n  repetidos.length === 0 &&\n  documentosConProblemas === 0;\n\nreturn [{\n  json: {\n    auditoria_version: \"PULSO_v1_3\",\n    total_documentos: reporte.length,\n    total_chunks: totalChunks,\n    documentos_ok: reporte.length - documentosConProblemas,\n    documentos_revisar: documentosConProblemas,\n    documentos_faltantes: faltantes,\n    ids_repetidos: [...new Set(repetidos)],\n    corpus_aprobado: corpusValido,\n    detalle_documentos: reporte\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1456,
+        128
+      ],
+      "id": "1bd825fc-ebf2-467c-8873-13128b7d5df9",
+      "name": "Auditoría global PULSO v1.3"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst documentos = $input.all();\n\nconst encontrados = [];\n\nfor (const item of documentos) {\n  const doc = item.json;\n\n  if (doc.archivo !== \"SRC-07_NORMALIZADO_RAG_FINAL.md\") {\n    continue;\n  }\n\n  for (const chunk of doc.chunks ?? []) {\n    if (chunk.encabezado_aislado) {\n      encontrados.push({\n        json: {\n          archivo: doc.archivo,\n          chunk_index: chunk.indice,\n          section_path: chunk.section_path,\n          caracteres: chunk.caracteres,\n          pageContent: chunk.pageContent,\n          metadata: chunk.metadata\n        }\n      });\n    }\n  }\n}\n\nreturn encontrados;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1456,
+        -32
+      ],
+      "id": "fefa448e-c60c-40f6-bac3-79745670231a",
+      "name": "prueba src7"
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.pageContent }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "source",
+                "value": "={{ $json.metadata.source }}"
+              },
+              {
+                "name": "source_file",
+                "value": "={{ $json.metadata.source_file }}"
+              },
+              {
+                "name": "pdf_url",
+                "value": "={{ $json.metadata.pdf_url ?? '' }}"
+              },
+              {
+                "name": "publication_year",
+                "value": "={{ $json.metadata.publication_year }}"
+              },
+              {
+                "name": "language",
+                "value": "={{ $json.metadata.language }}"
+              },
+              {
+                "name": "document_id",
+                "value": "={{ $json.metadata.document_id }}"
+              },
+              {
+                "name": "topic",
+                "value": "={{ $json.metadata.topic }}"
+              },
+              {
+                "name": "document_type",
+                "value": "={{ $json.metadata.document_type }}"
+              },
+              {
+                "name": "source_url",
+                "value": "={{ $json.metadata.source_url }}"
+              },
+              {
+                "name": "author",
+                "value": "={{ $json.metadata.author }}"
+              },
+              {
+                "name": "content_derivation",
+                "value": "={{ $json.metadata.content_derivation ?? '' }}"
+              },
+              {
+                "name": "original_file",
+                "value": "={{ $json.metadata.original_file ?? '' }}"
+              },
+              {
+                "name": "original_language",
+                "value": "={{ $json.metadata.original_language ?? '' }}"
+              },
+              {
+                "name": "topics",
+                "value": "={{ $json.metadata.topics }}"
+              },
+              {
+                "name": "clinical_scope",
+                "value": "={{ $json.metadata.clinical_scope ?? '' }}"
+              },
+              {
+                "name": "doi",
+                "value": "={{ $json.metadata.doi ?? '' }}"
+              },
+              {
+                "name": "drive_file_id",
+                "value": "={{ $json.metadata.drive_file_id }}"
+              },
+              {
+                "name": "section_index",
+                "value": "={{ $json.metadata.section_index }}"
+              },
+              {
+                "name": "section_path",
+                "value": "={{ $json.metadata.section_path }}"
+              },
+              {
+                "name": "chunk_index",
+                "value": "={{ $json.metadata.chunk_index }}"
+              },
+              {
+                "name": "chunking_version",
+                "value": "={{ $json.metadata.chunking_version }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -576,
+        416
+      ],
+      "id": "33c1fc8f-c745-44b3-a3af-d593e7792fdd",
+      "name": "Default Data Loader3"
+    },
+    {
+      "parameters": {
+        "chunkSize": 2000,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        720
+      ],
+      "id": "f87832c9-df66-48c3-8e50-9cff41207369",
+      "name": "Recursive Character Text Splitter3"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst chunk = items.find(\n  item =>\n    item.json.metadata?.document_id === \"SRC-07\" &&\n    item.json.metadata?.chunk_index === 1\n);\n\nif (!chunk) {\n  throw new Error(\"No se encontró SRC-07, chunk 1\");\n}\n\nreturn [chunk];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1104,
+        -96
+      ],
+      "id": "41f29b3d-5b8c-454e-8f6c-2d0c97c6ced8",
+      "name": "Prueba - seleccionar 1 chunk"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "documents_pulso_test"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -2352,
+        352
+      ],
+      "id": "8eadf31a-8eaa-436b-b178-682f94514c55",
+      "name": "Get many rows",
+      "credentials": {
+        "supabaseApi": {
+          "id": "vgolZwLFRr8x9nIZ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "194585fe-7741-4fd1-9ebb-695d453953bf",
+              "name": "query",
+              "value": "Educación preventiva y recomendaciones basadas en evidencia sobre la relación entre presión arterial elevada, exceso de peso e inactividad física con la salud cardiovascular, incluyendo control de la presión arterial, alimentación saludable y actividad física regular.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2608,
+        464
+      ],
+      "id": "ff397956-bdeb-410f-bff8-599b93a91725",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "tableName": {
+          "__rl": true,
+          "value": "documents_pulso_test",
+          "mode": "list",
+          "cachedResultName": "documents_pulso_test"
+        },
+        "prompt": "={{ $json.query }}",
+        "topK": 5,
+        "options": {
+          "queryName": "match_documents_pulso_test"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        -2256,
+        608
+      ],
+      "id": "89470f8d-4c08-4242-80ae-ae38b48f3dc9",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "vgolZwLFRr8x9nIZ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-embedding-001"
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2240,
+        784
+      ],
+      "id": "81aaf9d6-0213-494c-83da-6da7052f6099",
+      "name": "Embeddings Google Gemini5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ATxSNR5CqCM10FFR",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader1": {
+      "ai_document": [
+        []
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Inspeccionar chunks SRC-12",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Chunking estructural PULSO v1.3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader1",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Catálogo bibliográfico PULSO": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [
+          {
+            "node": "Auditoría global PULSO v1.3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "prueba src7",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Preparar chunks para embeddings",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Catálogo bibliográfico PULSO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search files and folders": {
+      "main": [
+        [
+          {
+            "node": "Filtrar corpus PULSO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar contenido Markdown": {
+      "main": [
+        []
+      ]
+    },
+    "Simple Vector Store": {
+      "main": [
+        []
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Simple Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter1": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini3": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Search files and folders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunking estructural PULSO v1.3": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar chunks para embeddings": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini4": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Simple Vector Store2",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader2": {
+      "ai_document": [
+        [
+          {
+            "node": "Simple Vector Store2",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter2": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader2",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar corpus PULSO": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter3": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader3",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader3": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prueba - seleccionar 1 chunk": {
+      "main": [
+        []
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini5": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3642c99c-2418-4e1f-a543-71d6e0603f98",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "60c403970cc7472dd86121e1b9947a287ee51ffea187b84a98fa83999e296b2f"
+  },
+  "id": "JhsLlBkKz8l8EjCg",
+  "tags": []
+}
