@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     # RAG
     rag_service_url: str = ""
     rag_timeout_seconds: float = 90.0
+    rag_webhook_api_key: str = ""
 
     # In-memory analysis context cache
     analysis_cache_ttl_seconds: float = 900.0

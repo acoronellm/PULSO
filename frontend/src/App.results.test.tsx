@@ -347,7 +347,8 @@ describe("recomendaciones RAG", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /consultar información educativa/i }));
 
-    expect(await screen.findByText(/no permitió obtener explicaciones ni recomendaciones educativas válidas/i)).toBeInTheDocument(); expect(requestRecommendations).toHaveBeenCalledWith(
+    expect(await screen.findByText(/no permitió obtener explicaciones ni recomendaciones educativas válidas/i)).toBeInTheDocument();
+    expect(requestRecommendations).toHaveBeenCalledWith(
       { analysis_id: "00000000-0000-0000-0000-000000000001" },
       expect.any(Object)
     );
@@ -469,7 +470,8 @@ describe("simulación de escenarios", () => {
     });
 
     fireEvent.click(screen.getByRole("link", { name: "Simulación" }));
-    expect(screen.getByRole("heading", { name: /¿qué pasaría si cambian tus factores\?/i })).toBeInTheDocument(); expect(screen.queryByText(/sodio|sal/i, { selector: "label *" })).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /¿qué pasaría si cambian tus factores\?/i })).toBeInTheDocument();
+    expect(screen.queryByText(/sodio|sal/i, { selector: "label *" })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: /calcular escenario/i }));
 

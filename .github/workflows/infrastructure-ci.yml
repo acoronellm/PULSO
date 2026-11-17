@@ -26,6 +26,7 @@ jobs:
 
     env:
       RAG_SERVICE_URL: http://localhost:5678/webhook/pulso-rag
+      RAG_WEBHOOK_API_KEY: ci-test-placeholder-not-a-real-secret
 
     steps:
       - name: Checkout repository

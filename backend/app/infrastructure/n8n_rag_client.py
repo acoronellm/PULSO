@@ -1,7 +1,7 @@
 """Adaptador HTTP del workflow RAG de n8n (implementa el puerto RecommendationGenerator)."""
 
 from __future__ import annotations
-
+import asyncio
 from dataclasses import asdict
 from typing import Optional
 
@@ -103,22 +103,39 @@ class N8nRecommendationClient:
         url: str,
         timeout_seconds: float,
         transport: Optional[httpx.AsyncBaseTransport] = None,
+        retry_503_delay_seconds: float = 20.0,
+        api_key: str = "",
     ):
+        if retry_503_delay_seconds < 0:
+            raise ValueError("El intervalo de reintento no puede ser negativo.")
+
         self._url = url
         self._timeout_seconds = timeout_seconds
         self._transport = transport
-
+        self._retry_503_delay_seconds = retry_503_delay_seconds
+        self._api_key = api_key
     async def generate(self, context: AnalysisContext) -> RecommendationReport:
         if not self._url:
             raise RecommendationServiceError(
                 "RAG_SERVICE_URL no está configurado.")
 
+        payload = _request_payload(context)
+        headers = (
+            {"X-PULSO-RAG-Key": self._api_key}
+            if self._api_key
+            else {}
+        )
         try:
             async with httpx.AsyncClient(
                 timeout=self._timeout_seconds,
                 transport=self._transport,
             ) as client:
-                response = await client.post(self._url, json=_request_payload(context))
+                response = await client.post(self._url, json=payload, headers=headers)
+
+                if response.status_code == 503:
+                    await asyncio.sleep(self._retry_503_delay_seconds)
+                    response = await client.post(self._url, json=payload, headers=headers)
+
         except httpx.RequestError as exc:
             raise RecommendationServiceError(
                 "No fue posible comunicarse con el servicio RAG."
