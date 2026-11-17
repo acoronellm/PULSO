@@ -13,7 +13,6 @@ on:
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   prepare-metadata:
@@ -32,24 +31,48 @@ jobs:
       - name: Determine version/tag
         id: version
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          RELEASE_TAG: ${{ github.event.inputs.release_tag }}
+          COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
         run: |
-          RAW="${{ github.event.inputs.release_tag || github.ref_name }}"
+          set -euo pipefail
 
-          if [ -z "$RAW" ] || [ "$RAW" = "main" ]; then
-            RAW="$(git describe --tags --always --dirty 2>/dev/null || echo "main")"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$REF" != "refs/heads/main" ]]; then
+            echo "::error::Manual deliveries are only allowed from main."
+            exit 1
           fi
 
-          TAG="$(printf '%s' "$RAW" \
-            | tr '[:upper:]' '[:lower:]' \
-            | sed -E 's#^refs/tags/##; s#^refs/heads/##; s#[^a-z0-9._-]#-#g; s#-+#-#g; s#^-##; s#-$##')"
+          RAW="$RELEASE_TAG"
+          if [[ -z "$RAW" ]]; then
+            RAW="$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short=12 HEAD)"
+          fi
 
-          echo "version=${RAW}" >> "$GITHUB_OUTPUT"
-          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          if [[ ! "$RAW" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}$ ]]; then
+            echo "::error::Release tag must be 1-64 characters and contain only letters, numbers, '.', '_' or '-'."
+            exit 1
+          fi
+
+          VERSION_BASE="$(printf '%s' "$RAW" | tr '[:upper:]' '[:lower:]')"
+          TAG="${VERSION_BASE}-${COMMIT}-${RUN_ID}-${RUN_ATTEMPT}"
+          if (( ${#TAG} > 128 )); then
+            echo "::error::Generated Docker tag exceeds the 128-character limit."
+            exit 1
+          fi
+
+          printf 'version=%s\n' "$RAW" >> "$GITHUB_OUTPUT"
+          printf 'tag=%s\n' "$TAG" >> "$GITHUB_OUTPUT"
 
   build-and-publish:
     name: Build and publish Docker images
     needs: prepare-metadata
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       matrix:
@@ -86,11 +109,7 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ matrix.image }}
-          tags: |
-            type=raw,value=${{ needs.prepare-metadata.outputs.tag }}
-            type=raw,value=main,enable=${{ github.ref == 'refs/heads/main' }}
-            type=sha,prefix=sha-
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+          tags: type=raw,value=${{ needs.prepare-metadata.outputs.tag }}
 
       - name: Build and push ${{ matrix.name }} image
         uses: docker/build-push-action@v6
@@ -109,76 +128,136 @@ jobs:
       - prepare-metadata
       - build-and-publish
     runs-on: ubuntu-24.04
+    permissions:
+      packages: read
 
     steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Pull published images
+        id: digests
         shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
+          COMMIT: ${{ needs.prepare-metadata.outputs.commit }}
         run: |
-          docker pull ghcr.io/${{ github.repository_owner }}/pulso-frontend:${{ needs.prepare-metadata.outputs.tag }}
-          docker pull ghcr.io/${{ github.repository_owner }}/pulso-backend:${{ needs.prepare-metadata.outputs.tag }}
-          docker pull ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }}
+          set -euo pipefail
+          OWNER="${OWNER,,}"
+          digest_records=""
+          for name in frontend backend ml-service; do
+            image="ghcr.io/${OWNER}/pulso-${name}:${IMAGE_TAG}"
+            docker pull "$image"
+
+            revision="$(docker image inspect "$image" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')"
+            if [[ "$revision" != "$COMMIT" ]]; then
+              echo "::error::Commit label mismatch for ${image}: expected ${COMMIT}, got ${revision}."
+              exit 1
+            fi
+
+            repo_digest="$(docker image inspect "$image" --format '{{ index .RepoDigests 0 }}')"
+            digest="${repo_digest##*@}"
+            if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+              echo "::error::Could not determine a valid registry digest for ${image}."
+              exit 1
+            fi
+            digest_records+="${name}|${digest}"$'\n'
+          done
+
+          {
+            printf 'digests<<EOF\n'
+            printf '%s' "$digest_records"
+            printf 'EOF\n'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Inspect published metadata
         shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
         run: |
-          docker image inspect ghcr.io/${{ github.repository_owner }}/pulso-frontend:${{ needs.prepare-metadata.outputs.tag }} --format '{{json .Config.Labels}}'
-          docker image inspect ghcr.io/${{ github.repository_owner }}/pulso-backend:${{ needs.prepare-metadata.outputs.tag }} --format '{{json .Config.Labels}}'
-          docker image inspect ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }} --format '{{json .Config.Labels}}'
+          set -euo pipefail
+          OWNER="${OWNER,,}"
+          for name in frontend backend ml-service; do
+            docker image inspect "ghcr.io/${OWNER}/pulso-${name}:${IMAGE_TAG}" \
+              --format '{{json .Config.Labels}}'
+          done
 
       - name: Smoke test frontend image
         shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
         run: |
-          docker run -d --rm --name pulso-cd-frontend -p 8080:80 ghcr.io/${{ github.repository_owner }}/pulso-frontend:${{ needs.prepare-metadata.outputs.tag }}
-          sleep 10
-          curl --fail --silent --show-error http://127.0.0.1:8080/ | grep -F "<html"
+          set -euo pipefail
+          OWNER="${OWNER,,}"
+          docker run -d --rm --name pulso-cd-frontend -p 8080:80 \
+            "ghcr.io/${OWNER}/pulso-frontend:${IMAGE_TAG}"
+          curl --fail --silent --show-error --retry 15 --retry-connrefused --retry-delay 2 \
+            http://127.0.0.1:8080/ | grep -F "<html"
           docker rm -f pulso-cd-frontend
 
       - name: Smoke test ML Service image
         shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
         run: |
-          docker run -d --rm --name pulso-cd-ml -p 8001:8001 ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }}
-          sleep 15
-          curl --fail --silent --show-error http://127.0.0.1:8001/health | grep -F '"status": "ok"'
+          set -euo pipefail
+          OWNER="${OWNER,,}"
+          docker run -d --rm --name pulso-cd-ml -p 8001:8001 \
+            "ghcr.io/${OWNER}/pulso-ml-service:${IMAGE_TAG}"
+          response="$(curl --fail --silent --show-error --retry 15 --retry-connrefused \
+            --retry-delay 2 http://127.0.0.1:8001/health)"
+          python -c 'import json, sys; data = json.load(sys.stdin); sys.exit(0 if data.get("status") == "ok" and data.get("model_loaded") is True else "ML Service health check failed: " + repr(data))' \
+            <<< "$response"
           docker rm -f pulso-cd-ml
 
       - name: Smoke test backend image with ML Service dependency
         shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
         run: |
+          set -euo pipefail
+          OWNER="${OWNER,,}"
           docker network create pulso-cd-network
-          docker run -d --rm --network pulso-cd-network --name pulso-cd-ml-helper -p 8001:8001 ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }}
-          docker run -d --rm --network pulso-cd-network --name pulso-cd-backend -e ML_SERVICE_URL=http://pulso-cd-ml-helper:8001 -p 8000:8000 ghcr.io/${{ github.repository_owner }}/pulso-backend:${{ needs.prepare-metadata.outputs.tag }}
-          sleep 20
-          curl --fail --silent --show-error http://127.0.0.1:8000/api/health | grep -F '"status": "ok"'
+          docker run -d --rm --network pulso-cd-network --name pulso-cd-ml-helper \
+            "ghcr.io/${OWNER}/pulso-ml-service:${IMAGE_TAG}"
+          docker run -d --rm --network pulso-cd-network --name pulso-cd-backend \
+            -e ML_SERVICE_URL=http://pulso-cd-ml-helper:8001 -p 8000:8000 \
+            "ghcr.io/${OWNER}/pulso-backend:${IMAGE_TAG}"
+          response="$(curl --fail --silent --show-error --retry 15 --retry-connrefused \
+            --retry-delay 2 http://127.0.0.1:8000/api/health)"
+          python -c 'import json, sys; data = json.load(sys.stdin); sys.exit(0 if data.get("status") == "ok" else "Backend health check failed: " + repr(data))' \
+            <<< "$response"
           docker rm -f pulso-cd-backend pulso-cd-ml-helper
           docker network rm pulso-cd-network
 
-  publish-summary:
-    name: Publish CD evidence
-    needs:
-      - prepare-metadata
-      - build-and-publish
-      - verify-published-images
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Generate release summary
+      - name: Publish delivery evidence
+        env:
+          VERSION: ${{ needs.prepare-metadata.outputs.version }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
+          COMMIT: ${{ needs.prepare-metadata.outputs.commit }}
+          DIGESTS: ${{ steps.digests.outputs.digests }}
         shell: bash
         run: |
-          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
-          # PULSO Continuous Delivery
-
-          - Versión: ${{ needs.prepare-metadata.outputs.version }}
-          - Tag publicado: ${{ needs.prepare-metadata.outputs.tag }}
-          - Commit: ${{ needs.prepare-metadata.outputs.commit }}
-          - Fecha: $(date -u)
-
-          ## Imágenes publicadas
-          - Frontend: ghcr.io/${{ github.repository_owner }}/pulso-frontend:${{ needs.prepare-metadata.outputs.tag }}
-          - Backend: ghcr.io/${{ github.repository_owner }}/pulso-backend:${{ needs.prepare-metadata.outputs.tag }}
-          - ML Service: ghcr.io/${{ github.repository_owner }}/pulso-ml-service:${{ needs.prepare-metadata.outputs.tag }}
-
-          ## Verificación
-          - Pull de artefactos desde GHCR completado.
-          - Smoke tests del frontend, backend y ML Service ejecutados correctamente.
-          - Generación de evidencia disponible en los logs del workflow.
-          EOF
+          {
+            printf '# PULSO Continuous Delivery\n\n'
+            printf -- '- Versión: %s\n' "$VERSION"
+            printf -- '- Tag de esta ejecución: `%s`\n' "$IMAGE_TAG"
+            printf -- '- Commit: `%s`\n' "$COMMIT"
+            printf -- '- Fecha: %s\n\n' "$(date -u)"
+            printf '## Digests verificados en GHCR\n\n'
+            printf '| Imagen | Referencia | Digest |\n|---|---|---|\n'
+            while IFS='|' read -r name digest; do
+              [[ -z "$name" ]] || printf '| %s | `ghcr.io/%s/pulso-%s:%s` | `%s` |\n' \
+                "$name" "${GITHUB_REPOSITORY_OWNER,,}" "$name" "$IMAGE_TAG" "$digest"
+            done <<< "$DIGESTS"
+            printf '\nPull de los tres artefactos y smoke tests completados; el ML Service confirmó el modelo cargado.\n'
+          } >> "$GITHUB_STEP_SUMMARY"
