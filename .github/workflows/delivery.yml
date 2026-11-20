@@ -1,0 +1,374 @@
+name: Continuous Delivery
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Etiqueta manual opcional para la entrega"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  prepare-metadata:
+    name: Prepare delivery metadata
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      commit: ${{ github.sha }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version/tag
+        id: version
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          RELEASE_TAG: ${{ github.event.inputs.release_tag }}
+          COMMIT: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$REF" != "refs/heads/main" ]]; then
+            echo "::error::Manual deliveries are only allowed from main."
+            exit 1
+          fi
+
+          RAW="$RELEASE_TAG"
+          if [[ -z "$RAW" ]]; then
+            RAW="$(git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short=12 HEAD)"
+          fi
+
+          if [[ ! "$RAW" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,63}$ ]]; then
+            echo "::error::Release tag must be 1-64 characters and contain only letters, numbers, '.', '_' or '-'."
+            exit 1
+          fi
+
+          VERSION_BASE="$(printf '%s' "$RAW" | tr '[:upper:]' '[:lower:]')"
+          TAG="${VERSION_BASE}-${COMMIT}-${RUN_ID}-${RUN_ATTEMPT}"
+          if (( ${#TAG} > 128 )); then
+            echo "::error::Generated Docker tag exceeds the 128-character limit."
+            exit 1
+          fi
+
+          printf 'version=%s\n' "$RAW" >> "$GITHUB_OUTPUT"
+          printf 'tag=%s\n' "$TAG" >> "$GITHUB_OUTPUT"
+
+  build-and-publish:
+    name: Build and publish Docker images
+    needs: prepare-metadata
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: frontend
+            context: ./frontend
+            dockerfile: ./frontend/Dockerfile
+            image: ghcr.io/${{ github.repository_owner }}/pulso-frontend
+          - name: backend
+            context: .
+            dockerfile: ./backend/Dockerfile
+            image: ghcr.io/${{ github.repository_owner }}/pulso-backend
+          - name: ml-service
+            context: .
+            dockerfile: ./ml_service/Dockerfile
+            image: ghcr.io/${{ github.repository_owner }}/pulso-ml-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ matrix.image }}
+          tags: type=raw,value=${{ needs.prepare-metadata.outputs.tag }}
+
+      - name: Build and push ${{ matrix.name }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          provenance: false
+          sbom: false
+
+  verify-published-images:
+    name: Verify published artifacts
+    needs:
+      - prepare-metadata
+      - build-and-publish
+    runs-on: ubuntu-24.04
+    permissions:
+      packages: read
+
+    steps:
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull published images
+        id: digests
+        shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
+          COMMIT: ${{ needs.prepare-metadata.outputs.commit }}
+        run: |
+          set -euo pipefail
+          OWNER="${OWNER,,}"
+          digest_records=""
+          for name in frontend backend ml-service; do
+            image="ghcr.io/${OWNER}/pulso-${name}:${IMAGE_TAG}"
+            docker pull "$image"
+
+            revision="$(docker image inspect "$image" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')"
+            if [[ "$revision" != "$COMMIT" ]]; then
+              echo "::error::Commit label mismatch for ${image}: expected ${COMMIT}, got ${revision}."
+              exit 1
+            fi
+
+            repo_digest="$(docker image inspect "$image" --format '{{ index .RepoDigests 0 }}')"
+            digest="${repo_digest##*@}"
+            if [[ ! "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+              echo "::error::Could not determine a valid registry digest for ${image}."
+              exit 1
+            fi
+            digest_records+="${name}|${digest}"$'\n'
+          done
+
+          {
+            printf 'digests<<EOF\n'
+            printf '%s' "$digest_records"
+            printf 'EOF\n'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Inspect published metadata
+        shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
+        run: |
+          set -euo pipefail
+          OWNER="${OWNER,,}"
+          for name in frontend backend ml-service; do
+            docker image inspect "ghcr.io/${OWNER}/pulso-${name}:${IMAGE_TAG}" \
+              --format '{{json .Config.Labels}}'
+          done
+
+      - name: Smoke test frontend image
+        shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
+        run: |
+          set -euo pipefail
+          OWNER="${OWNER,,}"
+          container_name=pulso-cd-frontend
+          docker run -d --name "$container_name" -p 8080:80 \
+            "ghcr.io/${OWNER}/pulso-frontend:${IMAGE_TAG}"
+          ready=0
+          for ((attempt = 1; attempt <= 20; attempt++)); do
+            if ! container_state="$(docker inspect --format '{{.State.Status}}' "$container_name" 2>&1)"; then
+              echo "::error::Could not inspect ${container_name}: ${container_state}"
+              exit 1
+            fi
+            if [[ "$container_state" != "running" ]]; then
+              echo "::error::${container_name} stopped before becoming ready (state: ${container_state})."
+              exit 1
+            fi
+
+            if response="$(curl --fail --silent --show-error --max-time 2 \
+              http://127.0.0.1:8080/ 2>&1)"; then
+              if grep -Fqi "<html" <<< "$response"; then
+                printf 'Frontend became ready on probe %s.\n' "$attempt"
+                ready=1
+                break
+              fi
+              printf 'Frontend probe %s returned HTTP success without HTML content.\n' "$attempt"
+            else
+              curl_status=$?
+              printf 'Frontend probe %s failed (curl exit %s): %s\n' \
+                "$attempt" "$curl_status" "$response"
+            fi
+            sleep 1
+          done
+          if (( ready == 0 )); then
+            echo "::error::Frontend did not return valid HTML after 20 readiness probes."
+            exit 1
+          fi
+
+      - name: Smoke test ML Service image
+        shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
+        run: |
+          set -euo pipefail
+          OWNER="${OWNER,,}"
+          container_name=pulso-cd-ml
+          docker run -d --name "$container_name" -p 8001:8001 \
+            "ghcr.io/${OWNER}/pulso-ml-service:${IMAGE_TAG}"
+          ready=0
+          for ((attempt = 1; attempt <= 20; attempt++)); do
+            if ! container_state="$(docker inspect --format '{{.State.Status}}' "$container_name" 2>&1)"; then
+              echo "::error::Could not inspect ${container_name}: ${container_state}"
+              exit 1
+            fi
+            if [[ "$container_state" != "running" ]]; then
+              echo "::error::${container_name} stopped before becoming ready (state: ${container_state})."
+              exit 1
+            fi
+
+            if response="$(curl --fail --silent --show-error --max-time 2 \
+              http://127.0.0.1:8001/health 2>&1)"; then
+              if python -c 'import json, sys; data = json.load(sys.stdin); sys.exit(0 if data.get("status") == "ok" and data.get("model_loaded") is True else "ML Service health check failed: " + repr(data))' \
+                <<< "$response"; then
+                printf 'ML Service became ready on probe %s.\n' "$attempt"
+                ready=1
+                break
+              fi
+              echo "::error::ML Service responded but reported an unhealthy model."
+              exit 1
+            else
+              curl_status=$?
+              printf 'ML Service probe %s failed (curl exit %s): %s\n' \
+                "$attempt" "$curl_status" "$response"
+            fi
+            sleep 1
+          done
+          if (( ready == 0 )); then
+            echo "::error::ML Service did not report a loaded model after 20 readiness probes."
+            exit 1
+          fi
+
+      - name: Smoke test backend image with ML Service dependency
+        shell: bash
+        env:
+          OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
+        run: |
+          set -euo pipefail
+          OWNER="${OWNER,,}"
+          docker network create pulso-cd-network
+          docker run -d --network pulso-cd-network --name pulso-cd-ml-helper \
+            "ghcr.io/${OWNER}/pulso-ml-service:${IMAGE_TAG}"
+          docker run -d --network pulso-cd-network --name pulso-cd-backend \
+            -e ML_SERVICE_URL=http://pulso-cd-ml-helper:8001 -p 8000:8000 \
+            "ghcr.io/${OWNER}/pulso-backend:${IMAGE_TAG}"
+          ready=0
+          for ((attempt = 1; attempt <= 20; attempt++)); do
+            if ! container_state="$(docker inspect --format '{{.State.Status}}' pulso-cd-backend 2>&1)"; then
+              echo "::error::Could not inspect pulso-cd-backend: ${container_state}"
+              exit 1
+            fi
+            if [[ "$container_state" != "running" ]]; then
+              echo "::error::pulso-cd-backend stopped before becoming ready (state: ${container_state})."
+              exit 1
+            fi
+
+            if response="$(curl --fail --silent --show-error --max-time 2 \
+              http://127.0.0.1:8000/api/health 2>&1)"; then
+              if python -c 'import json, sys; data = json.load(sys.stdin); sys.exit(0 if data.get("status") == "ok" else "Backend health check failed: " + repr(data))' \
+                <<< "$response"; then
+                printf 'Backend became ready on probe %s.\n' "$attempt"
+                ready=1
+                break
+              fi
+              echo "::error::Backend returned an unhealthy health response."
+              exit 1
+            else
+              curl_status=$?
+              printf 'Backend probe %s failed (curl exit %s): %s\n' \
+                "$attempt" "$curl_status" "$response"
+            fi
+            sleep 1
+          done
+          if (( ready == 0 )); then
+            echo "::error::Backend did not become ready after 20 readiness probes."
+            exit 1
+          fi
+
+      - name: Diagnose failed smoke tests
+        if: failure()
+        shell: bash
+        run: |
+          docker ps -a --no-trunc || echo "::warning::Could not list Docker containers."
+          for container_name in pulso-cd-frontend pulso-cd-ml pulso-cd-ml-helper pulso-cd-backend; do
+            echo "::group::Diagnostics for ${container_name}"
+            docker inspect --format 'state={{.State.Status}} running={{.State.Running}} exit={{.State.ExitCode}} error={{.State.Error}}' \
+              "$container_name" || echo "::warning::Could not inspect ${container_name}."
+            docker logs --timestamps --tail 200 "$container_name" || echo "::warning::Could not read logs for ${container_name}."
+            echo "::endgroup::"
+          done
+
+      - name: Publish delivery evidence
+        env:
+          VERSION: ${{ needs.prepare-metadata.outputs.version }}
+          IMAGE_TAG: ${{ needs.prepare-metadata.outputs.tag }}
+          COMMIT: ${{ needs.prepare-metadata.outputs.commit }}
+          DIGESTS: ${{ steps.digests.outputs.digests }}
+        shell: bash
+        run: |
+          {
+            printf '# PULSO Continuous Delivery\n\n'
+            printf -- '- Versión: %s\n' "$VERSION"
+            printf -- '- Tag de esta ejecución: `%s`\n' "$IMAGE_TAG"
+            printf -- '- Commit: `%s`\n' "$COMMIT"
+            printf -- '- Fecha: %s\n\n' "$(date -u)"
+            printf '## Digests verificados en GHCR\n\n'
+            printf '| Imagen | Referencia | Digest |\n|---|---|---|\n'
+            while IFS='|' read -r name digest; do
+              [[ -z "$name" ]] || printf '| %s | `ghcr.io/%s/pulso-%s:%s` | `%s` |\n' \
+                "$name" "${GITHUB_REPOSITORY_OWNER,,}" "$name" "$IMAGE_TAG" "$digest"
+            done <<< "$DIGESTS"
+            printf '\nPull de los tres artefactos y smoke tests completados; el ML Service confirmó el modelo cargado.\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cleanup smoke test containers
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          container_ids="$(docker ps -aq --filter 'name=pulso-cd-')"
+          if [[ -n "$container_ids" ]]; then
+            while IFS= read -r container_id; do
+              docker rm -f "$container_id"
+            done <<< "$container_ids"
+          fi
+          network_id="$(docker network ls -q --filter 'name=pulso-cd-network')"
+          if [[ -n "$network_id" ]]; then
+            docker network rm "$network_id"
+          fi

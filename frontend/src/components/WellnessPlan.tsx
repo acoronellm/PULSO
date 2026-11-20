@@ -1,8 +1,7 @@
 import { IMAGES } from "../utils/images";
 
 // Contenido educativo general, igual para todos los perfiles (no lo genera el modelo)
-export type WellnessTab = "recetas" | "ejercicios" | "medir";
-
+export type WellnessTab = "ejercicios" | "medir";
 interface WellnessContent {
   id: WellnessTab;
   label: string;
@@ -18,33 +17,6 @@ interface WellnessContent {
 }
 
 const TABS: WellnessContent[] = [
-  {
-    id: "recetas",
-    label: "Recetas",
-    icon: "restaurant",
-    accent: "text-secondary",
-    tile: "bg-mint-vitality-subtle text-mint-vitality",
-    image: IMAGES.food,
-    title: "Cocina con menos sal",
-    subtitle: "Sabor con hierbas, limón y especias.",
-    items: [
-      {
-        icon: "eco",
-        title: "Ensalada de garbanzos con limón",
-        tags: ["15 min", "Alta en fibra"],
-      },
-      {
-        icon: "set_meal",
-        title: "Salmón al horno con verduras",
-        tags: ["30 min", "Omega-3"],
-      },
-      {
-        icon: "breakfast_dining",
-        title: "Avena con frutos rojos",
-        tags: ["10 min", "Sin azúcar añadida"],
-      },
-    ],
-  },
   {
     id: "ejercicios",
     label: "Ejercicios",

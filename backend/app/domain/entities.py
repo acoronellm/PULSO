@@ -85,12 +85,18 @@ class SourceLines:
 
 @dataclass(frozen=True)
 class DocumentSource:
-    """Fragmento documental recuperado por el módulo RAG."""
+    """Fuente documental utilizada por el RAG."""
 
     source_id: str
     source: str
-    score: float
-    lines: SourceLines
+
+    author: Optional[str] = None
+    publication_year: Optional[int] = None
+    source_url: Optional[str] = None
+    pdf_url: Optional[str] = None
+
+    score: Optional[float] = None
+    lines: Optional[SourceLines] = None
 
 
 @dataclass(frozen=True)
@@ -102,15 +108,27 @@ class Recommendation:
 
 
 @dataclass(frozen=True)
+class FactorExplanation:
+    """Explicación educativa de un factor cardiovascular."""
+
+    query_group: str
+    factor: str
+    features: tuple[str, ...]
+    explanation: str
+    source_ids: tuple[str, ...] = ()
+    sources: tuple[DocumentSource, ...] = ()
+
+@dataclass(frozen=True)
 class RecommendationReport:
-    """Recomendaciones educativas generadas por el módulo RAG."""
+    """Resultado educativo generado por el RAG."""
 
     summary: str
     considerations: str
     note: str
     insufficient_information: bool
-    recommendations: tuple[Recommendation, ...] = ()
 
+    recommendations: tuple[Recommendation, ...] = ()
+    factor_explanations: tuple[FactorExplanation, ...] = ()
 
 @dataclass(frozen=True)
 class ScenarioChanges:
