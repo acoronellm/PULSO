@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import App from "../App";
@@ -32,9 +32,21 @@ function isRagResponse(body: unknown): body is RagResponse {
 }
 
 async function submitExampleProfile() {
-  fireEvent.click(screen.getByRole("button", { name: /usar datos de ejemplo/i }));
-  fireEvent.click(screen.getByRole("button", { name: /ver mi resultado/i }));
-  await screen.findByTestId("result-summary");
+  await act(async () => {
+    fireEvent.click(
+      screen.getByRole("button", { name: /usar datos de ejemplo/i })
+    );
+  });
+
+  await waitFor(() => {
+    expect(screen.getByLabelText(/edad actual/i)).not.toHaveValue(null);
+  });
+
+  fireEvent.click(
+    screen.getByRole("button", { name: /ver mi resultado/i })
+  );
+
+  await screen.findByTestId("result-summary", {}, { timeout: 15000 });
 }
 
 beforeAll(async () => {
@@ -102,8 +114,15 @@ describe("PI-05 a PI-07: integración de frontend con backend real", () => {
       throw new Error("La respuesta del endpoint RAG no cumple el contrato del frontend.");
     }
 
-    expect(screen.getByRole("heading", { name: /fuentes documentales consultadas/i }))
-      .toBeInTheDocument();
+    const sourcesButton = screen.getByRole("button", {
+      name: /fuentes documentales consultadas/i,
+    });
+
+    expect(sourcesButton).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.click(sourcesButton);
+
+    expect(sourcesButton).toHaveAttribute("aria-expanded", "true");
     if (rag.body.insufficient_information) {
       expect(screen.getByRole("status")).toHaveTextContent(/información documental disponible/i);
       return;
@@ -126,7 +145,7 @@ describe("PI-05 a PI-07: integración de frontend con backend real", () => {
     fireEvent.click(screen.getByRole("link", { name: /simular escenarios/i }));
 
     await screen.findByRole("heading", { name: /qué pasaría si cambian tus factores/i });
-    fireEvent.change(screen.getByLabelText("Peso"), { target: { value: "70" } });
+    fireEvent.change(screen.getByRole("slider", { name: /peso/i }), { target: { value: "70" } });
     fireEvent.click(screen.getByRole("button", { name: /calcular escenario/i }));
 
     await waitFor(() => expect(isSuccessfulResponse("/api/simulate")).toBe(true));
