@@ -1906,7 +1906,168 @@ La suite de backend y ML Service se comprobó también en la sección 13.1. Las 
 
 ### 13.3 Pruebas de usabilidad
 
-Expone las pruebas de usabilidad aplicadas para evaluar la experiencia del usuario, indicando metodología, criterios de aceptación, hallazgos y nivel de cumplimiento.
+Con el propósito de evaluar la facilidad de uso de PULSO y la comprensión de la información presentada por la plataforma, se realizó una prueba de usabilidad mediante un cuestionario dirigido a usuarios del MVP.
+
+La evaluación abordó las principales funcionalidades del sistema: ingreso de información, interpretación del resultado predictivo, comprensión de los factores explicativos, claridad de las recomendaciones educativas, simulación de escenarios e identificación de las fuentes documentales.
+
+#### 13.3.1 Metodología de evaluación
+
+Se aplicó un cuestionario elaborado mediante Google Forms, compuesto por nueve afirmaciones evaluadas con una escala Likert de cinco niveles y dos preguntas abiertas.
+
+La escala utilizada fue:
+
+- 1: Totalmente en desacuerdo.
+- 2: En desacuerdo.
+- 3: Neutral.
+- 4: De acuerdo.
+- 5: Totalmente de acuerdo.
+
+Se recopilaron 14 respuestas, con las cuales se calcularon las frecuencias, los promedios por pregunta y el porcentaje de valoraciones positivas, considerando como tales las puntuaciones de 4 y 5.
+
+Las preguntas abiertas permitieron identificar dificultades percibidas y propuestas de mejora relacionadas con la experiencia de uso de PULSO.
+
+La evaluación tuvo un enfoque descriptivo y exploratorio, basado en percepciones autodeclaradas. No se utilizaron instrumentos estandarizados como System Usability Scale (SUS), ni se realizaron mediciones objetivas de tiempos de ejecución o tasas de éxito en tareas.
+
+#### 13.3.2 Resultados cuantitativos
+
+La evaluación registró 126 valoraciones correspondientes a las nueve preguntas de escala Likert respondidas por los 14 participantes.
+
+De estas valoraciones, 84 correspondieron a la puntuación máxima de 5, 32 a la puntuación de 4 y 10 a la puntuación neutral de 3. No se registraron puntuaciones de 1 o 2.
+
+El promedio global fue de **4,59 sobre 5**, mientras que el **92,1 % de las valoraciones correspondió a puntuaciones positivas**.
+
+**Tabla. Resultados cuantitativos de la prueba de usabilidad (n = 14).**
+
+| Aspecto evaluado | Promedio | Valoraciones positivas |
+|---|---:|---:|
+| Facilidad para completar el formulario | 4,71 | 92,9 % |
+| Comprensión del resultado | 4,64 | 92,9 % |
+| Comprensión de factores explicativos | 4,50 | 92,9 % |
+| Claridad de las recomendaciones | 4,57 | 92,9 % |
+| Facilidad de uso de la simulación | 4,50 | 92,9 % |
+| Comprensión del carácter educativo | 4,79 | 92,9 % |
+| Utilidad de las recomendaciones | 4,57 | 92,9 % |
+| Identificación de fuentes documentales | 4,36 | 85,7 % |
+| Facilidad de uso general | 4,64 | 92,9 % |
+
+*Fuente: elaboración propia a partir de los resultados de la encuesta de usabilidad de PULSO.*
+
+A continuación, se presentan los resultados gráficos obtenidos para cada afirmación del cuestionario.
+
+**Pregunta 1. Facilidad para completar el formulario**
+
+La facilidad para completar el formulario obtuvo un promedio de 4,71 sobre 5, lo que refleja una percepción favorable del proceso de ingreso de datos. El 92,9 % de los participantes seleccionó las opciones 4 o 5.
+
+<img width="645" height="304" alt="image" src="https://github.com/user-attachments/assets/9342331e-41b4-4bf1-b45a-ea482d6cdc1c" />
+
+*Figura US-01. Distribución de respuestas sobre la facilidad para completar el formulario de PULSO. Fuente: Google Forms, elaboración propia (n = 14).*
+
+**Pregunta 2. Comprensión del resultado presentado**
+
+La comprensión del resultado mostrado obtuvo un promedio de 4,64. Este resultado indica que la mayoría de los participantes consideró comprensible la información presentada después de ejecutar el análisis.
+
+<img width="650" height="328" alt="image" src="https://github.com/user-attachments/assets/e99a1996-0374-4cc0-beee-eaae561e998b" />
+
+*Figura US-02. Distribución de respuestas sobre la comprensión del resultado predictivo. Fuente: Google Forms, elaboración propia (n = 14).*
+
+**Pregunta 3. Comprensión de los factores explicativos**
+
+La comprensión de los factores que influyeron en el resultado alcanzó un promedio de 4,50. Aunque predominan las valoraciones positivas, este resultado indica que la explicación de las contribuciones de las variables puede fortalecerse.
+
+<img width="643" height="319" alt="image" src="https://github.com/user-attachments/assets/79e45cdc-edfd-4cb5-9c47-0fe128bebdf7" />
+
+*Figura US-03. Distribución de respuestas sobre la comprensión de los factores explicativos del modelo. Fuente: Google Forms, elaboración propia (n = 14).*
+
+**Pregunta 4. Claridad de las recomendaciones**
+
+La claridad de las recomendaciones educativas obtuvo un promedio de 4,57. Los resultados sugieren que la información proporcionada por el componente RAG fue percibida como comprensible por la mayoría de los participantes.
+
+<img width="647" height="325" alt="image" src="https://github.com/user-attachments/assets/a7e1b5d4-43fc-4948-98ef-4871738d1b0e" />
+
+*Figura US-04. Distribución de respuestas sobre la claridad de las recomendaciones educativas. Fuente: Google Forms, elaboración propia (n = 14).*
+
+**Pregunta 5. Facilidad de uso de la simulación**
+
+La funcionalidad de simulación obtuvo un promedio de 4,50 en facilidad de uso y comparación. Los participantes manifestaron una percepción favorable respecto a la interacción con los escenarios simulados.
+
+<img width="648" height="322" alt="image" src="https://github.com/user-attachments/assets/86872357-57e1-48f2-b2df-1b5400574b26" />
+
+*Figura US-05. Distribución de respuestas sobre la facilidad para utilizar y comparar escenarios simulados. Fuente: Google Forms, elaboración propia (n = 14).*
+
+**Pregunta 6. Comprensión del carácter educativo de PULSO**
+
+La afirmación relacionada con comprender que PULSO es una herramienta educativa y no sustituye una consulta médica obtuvo el promedio más alto de la evaluación, con 4,79.
+
+Este resultado muestra una percepción favorable sobre la comunicación del propósito y las limitaciones de la plataforma.
+
+<img width="642" height="344" alt="image" src="https://github.com/user-attachments/assets/1cb1e188-96c1-4f07-84e9-7bf21dd3cdb8" />
+
+*Figura US-06. Distribución de respuestas sobre la comprensión del carácter educativo y no diagnóstico de PULSO. Fuente: Google Forms, elaboración propia (n = 14).*
+
+**Pregunta 7. Utilidad educativa de las recomendaciones**
+
+La utilidad de las recomendaciones para comprender hábitos relacionados con la salud cardiovascular obtuvo un promedio de 4,57.
+
+Este resultado sugiere que los participantes percibieron las recomendaciones como un recurso educativo útil para interpretar aspectos relacionados con sus hábitos.
+
+<img width="646" height="361" alt="image" src="https://github.com/user-attachments/assets/58506a6b-eca2-4a7a-b09e-307daef687fa" />
+
+*Figura US-07. Distribución de respuestas sobre la utilidad educativa de las recomendaciones. Fuente: Google Forms, elaboración propia (n = 14).*
+
+**Pregunta 8. Identificación de fuentes documentales**
+
+La facilidad para identificar las fuentes documentales que respaldan las recomendaciones obtuvo un promedio de 4,36 y un porcentaje de valoraciones positivas del 85,7 %.
+
+Este fue el aspecto con menor valoración de toda la encuesta, lo que permite identificar una oportunidad de mejora en la presentación, ubicación y accesibilidad de las referencias documentales.
+
+<img width="644" height="331" alt="image" src="https://github.com/user-attachments/assets/b081abf0-5a54-480a-af05-f6681db9fc57" />
+
+*Figura US-08. Distribución de respuestas sobre la facilidad para identificar las fuentes documentales. Fuente: Google Forms, elaboración propia (n = 14).*
+
+**Pregunta 9. Facilidad de uso general**
+
+La facilidad de uso general de PULSO obtuvo un promedio de 4,64. Este resultado refleja una percepción favorable de la experiencia global entre los participantes encuestados.
+
+<img width="639" height="309" alt="image" src="https://github.com/user-attachments/assets/4f456779-78cd-4a62-84da-de65a0203471" />
+
+*Figura US-09. Distribución de respuestas sobre la facilidad de uso general de PULSO. Fuente: Google Forms, elaboración propia (n = 14).*
+
+En conjunto, las nueve afirmaciones obtuvieron promedios superiores a 4 sobre 5. No obstante, las diferencias entre las valoraciones permiten identificar áreas específicas que pueden optimizarse, especialmente la presentación de las fuentes documentales, la explicación de los factores predictivos y la simulación de escenarios.
+
+#### 13.3.3 Resultados cualitativos
+
+Además de las preguntas de escala Likert, el cuestionario incluyó dos preguntas abiertas destinadas a identificar dificultades de comprensión y oportunidades de mejora.
+
+**Pregunta 10. ¿Qué parte de PULSO te resultó más confusa?**
+
+Las respuestas mostraron que algunos participantes no experimentaron dificultades significativas durante el uso de la plataforma.
+
+Sin embargo, también se identificaron observaciones relacionadas con la interpretación del umbral de clasificación, la terminología médica, los valores de presión arterial y la presentación de información técnica.
+
+Estas dificultades evidencian que la comprensión de los resultados no depende exclusivamente de la navegación, sino también de la familiaridad del usuario con conceptos estadísticos y cardiovasculares.
+
+
+**Pregunta 11. ¿Qué cambiarías para que fuera más fácil de usar?**
+
+Entre las sugerencias de mejora se mencionaron la necesidad de explicar con mayor claridad el umbral utilizado por el modelo, destacar visualmente la clasificación del resultado y simplificar determinadas expresiones médicas.
+
+También se propusieron mejoras en la distribución de los elementos de la interfaz, la presentación de colores, el uso de iconos y recursos visuales, así como la ubicación de controles en dispositivos móviles.
+
+Estas observaciones permiten establecer prioridades para futuras iteraciones del frontend, principalmente relacionadas con la comunicación de resultados, la legibilidad y la accesibilidad de la plataforma.
+
+#### 13.3.4 Síntesis y limitaciones de la prueba
+
+La prueba de usabilidad mostró resultados favorables en todos los aspectos evaluados, con un promedio global de 4,59 sobre 5 y un 92,1 % de valoraciones positivas.
+
+La comprensión declarada del carácter educativo de PULSO fue el aspecto mejor valorado, mientras que la facilidad para identificar las fuentes documentales presentó el menor promedio.
+
+Las respuestas abiertas complementaron los resultados cuantitativos al identificar oportunidades de mejora relacionadas con el umbral de clasificación, el lenguaje técnico y la presentación visual.
+
+Sin embargo, la evaluación presenta limitaciones metodológicas. Se utilizó una muestra reducida de 14 participantes, no se dispone de una caracterización demográfica verificable y los resultados corresponden a percepciones autodeclaradas.
+
+Además, el instrumento no incluyó pruebas objetivas de comprensión de los resultados, mediciones de tiempo ni tareas estandarizadas de usabilidad.
+
+Por tanto, los resultados proporcionan evidencia exploratoria sobre la experiencia de uso del MVP, pero no permiten afirmar que la plataforma haya sido validada clínicamente, que todos los participantes comprendieran correctamente sus resultados o que los hallazgos puedan generalizarse a una población más amplia.
 
 ## 14. Resultados, discusión y conclusiones
 
@@ -1942,9 +2103,207 @@ En conjunto, los resultados muestran que la evolución del RAG permitió mejorar
 
 La versión definitiva constituye una solución técnicamente funcional para complementar las predicciones de XGBoost y las explicaciones SHAP con información documental de carácter educativo. No obstante, la persistencia de recomendaciones con respaldo semántico parcial y de algunas desviaciones de alcance confirma la necesidad de continuar fortaleciendo los mecanismos de verificación de contenido y realizar evaluaciones adicionales antes de considerar cualquier aplicación clínica.
 
-## 15. Trabajo futuro
+### 14.3 Evaluación y discusión de los resultados de usabilidad
 
-Identifica y describe posibles extensiones, mejoras o líneas de investigación que quedan abiertas a partir del proyecto. Puede incluir nuevas funcionalidades, optimizaciones, escalabilidad, integraciones con otros sistemas o estudios complementarios que permitan profundizar los resultados obtenidos.
+La prueba de usabilidad permitió complementar las evaluaciones técnicas de PULSO mediante el análisis de la percepción de los usuarios frente a las funcionalidades del MVP. Los resultados obtenidos fueron predominantemente favorables, con un promedio global de 4,59 sobre 5 y un 92,1 % de valoraciones positivas entre las 126 respuestas de escala Likert.
+
+Estos resultados sugieren que los participantes percibieron la plataforma como una herramienta relativamente fácil de utilizar y que sus funcionalidades principales presentaron niveles favorables de claridad. Sin embargo, el análisis de las respuestas abiertas evidencia que una experiencia de uso positiva no garantiza necesariamente una interpretación correcta de la información estadística y cardiovascular.
+
+Uno de los hallazgos más relevantes corresponde a las dificultades expresadas por algunos participantes para comprender el umbral de clasificación. En PULSO, el umbral de 0,38 fue seleccionado con el propósito de priorizar la sensibilidad del modelo XGBoost y disminuir la proporción de falsos negativos. No obstante, este valor constituye una decisión técnica de clasificación y no representa un límite clínico universal.
+
+Por esta razón, resulta necesario mejorar la comunicación del umbral dentro de la interfaz, explicando de forma accesible cómo se utiliza para determinar la clasificación y diferenciándolo de un diagnóstico médico. Esta necesidad adquiere especial relevancia considerando que PULSO está dirigido a usuarios que no necesariamente poseen conocimientos especializados en aprendizaje automático o medicina.
+
+En relación con la explicabilidad, la comprensión de los factores que influyeron en el resultado obtuvo un promedio de 4,50. Aunque la valoración es favorable, las respuestas cualitativas muestran la conveniencia de complementar las explicaciones técnicas con recursos visuales y lenguaje más sencillo. La incorporación de SHAP permite identificar contribuciones de las variables al comportamiento del modelo, pero su utilidad educativa depende de que dichas contribuciones sean interpretadas correctamente por los usuarios.
+
+Por otra parte, el componente RAG recibió valoraciones positivas en claridad y utilidad educativa de sus recomendaciones, ambas con un promedio de 4,57. Estos resultados sugieren que la información documental generada fue percibida como comprensible y útil por los participantes.
+
+Sin embargo, la identificación de las fuentes documentales obtuvo el promedio más bajo de la encuesta, con 4,36. Este hallazgo complementa la evaluación técnica del RAG presentada anteriormente. Aunque el componente alcanzó una trazabilidad técnica de las referencias del 100 % en los casos evaluados, esto no garantiza que las fuentes sean fácilmente localizables o comprensibles para el usuario final.
+
+En consecuencia, la trazabilidad documental debe considerarse desde dos dimensiones complementarias: la existencia de referencias verificables en la respuesta generada y la facilidad con la que los usuarios pueden identificarlas y consultarlas dentro de la interfaz.
+
+La funcionalidad de simulación obtuvo un promedio de 4,50, lo que indica una percepción favorable de su facilidad de uso. No obstante, el cuestionario no evaluó objetivamente si los participantes comprendieron que las variaciones mostradas representan cambios hipotéticos en la salida del modelo y no efectos clínicos garantizados.
+
+Este aspecto requiere especial atención, dado que las simulaciones permiten explorar la sensibilidad del modelo frente a modificaciones de variables, pero no demuestran relaciones causales entre dichas modificaciones y la evolución real de la salud cardiovascular.
+
+Otro resultado relevante corresponde a la comprensión declarada del carácter educativo y no diagnóstico de PULSO, que obtuvo el promedio más alto de la evaluación, con 4,79. Este resultado es favorable para el propósito del proyecto, aunque debe interpretarse como una percepción autodeclarada y no como evidencia independiente de comprensión clínica.
+
+Las observaciones relacionadas con los colores, la distribución visual, los elementos gráficos y la experiencia móvil también indican que existen posibilidades de mejora en el diseño de la interfaz. Estas modificaciones podrían facilitar la interacción con la plataforma sin requerir necesariamente cambios en los componentes predictivos o documentales.
+
+Desde una perspectiva metodológica, los resultados deben interpretarse considerando las limitaciones de la evaluación. El tamaño de la muestra, la ausencia de caracterización de los participantes y el uso de un instrumento basado en autopercepción impiden generalizar los hallazgos a toda la población potencial de usuarios.
+
+Asimismo, no se evaluaron de forma objetiva la eficacia educativa, la retención del conocimiento ni la capacidad de interpretar correctamente los resultados antes y después de utilizar PULSO.
+
+En conjunto, la prueba de usabilidad aporta evidencia preliminar favorable sobre la experiencia de uso del MVP y permite identificar oportunidades específicas de mejora. Los hallazgos sugieren que la evolución de PULSO debe considerar no solamente el desempeño técnico del modelo predictivo y del RAG, sino también la capacidad de la interfaz para comunicar información compleja de forma clara, accesible y responsable.
+
+Por tanto, las prioridades de mejora identificadas se concentran en la explicación del umbral de clasificación, la simplificación de términos médicos, la presentación de factores explicativos, la visibilidad de las fuentes documentales y la organización visual de las funcionalidades. Estas mejoras contribuirían a fortalecer el propósito educativo de PULSO, sin atribuirle una validación clínica que no ha sido realizada.
+
+### 14.4 Resultados y discusión de la integración del sistema
+
+Las pruebas de integración permitieron evaluar el funcionamiento coordinado de los principales componentes de PULSO y comprobar la interoperabilidad de sus funcionalidades dentro del flujo previsto para el MVP. Las validaciones documentadas en la sección 13.2 comprendieron la comunicación entre el backend y el servicio de Machine Learning, la ejecución de predicciones y explicaciones mediante SHAP, la integración con el componente RAG, la simulación de escenarios y las interacciones realizadas desde el frontend.
+
+Los resultados satisfactorios de las pruebas ejecutadas proporcionan evidencia del funcionamiento conjunto de los componentes, más allá de su validación individual. El backend actúa como elemento de coordinación entre el servicio de inferencia y el componente RAG, mientras que la interfaz permite introducir datos, visualizar resultados, consultar información educativa y comparar escenarios hipotéticos. Esta integración facilita que las capacidades desarrolladas puedan utilizarse dentro de una misma plataforma.
+
+Las pruebas realizadas mediante solicitudes HTTP permitieron verificar la comunicación entre servicios y la compatibilidad de los contratos de intercambio de información. Asimismo, las pruebas automatizadas desde el frontend evaluaron recorridos funcionales que incluyen el diligenciamiento del formulario, la presentación de resultados y la interacción con las funcionalidades disponibles. Las pruebas controladas de manejo de errores complementaron estas verificaciones, aunque sus resultados no deben interpretarse como equivalentes a pruebas ejecutadas íntegramente con servicios externos reales.
+
+Un aspecto relevante de la integración corresponde a la separación entre el procesamiento predictivo y la generación de información documental. PULSO ejecuta el análisis mediante el servicio de Machine Learning y conserva temporalmente los datos necesarios para solicitar posteriormente las explicaciones y recomendaciones del componente RAG. De esta manera, la generación documental utiliza los resultados previamente obtenidos, sin requerir una nueva inferencia del modelo predictivo.
+
+Esta separación contribuye a mantener responsabilidades diferenciadas entre los componentes. El servicio de Machine Learning se encarga de la predicción, la explicabilidad y la simulación; el backend coordina las operaciones y valida los contratos; y el workflow de n8n realiza el procesamiento documental mediante la recuperación de fuentes almacenadas en Supabase y la generación de información educativa.
+
+Desde el punto de vista de infraestructura, el proyecto dispone de una configuración reproducible mediante Docker Compose, integrada por cuatro servicios principales: frontend, backend, ML Service y NGINX. Adicionalmente, el componente RAG funciona mediante un workflow alojado en un servidor externo. Esta arquitectura permitió separar la ejecución de los servicios principales de las dependencias externas utilizadas para la generación documental.
+
+Asimismo, PULSO cuenta con un despliegue público realizado con el apoyo de la universidad, que permite acceder a la plataforma desde Internet. No obstante, las pruebas de integración documentadas no constituyen por sí mismas una validación exhaustiva de la infraestructura universitaria, puesto que no se dispone de información completa sobre sus mecanismos internos de despliegue, administración y operación.
+
+La integración también se encuentra respaldada por los procesos de integración y entrega continua implementados mediante GitHub Actions. Estos incluyen verificaciones automatizadas del frontend, backend, servicio de Machine Learning e infraestructura, además de la construcción y publicación de imágenes Docker. Sin embargo, es importante distinguir las comprobaciones basadas en componentes simulados de aquellas que utilizan servicios reales, así como la publicación de imágenes de su despliegue efectivo en el entorno universitario.
+
+A pesar de los resultados favorables, la integración funcional no elimina las limitaciones identificadas en las evaluaciones individuales. El modelo predictivo presenta diferencias de desempeño entre grupos de edad; el componente RAG mantiene oportunidades de mejora en la pertinencia y delimitación de la información generada; y la prueba de usabilidad identificó dificultades relacionadas con la interpretación del umbral, algunos conceptos médicos y la identificación de las fuentes documentales.
+
+Estos resultados muestran que la integración técnica constituye una condición necesaria para el funcionamiento de PULSO, pero no es suficiente para garantizar la calidad de la experiencia educativa ni la validez clínica de sus resultados. Del mismo modo, las pruebas realizadas no permiten afirmar que la plataforma haya sido evaluada exhaustivamente en condiciones de alta concurrencia, disponibilidad prolongada o tolerancia a fallos.
+
+En conjunto, las validaciones realizadas respaldan que PULSO dispone de un MVP funcional en el que la clasificación mediante Machine Learning, la explicabilidad con SHAP, la generación de información educativa mediante RAG y la simulación de escenarios pueden operar de manera integrada. El trabajo futuro deberá orientarse principalmente a fortalecer la robustez operativa, mejorar la comunicación de resultados, ampliar la evaluación con usuarios y profundizar en la validación de los componentes, manteniendo el carácter educativo y no diagnóstico de la plataforma.
+
+## 15. Conclusiones y trabajo futuro
+
+### 15.1 Conclusiones generales
+
+El desarrollo de PULSO permitió materializar una propuesta tecnológica orientada a integrar aprendizaje automático, explicabilidad, simulación de escenarios y generación de información preventiva dentro de una plataforma web educativa sobre salud cardiovascular. La solución surgió de la necesidad de facilitar la comprensión de factores asociados con las enfermedades cardiovasculares mediante herramientas de inteligencia artificial, procurando que los resultados fueran accesibles para personas sin conocimientos especializados.
+
+La visión inicial del proyecto contemplaba una plataforma capaz de estimar el riesgo cardiovascular de un individuo, explicar sus predicciones, permitir la exploración de escenarios personalizados, ofrecer recomendaciones preventivas y mejorar progresivamente su capacidad predictiva mediante mecanismos de aprendizaje continuo. Durante el desarrollo, esta propuesta se delimitó a un producto mínimo viable (MVP) que priorizó la implementación, integración y evaluación de las funcionalidades principales, manteniendo el aprendizaje continuo como una posibilidad de evolución posterior.
+
+En relación con el componente predictivo, se seleccionó un modelo XGBoost de clasificación binaria entrenado con el *Cardiovascular Disease Dataset*. El modelo alcanzó una sensibilidad aproximada del 80,2 % en el conjunto de prueba, cumpliendo el objetivo establecido para el MVP mediante un umbral de clasificación de 0,38. Sin embargo, la especificidad cercana al 61,6 % evidencia el compromiso existente entre la identificación de casos positivos y la generación de falsos positivos. Asimismo, los experimentos realizados por grupos de edad identificaron diferencias de desempeño que justifican continuar investigando la estabilidad y capacidad de generalización del modelo.
+
+Es importante precisar que la implementación desarrollada estima la probabilidad de pertenecer a la clase asociada con la presencia de enfermedad cardiovascular en el conjunto de datos utilizado. Por tanto, sus resultados no equivalen a una predicción clínica validada del riesgo de desarrollar eventos cardiovasculares futuros.
+
+La incorporación de SHAP permitió identificar las contribuciones de las variables a las predicciones individuales, mientras que la simulación de escenarios facilitó la exploración de cambios hipotéticos en determinadas características del perfil. Estas funcionalidades fortalecieron la capacidad explicativa de la plataforma, aunque sus resultados no permiten establecer relaciones causales ni garantizar efectos clínicos derivados de las modificaciones simuladas.
+
+Por otra parte, el componente RAG permitió complementar la clasificación predictiva con explicaciones y recomendaciones educativas sustentadas en documentos seleccionados. La evaluación de la versión definitiva obtuvo una precisión Precision@5 del 66,11 % y un Hit Rate@5 del 100 %, además de una trazabilidad técnica de referencias del 100 % en los casos evaluados. Estos resultados evidencian avances en la recuperación de información y en la identificación de las fuentes utilizadas.
+
+No obstante, la evaluación también identificó limitaciones relacionadas con la pertinencia de algunos contenidos y la fundamentación semántica estricta de determinadas explicaciones. En consecuencia, disponer de referencias documentales técnicamente válidas no garantiza que todas las afirmaciones generadas estén suficientemente respaldadas por los fragmentos recuperados.
+
+Las pruebas de componentes e integración aportaron evidencia del funcionamiento coordinado de los principales servicios de PULSO. La arquitectura implementada permitió articular la interfaz web, el backend, el servicio de inferencia de Machine Learning y el componente RAG, manteniendo responsabilidades diferenciadas y contratos de comunicación entre los servicios. Asimismo, la contenerización mediante Docker y la implementación de procesos de integración y entrega continua contribuyeron a mejorar la reproducibilidad, trazabilidad y mantenibilidad del sistema.
+
+Adicionalmente, la publicación de PULSO en Internet, realizada con el apoyo de la universidad, permitió poner el MVP a disposición de usuarios dentro y fuera de la institución. Este avance representó un paso importante hacia la utilización de la plataforma fuera del entorno local de desarrollo, aunque no constituye por sí mismo una validación de escalabilidad, disponibilidad prolongada o seguridad operativa.
+
+La evaluación de usabilidad, realizada con 14 participantes, obtuvo un promedio global de 4,59 sobre 5 y un 92,1 % de valoraciones positivas. Estos resultados sugieren una percepción favorable de la experiencia de uso. Sin embargo, también se identificaron oportunidades de mejora relacionadas con la interpretación del umbral de clasificación, el lenguaje médico, la presentación de los factores explicativos y la identificación de las fuentes documentales.
+
+En conjunto, PULSO alcanzó el objetivo de construir un MVP funcional que integra capacidades de clasificación predictiva, explicabilidad, simulación e información educativa respaldada por fuentes. Su principal aporte consiste en reunir estas funcionalidades dentro de una misma plataforma, procurando facilitar la comprensión de los resultados mediante mecanismos de inteligencia artificial explicable y recuperación documental.
+
+Sin embargo, el proyecto no ha sido sometido a validación clínica ni dispone de evidencia que permita utilizarlo como instrumento de diagnóstico o decisión médica. Por esta razón, debe mantenerse su carácter exclusivamente educativo, sin sustituir la valoración realizada por profesionales de la salud.
+
+### 15.2 Trabajo futuro
+
+Los resultados obtenidos permiten identificar diferentes líneas de investigación y desarrollo orientadas a fortalecer la capacidad predictiva, la confiabilidad de las explicaciones, la experiencia de uso y la evolución tecnológica de PULSO.
+
+#### 15.2.1 Validación externa y mejora de la capacidad predictiva
+
+Una de las principales actividades futuras consiste en evaluar el modelo con conjuntos de datos externos procedentes de poblaciones diferentes a la utilizada durante su entrenamiento. Esta validación permitiría analizar su capacidad de generalización y determinar si las métricas observadas se mantienen en condiciones distintas.
+
+También se recomienda profundizar en los análisis de desempeño por grupos de edad y otras características disponibles, prestando especial atención a la sensibilidad, especificidad, discriminación, calibración y diferencias entre subgrupos.
+
+Los resultados obtenidos durante los experimentos por edad sugieren que futuras investigaciones podrían explorar estrategias de modelado más robustas, incluyendo ajustes de hiperparámetros, recalibración y comparación de algoritmos alternativos.
+
+Asimismo, para aproximarse a la visión inicial de estimación de riesgo cardiovascular futuro, sería necesario investigar conjuntos de datos longitudinales que incluyan eventos clínicos y horizontes temporales claramente definidos. Este cambio requeriría reformular y validar el problema predictivo, en lugar de interpretar directamente el clasificador actual como una herramienta de pronóstico clínico.
+
+#### 15.2.2 Incorporación de aprendizaje continuo mediante MLOps
+
+El aprendizaje continuo constituye una de las principales líneas de evolución previstas desde la formulación inicial de PULSO. La propuesta original contemplaba que el modelo pudiera mejorar progresivamente su capacidad predictiva mediante la incorporación de nuevos datos después de su despliegue.
+
+Esta funcionalidad fue excluida del alcance del MVP académico, que priorizó la implementación de una versión estable, reproducible y evaluada del modelo XGBoost. Sin embargo, la infraestructura de versionamiento, automatización y pruebas desarrollada durante el proyecto proporciona una base técnica para estudiar su incorporación en futuras versiones.
+
+Se propone implementar inicialmente un proceso de actualización supervisada del modelo mediante nuevos conjuntos de datos clínicos debidamente autorizados, representativos y validados. Este proceso permitiría evaluar periódicamente el comportamiento predictivo y determinar cuándo resulta conveniente entrenar una nueva versión.
+
+La estrategia podría incorporar mecanismos de monitoreo de la distribución de los datos, detección de deriva (*data drift*), evaluación de desempeño cuando se disponga de etiquetas clínicas verificadas, reentrenamiento periódico y comparación de nuevas versiones frente al modelo vigente.
+
+Cada modelo candidato debería evaluarse mediante métricas de clasificación, discriminación, calibración y comportamiento por subgrupos antes de autorizar su incorporación a producción. Asimismo, sería necesario conservar la trazabilidad de los datos, configuraciones de entrenamiento, resultados experimentales, artefactos y versiones desplegadas.
+
+Debe considerarse que los perfiles introducidos por los usuarios y las predicciones generadas por PULSO no constituyen automáticamente datos de entrenamiento válidos. Para realizar aprendizaje supervisado se necesitarían etiquetas clínicas confiables, procedimientos de calidad de datos, autorizaciones para el tratamiento de información personal y controles que eviten reforzar errores o sesgos del modelo.
+
+Por estas razones, se recomienda comenzar con un esquema de reentrenamiento controlado, supervisión humana y despliegue sujeto a validaciones, en lugar de permitir que el modelo modifique autónomamente su comportamiento durante el uso de la plataforma.
+
+Esta evolución permitiría avanzar hacia la visión inicial de una plataforma capaz de mejorar progresivamente su capacidad predictiva, manteniendo condiciones de reproducibilidad, seguridad y evaluación técnica.
+
+#### 15.2.3 Fortalecimiento de la explicabilidad y la simulación
+
+Se propone mejorar la presentación de las contribuciones SHAP mediante explicaciones en lenguaje sencillo, recursos visuales y ayudas contextuales que faciliten la comprensión del comportamiento del modelo.
+
+Una prioridad identificada durante la evaluación de usabilidad consiste en explicar de manera más clara el significado del umbral de clasificación de 0,38 y su relación con la categoría asignada por el modelo, evitando confusiones con valores clínicos de referencia.
+
+Asimismo, se recomienda fortalecer la comunicación de las limitaciones de SHAP, aclarando que las contribuciones identificadas representan relaciones dentro del modelo y no necesariamente efectos causales sobre la salud cardiovascular.
+
+En cuanto a la simulación, podrían incorporarse comparaciones visuales más intuitivas entre el perfil original y los escenarios modificados, así como explicaciones adicionales sobre el carácter hipotético de los resultados.
+
+Las futuras mejoras deberán mantener la distinción entre modificaciones en las entradas del modelo, cambios en sus predicciones y efectos clínicos reales, los cuales no pueden establecerse mediante la simulación implementada.
+
+#### 15.2.4 Optimización y actualización del componente RAG
+
+El componente RAG requiere continuar evolucionando para mejorar la pertinencia, precisión documental y utilidad educativa de la información generada.
+
+Se recomienda fortalecer los mecanismos de recuperación y selección de fragmentos, revisar la correspondencia entre las afirmaciones generadas y sus fuentes y ampliar los casos de evaluación para detectar respuestas insuficientemente fundamentadas.
+
+También resulta pertinente implementar procedimientos de evaluación periódica que permitan identificar cambios en la calidad de recuperación, la cobertura de factores explicativos y la frecuencia de contenidos que excedan el alcance documental.
+
+En relación con el corpus, se propone establecer mecanismos controlados de actualización de documentos y guías de referencia, considerando su vigencia, procedencia, normalización, fragmentación y vectorización.
+
+Toda modificación del corpus o del workflow deberá acompañarse de pruebas de recuperación, revisión de trazabilidad y evaluación de la información generada antes de incorporarse a la versión utilizada por los usuarios.
+
+Adicionalmente, se recomienda mejorar la visualización de las fuentes documentales dentro del frontend, debido a que este fue el aspecto con menor valoración promedio en la prueba de usabilidad.
+
+#### 15.2.5 Mejoras de usabilidad y accesibilidad
+
+Los resultados de la encuesta permiten establecer prioridades para futuras iteraciones de la interfaz.
+
+Entre las mejoras propuestas se encuentran simplificar la explicación de los resultados predictivos, incorporar ayudas para la interpretación de términos cardiovasculares, destacar visualmente la clasificación obtenida y facilitar la identificación de las fuentes utilizadas por el RAG.
+
+También se recomienda continuar desarrollando la adaptación a dispositivos móviles, revisar la organización de los componentes visuales y mejorar aspectos relacionados con el contraste, la legibilidad y la ubicación de los controles.
+
+Para fortalecer la evaluación de estas modificaciones, se propone realizar pruebas con muestras más amplias y diversas, utilizando instrumentos estandarizados de usabilidad y mediciones objetivas del desempeño de los participantes.
+
+Estas evaluaciones permitirían complementar las percepciones registradas durante el MVP con evidencia sobre la facilidad de aprendizaje, la eficiencia y la comprensión efectiva de la plataforma.
+
+#### 15.2.6 Evaluación de la utilidad educativa
+
+Una línea de investigación relevante consiste en determinar si PULSO contribuye efectivamente a mejorar la comprensión de factores asociados con las enfermedades cardiovasculares.
+
+Para ello, podrían diseñarse estudios que evalúen el conocimiento de los participantes antes y después de utilizar la plataforma, considerando aspectos como interpretación de probabilidades, comprensión de factores explicativos, identificación de hábitos cardiovasculares y lectura crítica de recomendaciones documentales.
+
+Esta evaluación permitiría diferenciar la percepción de utilidad de una mejora demostrada en el conocimiento de los usuarios.
+
+Los resultados también podrían orientar modificaciones en la presentación de las explicaciones y en la selección de contenidos educativos, fortaleciendo la relación entre las capacidades técnicas implementadas y el propósito original de prevención y educación cardiovascular.
+
+#### 15.2.7 Robustez operativa, seguridad y mantenimiento
+
+Se recomienda ampliar las pruebas técnicas mediante evaluaciones de carga, concurrencia, recuperación ante fallos y disponibilidad prolongada, especialmente considerando que PULSO dispone de una versión accesible públicamente por Internet.
+
+También sería conveniente incorporar mecanismos de observabilidad que permitan monitorear el estado de los servicios, los tiempos de respuesta, los errores de comunicación y la disponibilidad de dependencias externas como n8n y Supabase.
+
+Para facilitar el mantenimiento, deberá conservarse la correspondencia entre las versiones del frontend, backend, modelo predictivo, imágenes Docker y workflow RAG utilizadas en cada despliegue.
+
+Asimismo, será necesario fortalecer los procedimientos de gestión de secretos, actualización de dependencias, control de acceso a los servicios internos y recuperación ante fallos.
+
+Estas actividades permitirían avanzar desde la estabilidad funcional demostrada durante las pruebas del MVP hacia una operación más robusta y controlada.
+
+#### 15.2.8 Extensiones funcionales y evolución de la plataforma
+
+La arquitectura modular de PULSO permite considerar futuras funcionalidades que amplíen su utilidad educativa y su capacidad de personalización.
+
+Entre las posibles extensiones se encuentran el almacenamiento voluntario de análisis, la comparación de evaluaciones realizadas en diferentes momentos, la incorporación de nuevas visualizaciones y la personalización de los contenidos educativos según necesidades verificadas de los usuarios.
+
+Estas funcionalidades requerirían estudiar sus implicaciones sobre la protección de datos personales, la seguridad, la arquitectura de persistencia y la interpretación adecuada de la información generada.
+
+Su desarrollo debe considerarse una posible ampliación del alcance, y no una funcionalidad pendiente para declarar completado el MVP académico.
+
+### 15.3 Consideración final
+
+PULSO representa una primera materialización de la visión de una plataforma inteligente orientada a facilitar la comprensión de factores asociados con la salud cardiovascular mediante Machine Learning, inteligencia artificial explicable, simulación de escenarios y generación de información educativa respaldada por fuentes.
+
+El proyecto permitió demostrar la integración funcional de estas tecnologías y establecer una base de ingeniería de software que favorece su mantenimiento y evolución. Las evaluaciones realizadas proporcionaron evidencia sobre el desempeño de sus componentes, la interoperabilidad del sistema y la percepción de los usuarios, al tiempo que permitieron reconocer limitaciones relevantes.
+
+La visión original de PULSO contempla una plataforma capaz de mejorar progresivamente su capacidad predictiva mediante mecanismos de aprendizaje continuo. Aunque esta funcionalidad no fue implementada en el MVP, constituye una dirección de desarrollo coherente con las prácticas de MLOps incorporadas durante el proyecto y con la necesidad de mantener los modelos actualizados frente a nuevos datos y condiciones de uso.
+
+No obstante, la evolución de PULSO deberá priorizar la calidad y representatividad de los datos, la validación de los modelos, la confiabilidad de las explicaciones, la pertinencia documental y la comprensión de los usuarios antes de ampliar sus funcionalidades o automatizar procesos de actualización.
+
+En consecuencia, el principal aporte del proyecto no consiste únicamente en integrar tecnologías de inteligencia artificial, sino en establecer una plataforma educativa funcional y una base técnica para continuar investigando cómo estas tecnologías pueden comunicar información cardiovascular de manera más comprensible, trazable y responsable.
+
+PULSO constituye así un punto de partida para futuras investigaciones y desarrollos, manteniendo una distinción fundamental entre el apoyo educativo que proporciona actualmente y las exigencias científicas, clínicas y regulatorias que serían necesarias para cualquier aplicación posterior orientada a la toma de decisiones médicas.
 
 ## 16. Referencias
 
