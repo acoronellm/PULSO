@@ -102,7 +102,10 @@ describe("PI-05 a PI-07: integración de frontend con backend real", () => {
       throw new Error("La respuesta del endpoint RAG no cumple el contrato del frontend.");
     }
 
-    expect(screen.getByRole("heading", { name: /fuentes documentales consultadas/i }))
+    const sourcesButton = screen.getByRole("button", {
+      name: /fuentes documentales consultadas/i,
+    });
+    expect(sourcesButton)
       .toBeInTheDocument();
     if (rag.body.insufficient_information) {
       expect(screen.getByRole("status")).toHaveTextContent(/información documental disponible/i);
@@ -126,7 +129,9 @@ describe("PI-05 a PI-07: integración de frontend con backend real", () => {
     fireEvent.click(screen.getByRole("link", { name: /simular escenarios/i }));
 
     await screen.findByRole("heading", { name: /qué pasaría si cambian tus factores/i });
-    fireEvent.change(screen.getByLabelText("Peso"), { target: { value: "70" } });
+    fireEvent.change(screen.getByRole("slider", { name: /peso/i }), {
+      target: { value: "70" },
+    });
     fireEvent.click(screen.getByRole("button", { name: /calcular escenario/i }));
 
     await waitFor(() => expect(isSuccessfulResponse("/api/simulate")).toBe(true));
