@@ -60,3 +60,7 @@ Este enfoque mantiene los workflows actuales de CI intactos y añade la capa de 
 ## Tutores
 
 - Jose Duvan Márquez Diaz
+
+## Asesor
+
+- Rosa Serna
