@@ -43,6 +43,12 @@ datos relacionados con la salud y no constituye almacenamiento permanente.
 | [Instalación.md](./Instalación.md) | Guía de instalación, desarrollo y despliegue |
 | [Desarrollo.md](./Desarrollo.md) | Detalles técnicos del desarrollo |
 
+### Entrega continua (Continuous Delivery)
+
+El repositorio incluye el workflow [`.github/workflows/delivery.yml`](./.github/workflows/delivery.yml), que se ejecuta en `main` y puede lanzarse manualmente solo desde esa rama. Construye y publica en GHCR las imágenes Docker del frontend, backend y ML Service con etiquetas únicas por ejecución (versión, commit y ejecución de GitHub), valida su descarga autenticada y registra sus digests junto con los resultados de los smoke tests en el resumen del workflow. El smoke test del ML Service también confirma que el modelo incluido en la imagen está cargado.
+
+Este enfoque mantiene los workflows actuales de CI intactos y añade la capa de publicación y verificación de artefactos, sin reemplazar la infraestructura de desarrollo ni deshabilitar los controles existentes.
+
 ## Estudiantes
 
 | Nombre | GitHub |

@@ -7,8 +7,6 @@ services:
 
     container_name: pulso-ml-service
 
-    volumes:
-      - ./artifacts:/app/artifacts:ro
 
     ports:
       - "127.0.0.1:8001:8001"
@@ -38,7 +36,8 @@ services:
       ML_TIMEOUT_SECONDS: 30
 
       RAG_SERVICE_URL: ${RAG_SERVICE_URL}
-      RAG_TIMEOUT_SECONDS: 30
+      RAG_TIMEOUT_SECONDS: ${RAG_TIMEOUT_SECONDS:-90}
+      RAG_WEBHOOK_API_KEY: ${RAG_WEBHOOK_API_KEY:?RAG_WEBHOOK_API_KEY debe estar configurada}
       ANALYSIS_CACHE_TTL_SECONDS: 900
       ANALYSIS_CACHE_MAX_ENTRIES: 100
 

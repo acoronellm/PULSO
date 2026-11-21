@@ -46,6 +46,7 @@ def get_recommendation_generator() -> RecommendationGenerator:
     return N8nRecommendationClient(
         url=settings.rag_service_url,
         timeout_seconds=settings.rag_timeout_seconds,
+        api_key=settings.rag_webhook_api_key,
     )
 
 

@@ -54,10 +54,22 @@ class UserData(BaseModel):
     alco: int = Field(..., ge=0, le=1)
     active: int = Field(..., ge=0, le=1)
     age_years: float = Field(..., gt=0)
-    bmi: float = Field(..., gt=0)
+    bmi: float | None = Field(default=None, gt=0)
 
     @model_validator(mode="after")
     def validate_consistency(self):
+        calculated_bmi = rules.expected_bmi(self.weight, self.height)
+
+        if self.bmi is not None:
+            _apply_rule(
+                rules.validate_bmi,
+                self.bmi,
+                self.weight,
+                self.height,
+            )
+
+        self.bmi = calculated_bmi
+
         _apply_rule(
             rules.validate_profile,
             self.ap_hi,
@@ -119,8 +131,12 @@ class RagSourceLines(BaseModel):
 class RagSource(BaseModel):
     source_id: str
     source: str
-    score: float
-    lines: RagSourceLines
+    author: str | None = None
+    publication_year: int | None = None
+    source_url: str | None = None
+    pdf_url: str | None = None
+    score: float | None = None
+    lines: RagSourceLines | None = None
 
 
 class RagRecommendation(BaseModel):
@@ -129,16 +145,43 @@ class RagRecommendation(BaseModel):
     source_ids: list[str] = Field(default_factory=list)
     sources: list[RagSource] = Field(default_factory=list)
 
+class RagFactorExplanation(BaseModel):
+    query_group: str
+    factor: str
+    features: list[str] = Field(default_factory=list)
+    explanation: str
+    source_ids: list[str] = Field(default_factory=list)
+    sources: list[RagSource] = Field(default_factory=list)
 
 class RagResponse(BaseModel):
     summary: str
     recommendations: list[RagRecommendation] = Field(default_factory=list)
+    factor_explanations: list[RagFactorExplanation] = Field(default_factory=list)
     considerations: str
     note: str
     insufficient_information: bool
 
     @classmethod
-    def from_domain(cls, report: RecommendationReport) -> RagResponse:
+    def from_domain(cls, report: RecommendationReport) -> "RagResponse":
+        def map_source(source) -> RagSource:
+            return RagSource(
+                source_id=source.source_id,
+                source=source.source,
+                author=source.author,
+                publication_year=source.publication_year,
+                source_url=source.source_url,
+                pdf_url=source.pdf_url,
+                score=source.score,
+                lines=(
+                    RagSourceLines(
+                        from_=source.lines.start,
+                        to=source.lines.end,
+                    )
+                    if source.lines is not None
+                    else None
+                ),
+            )
+
         return cls(
             summary=report.summary,
             considerations=report.considerations,
@@ -149,20 +192,22 @@ class RagResponse(BaseModel):
                     factor=item.factor,
                     recommendation=item.recommendation,
                     source_ids=list(item.source_ids),
-                    sources=[
-                        RagSource(
-                            source_id=source.source_id,
-                            source=source.source,
-                            score=source.score,
-                            lines=RagSourceLines(from_=source.lines.start, to=source.lines.end),
-                        )
-                        for source in item.sources
-                    ],
+                    sources=[map_source(source) for source in item.sources],
                 )
                 for item in report.recommendations
             ],
+            factor_explanations=[
+                RagFactorExplanation(
+                    query_group=item.query_group,
+                    factor=item.factor,
+                    features=list(item.features),
+                    explanation=item.explanation,
+                    source_ids=list(item.source_ids),
+                    sources=[map_source(source) for source in item.sources],
+                )
+                for item in report.factor_explanations
+            ],
         )
-
 
 # -------------------------
 # Simulación
@@ -184,15 +229,41 @@ class SimulationRequest(BaseModel):
     original: UserData
     changes: SimulationChanges
 
+
     @model_validator(mode="after")
-    def validate_simulated_bmi(self):
+    def validate_simulated_profile(self):
         simulated_weight = (
             self.changes.weight
             if self.changes.weight is not None
             else self.original.weight
         )
-        _apply_rule(rules.validate_simulated_weight, simulated_weight, self.original.height)
+
+        simulated_ap_hi = (
+            self.changes.ap_hi
+            if self.changes.ap_hi is not None
+            else self.original.ap_hi
+        )
+
+        simulated_ap_lo = (
+            self.changes.ap_lo
+            if self.changes.ap_lo is not None
+            else self.original.ap_lo
+        )
+
+        _apply_rule(
+            rules.validate_blood_pressure,
+            simulated_ap_hi,
+            simulated_ap_lo,
+        )
+
+        _apply_rule(
+            rules.validate_simulated_weight,
+            simulated_weight,
+            self.original.height,
+        )
+
         return self
+
 
 
 class SimulationResult(BaseModel):
