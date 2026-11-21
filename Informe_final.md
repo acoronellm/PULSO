@@ -1485,76 +1485,6 @@ Presenta el informe de pruebas realizadas para verificar que el sistema funciona
 
 Las pruebas se organizaron en dos grupos: evaluaciones de XGBoost y RAG ya documentadas, cuyos resultados se conservan, y pruebas técnicas automatizadas de SHAP, simulación, backend, ML Service y frontend. Estas últimas verifican los casos definidos para cada módulo; sus resultados se presentan a continuación junto con las evidencias disponibles.
 
-#### 13.1.1 Evaluaciones previamente realizadas
-
-Las métricas de PC-01 y PC-02 se resumen aquí para facilitar la lectura. El procedimiento, los criterios y el análisis detallado se encuentran en el [Segundo Informe](./SegundoInforme.md).
-
-| ID | Componente | Resultado conservado |
-|---|---|---|
-| PC-01 | XGBoost | Evaluación sobre 10.292 registros con umbral 0,38. Accuracy: 0,707928; Precision: 0,671492; Recall: 0,801807; especificidad: 0,616035; F1: 0,730886; ROC-AUC: 0,796757; Brier Score: 0,182506; Log Loss: 0,545384. El informe previo también presenta calibración e indicadores por subgrupos. |
-| PC-02 | RAG | Evaluación funcional de 20 casos. Precision@5: 35,0 %; Hit Rate@5: 85,0 %; cobertura SHAP: 75,5 %; cobertura SHAP accionable: 100 % en casos aplicables; trazabilidad técnica: 100 %; trazabilidad semántica estricta: 98,3 %; respuestas fuera de alcance: 65,0 %; uso correcto de `insufficient_information`: 90,0 %. |
-
-#### 13.1.2 Pruebas técnicas automatizadas
-
-| ID | Componente | Casos cubiertos | Resultado |
-|---|---|---|---|
-| PC-03 | SHAP | Generación y orden de factores, dirección de contribución y correspondencia de variables transformadas; se complementa con la respuesta de inferencia real mostrada en la Figura 13.1.1. | **4 pruebas unitarias aprobadas.** |
-| PC-04 | Simulación | Escenarios, comparación de probabilidades, recálculo del IMC y rechazo de presión arterial inválida. | **3 pruebas aprobadas.** |
-| PC-05 | Backend | Casos de uso, dominio, infraestructura, contratos HTTP, manejo de errores y arquitectura (`backend/tests`). | **81 aprobadas; 0 fallidas; 0 omitidas.** |
-| PC-06 | ML Service | Salud, predicción, SHAP, simulación e integración de predicción con el modelo real (`ml_service/tests`). | **14 aprobadas; 0 fallidas; 0 omitidas.** La ejecución reportada incluye la prueba del modelo real. Pytest mostró 3 advertencias deprecadas de SHAP. |
-| PC-07 | Frontend | Vitest, lint con Oxlint, typecheck con TypeScript y build de producción. | **54 pruebas aprobadas en 6 archivos.** Lint, typecheck y build finalizaron correctamente; el build transformó 32 módulos. |
-
-PC-03 y PC-04 son subconjuntos de la suite de PC-06; sus cantidades no se suman nuevamente al total de esa suite.
-
-##### Comandos de ejecución
-
-Desde la raíz del repositorio:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest backend\tests -ra
-.\.venv\Scripts\python.exe -m pytest ml_service\tests -ra
-```
-
-Para ejecutar PC-03 y PC-04 por separado, sin repetir toda la suite:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest ml_service\tests\test_explainer.py -ra
-.\.venv\Scripts\python.exe -m pytest ml_service\tests\test_simulator.py -ra
-```
-
-Los comandos del frontend se ejecutan dentro de `frontend`:
-
-```powershell
-npm test
-npm run lint
-npm run typecheck
-npm run build
-```
-
-##### Evidencias gráficas
-
-La Figura 13.1.1 presenta una respuesta de inferencia real del modelo v1 junto con los factores SHAP devueltos. La Figura 13.1.2 documenta el resumen de la suite del backend. La Figura 13.1.3 muestra la ejecución de la suite del ML Service; la captura disponible está recortada antes del resumen final de Pytest, por lo que el conteo reportado en la tabla corresponde a la ejecución registrada y no se distingue en esa imagen. Las Figuras 13.1.4 y 13.1.5 muestran, respectivamente, los resultados de Vitest y las verificaciones estáticas y de compilación del frontend.
-
-![Inferencia real de XGBoost v1 y explicación SHAP para un perfil de prueba](./EvidenciasPruebas/PC-04.png)
-
-*Figura 13.1.1. Respuesta real del modelo PULSO v1: probabilidad, clasificación, umbral y principales factores SHAP.*
-
-![Resumen de Pytest para la suite del backend](./EvidenciasPruebas/PC-05.png)
-
-*Figura 13.1.2. Ejecución de PC-05: 81 pruebas aprobadas.*
-
-![Ejecución de la suite de pruebas del ML Service](./EvidenciasPruebas/PC-06%28PC-03_PC-04%29.png)
-
-*Figura 13.1.3. Ejecución de PC-06; la captura muestra los módulos de prueba, pero no el resumen final de Pytest.*
-
-![Resumen de Vitest para las pruebas del frontend](./EvidenciasPruebas/PC-07-1.png)
-
-*Figura 13.1.4. Ejecución de PC-07 con Vitest: 54 pruebas aprobadas en 6 archivos.*
-
-![Resultados de lint, typecheck y build del frontend](./EvidenciasPruebas/PC-07-2.png)
-
-*Figura 13.1.5. Verificación de Oxlint, TypeScript y build de producción.*
-
 #### 13.1.1 Evaluación del componente predictivo
 
 La evaluación del componente predictivo se realizó utilizando una partición independiente de los datos en conjuntos de entrenamiento, validación y prueba. Después del proceso de depuración del conjunto de datos se conservaron **68.610 registros**.
@@ -1827,6 +1757,69 @@ Adicionalmente, se realizó una comparación descriptiva entre las métricas rep
 *Nota.* La comparación es descriptiva, debido a que las versiones evaluadas utilizaron diferentes configuraciones de corpus, recuperación y generación. Las cifras permiten contrastar los resultados observados, pero no constituyen una comparación experimental controlada.
 
 La interpretación de estas métricas, las diferencias observadas entre versiones y las limitaciones identificadas se presentan en la sección 14.
+
+
+#### 13.1.4 Pruebas técnicas automatizadas
+
+| ID | Componente | Casos cubiertos | Resultado |
+|---|---|---|---|
+| PC-03 | SHAP | Generación y orden de factores, dirección de contribución y correspondencia de variables transformadas; se complementa con la respuesta de inferencia real mostrada en la Figura 13.1.1. | **4 pruebas unitarias aprobadas.** |
+| PC-04 | Simulación | Escenarios, comparación de probabilidades, recálculo del IMC y rechazo de presión arterial inválida. | **3 pruebas aprobadas.** |
+| PC-05 | Backend | Casos de uso, dominio, infraestructura, contratos HTTP, manejo de errores y arquitectura (`backend/tests`). | **81 aprobadas; 0 fallidas; 0 omitidas.** |
+| PC-06 | ML Service | Salud, predicción, SHAP, simulación e integración de predicción con el modelo real (`ml_service/tests`). | **14 aprobadas; 0 fallidas; 0 omitidas.** La ejecución reportada incluye la prueba del modelo real. Pytest mostró 3 advertencias deprecadas de SHAP. |
+| PC-07 | Frontend | Vitest, lint con Oxlint, typecheck con TypeScript y build de producción. | **54 pruebas aprobadas en 6 archivos.** Lint, typecheck y build finalizaron correctamente; el build transformó 32 módulos. |
+
+PC-03 y PC-04 son subconjuntos de la suite de PC-06; sus cantidades no se suman nuevamente al total de esa suite.
+
+##### Comandos de ejecución
+
+Desde la raíz del repositorio:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest backend\tests -ra
+.\.venv\Scripts\python.exe -m pytest ml_service\tests -ra
+```
+
+Para ejecutar PC-03 y PC-04 por separado, sin repetir toda la suite:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest ml_service\tests\test_explainer.py -ra
+.\.venv\Scripts\python.exe -m pytest ml_service\tests\test_simulator.py -ra
+```
+
+Los comandos del frontend se ejecutan dentro de `frontend`:
+
+```powershell
+npm test
+npm run lint
+npm run typecheck
+npm run build
+```
+
+##### Evidencias gráficas
+
+La Figura 13.1.1 presenta una respuesta de inferencia real del modelo v1 junto con los factores SHAP devueltos. La Figura 13.1.2 documenta el resumen de la suite del backend. La Figura 13.1.3 muestra la ejecución de la suite del ML Service; la captura disponible está recortada antes del resumen final de Pytest, por lo que el conteo reportado en la tabla corresponde a la ejecución registrada y no se distingue en esa imagen. Las Figuras 13.1.4 y 13.1.5 muestran, respectivamente, los resultados de Vitest y las verificaciones estáticas y de compilación del frontend.
+
+![Inferencia real de XGBoost v1 y explicación SHAP para un perfil de prueba](./EvidenciasPruebas/PC-04.png)
+
+*Figura 13.1.1. Respuesta real del modelo PULSO v1: probabilidad, clasificación, umbral y principales factores SHAP.*
+
+![Resumen de Pytest para la suite del backend](./EvidenciasPruebas/PC-05.png)
+
+*Figura 13.1.2. Ejecución de PC-05: 81 pruebas aprobadas.*
+
+![Ejecución de la suite de pruebas del ML Service](./EvidenciasPruebas/PC-06%28PC-03_PC-04%29.png)
+
+*Figura 13.1.3. Ejecución de PC-06; la captura muestra los módulos de prueba, pero no el resumen final de Pytest.*
+
+![Resumen de Vitest para las pruebas del frontend](./EvidenciasPruebas/PC-07-1.png)
+
+*Figura 13.1.4. Ejecución de PC-07 con Vitest: 54 pruebas aprobadas en 6 archivos.*
+
+![Resultados de lint, typecheck y build del frontend](./EvidenciasPruebas/PC-07-2.png)
+
+*Figura 13.1.5. Verificación de Oxlint, TypeScript y build de producción.*
+
 
 ### 13.2 Pruebas de integración
 
